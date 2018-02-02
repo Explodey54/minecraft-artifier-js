@@ -1,0 +1,24 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "dev": "webpack-dev-server --hot --inline --config=./build/webpack.dev.conf.js",
+    "build": "webpack --config=./build/webpack.prod.conf.js"
+  },
+  "dependencies": {
+    "express": "^4.16.2",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.0",
+    "webpack-merge": "^4.1.1"
+  },
+  "devDependencies": {
+    "file-loader": "^1.1.6",
+    "html-webpack-plugin": "^2.30.1",
+    "jimp": "^0.2.28",
+    "worker-loader": "^1.1.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

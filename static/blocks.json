@@ -1,0 +1,730 @@
+[
+  {
+    "name": "Stone",
+    "texture_image": "stone.png"
+  },
+  {
+    "name": "Granite",
+    "texture_image": "stone_granite.png"
+  },
+  {
+    "name": "Polished Granite",
+    "texture_image": "stone_granite_smooth.png"
+  },
+  {
+    "name": "Diorite",
+    "texture_image": "stone_diorite.png"
+  },
+  {
+    "name": "Polished Diorite",
+    "texture_image": "stone_diorite_smooth.png"
+  },
+  {
+    "name": "Andesite",
+    "texture_image": "stone_andesite.png"
+  },
+  {
+    "name": "Polished Andesite",
+    "texture_image": "stone_andesite_smooth.png"
+  },
+  {
+    "name": "Grass",
+    "texture_image": "grass_side.png"
+  },
+  {
+    "name": "Dirt",
+    "texture_image": "dirt.png"
+  },
+  {
+    "name": "Cobblestone",
+    "texture_image": "cobblestone.png"
+  },
+  {
+    "name": "Oak Wood Plank",
+    "texture_image": "planks_oak.png"
+  },
+  {
+    "name": "Spruce Wood Plank",
+    "texture_image": "planks_spruce.png"
+  },
+  {
+    "name": "Birch Wood Plank",
+    "texture_image": "planks_birch.png"
+  },
+  {
+    "name": "Jungle Wood Plank",
+    "texture_image": "planks_jungle.png"
+  },
+  {
+    "name": "Acacia Wood Plank",
+    "texture_image": "planks_acacia.png"
+  },
+  {
+    "name": "Dark Oak Wood Plank",
+    "texture_image": "planks_big_oak.png"
+  },
+  {
+    "name": "Bedrock",
+    "texture_image": "bedrock.png"
+  },
+  {
+    "name": "Sand",
+    "texture_image": "sand.png"
+  },
+  {
+    "name": "Red Sand",
+    "texture_image": "red_sand.png"
+  },
+  {
+    "name": "Gravel",
+    "texture_image": "gravel.png"
+  },
+  {
+    "name": "Gold Ore",
+    "texture_image": "gold_ore.png"
+  },
+  {
+    "name": "Iron Ore",
+    "texture_image": "iron_ore.png"
+  },
+  {
+    "name": "Coal Ore",
+    "texture_image": "coal_ore.png"
+  },
+  {
+    "name": "Oak Wood",
+    "texture_image": "log_oak.png"
+  },
+  {
+    "name": "Spruce Wood",
+    "texture_image": "log_spruce.png"
+  },
+  {
+    "name": "Birch Wood",
+    "texture_image": "log_birch.png"
+  },
+  {
+    "name": "Jungle Wood",
+    "texture_image": "log_jungle.png"
+  },
+  {
+    "name": "Leaves",
+    "texture_image": "leaves.png"
+  },
+  {
+    "name": "Sponge",
+    "texture_image": "sponge.png"
+  },
+  {
+    "name": "Lapis Lazuli Ore",
+    "texture_image": "lapis_ore.png"
+  },
+  {
+    "name": "Lapis Lazuli Block",
+    "texture_image": "lapis_block.png"
+  },
+  {
+    "name": "Note Block",
+    "texture_image": "noteblock.png"
+  },
+  {
+    "name": "White Wool",
+    "texture_image": "wool_colored_white.png"
+  },
+  {
+    "name": "Orange Wool",
+    "texture_image": "wool_colored_orange.png"
+  },
+  {
+    "name": "Magenta Wool",
+    "texture_image": "wool_colored_magenta.png"
+  },
+  {
+    "name": "Light Blue Wool",
+    "texture_image": "wool_colored_light_blue.png"
+  },
+  {
+    "name": "Yellow Wool",
+    "texture_image": "wool_colored_yellow.png"
+  },
+  {
+    "name": "Lime Wool",
+    "texture_image": "wool_colored_lime.png"
+  },
+  {
+    "name": "Pink Wool",
+    "texture_image": "wool_colored_pink.png"
+  },
+  {
+    "name": "Gray Wool",
+    "texture_image": "wool_colored_gray.png"
+  },
+  {
+    "name": "Light Gray Wool",
+    "texture_image": "wool_colored_silver.png"
+  },
+  {
+    "name": "Cyan Wool",
+    "texture_image": "wool_colored_cyan.png"
+  },
+  {
+    "name": "Purple Wool",
+    "texture_image": "wool_colored_purple.png"
+  },
+  {
+    "name": "Blue Wool",
+    "texture_image": "wool_colored_blue.png"
+  },
+  {
+    "name": "Brown Wool",
+    "texture_image": "wool_colored_brown.png"
+  },
+  {
+    "name": "Green Wool",
+    "texture_image": "wool_colored_green.png"
+  },
+  {
+    "name": "Red Wool",
+    "texture_image": "wool_colored_red.png"
+  },
+  {
+    "name": "Black Wool",
+    "texture_image": "wool_colored_black.png"
+  },
+  {
+    "name": "Gold Block",
+    "texture_image": "gold_block.png"
+  },
+  {
+    "name": "Iron Block",
+    "texture_image": "iron_block.png"
+  },
+  {
+    "name": "Bricks",
+    "texture_image": "brick.png"
+  },
+  {
+    "name": "TNT",
+    "texture_image": "tnt_side.png"
+  },
+  {
+    "name": "Bookshelf",
+    "texture_image": "bookshelf.png"
+  },
+  {
+    "name": "Moss Stone",
+    "texture_image": "cobblestone_mossy.png"
+  },
+  {
+    "name": "Obsidian",
+    "texture_image": "obsidian.png"
+  },
+  {
+    "name": "Diamond Ore",
+    "texture_image": "diamond_ore.png"
+  },
+  {
+    "name": "Diamond Block",
+    "texture_image": "diamond_block.png"
+  },
+  {
+    "name": "Crafting Table",
+    "texture_image": "crafting_table_side.png"
+  },
+  {
+    "name": "Redstone Ore",
+    "texture_image": "redstone_ore.png"
+  },
+  {
+    "name": "Snow",
+    "texture_image": "snow.png"
+  },
+  {
+    "name": "Ice",
+    "texture_image": "ice.png"
+  },
+  {
+    "name": "Clay",
+    "texture_image": "clay.png"
+  },
+  {
+    "name": "Netherrack",
+    "texture_image": "netherrack.png"
+  },
+  {
+    "name": "Soul Sand",
+    "texture_image": "soul_sand.png"
+  },
+  {
+    "name": "Glow Stone",
+    "texture_image": "glowstone.png"
+  },
+  {
+    "name": "White Stained Glass",
+    "texture_image": "glass_white.png"
+  },
+  {
+    "name": "Orange Stained Glass",
+    "texture_image": "glass_orange.png"
+  },
+  {
+    "name": "Magenta Stained Glass",
+    "texture_image": "glass_magenta.png"
+  },
+  {
+    "name": "Light Blue Stained Glass",
+    "texture_image": "glass_light_blue.png"
+  },
+  {
+    "name": "Yellow Stained Glass",
+    "texture_image": "glass_yellow.png"
+  },
+  {
+    "name": "Lime Stained Glass",
+    "texture_image": "glass_lime.png"
+  },
+  {
+    "name": "Gray Stained Glass",
+    "texture_image": "glass_gray.png"
+  },
+  {
+    "name": "Light Gray Stained Glass",
+    "texture_image": "glass_silver.png"
+  },
+  {
+    "name": "Cyan Stained Glass",
+    "texture_image": "glass_cyan.png"
+  },
+  {
+    "name": "Purple Stained Glass",
+    "texture_image": "glass_purple.png"
+  },
+  {
+    "name": "Blue Stained Glass",
+    "texture_image": "glass_blue.png"
+  },
+  {
+    "name": "Brown Stained Glass",
+    "texture_image": "glass_brown.png"
+  },
+  {
+    "name": "Green Stained Glass",
+    "texture_image": "glass_green.png"
+  },
+  {
+    "name": "Red Stained Glass",
+    "texture_image": "glass_red.png"
+  },
+  {
+    "name": "Black Stained Glass",
+    "texture_image": "glass_black.png"
+  },
+  {
+    "name": "Stonebrick",
+    "texture_image": "stonebrick.png"
+  },
+  {
+    "name": "Mossy Stonebrick",
+    "texture_image": "stonebrick_mossy.png"
+  },
+  {
+    "name": "Cracked Stonebrick",
+    "texture_image": "stonebrick_cracked.png"
+  },
+  {
+    "name": "Chiseled Stonebrick",
+    "texture_image": "stonebrick_carved.png"
+  },
+  {
+    "name": "Brown Mushroom Block",
+    "texture_image": "mushroom_block_skin_brown.png"
+  },
+  {
+    "name": "Red Mushroom Block",
+    "texture_image": "mushroom_block_skin_red.png"
+  },
+  {
+    "name": "Melon Block",
+    "texture_image": "melon_side.png"
+  },
+  {
+    "name": "Mycelium",
+    "texture_image": "mycelium_side.png"
+  },
+  {
+    "name": "Nether Brick",
+    "texture_image": "nether_brick.png"
+  },
+  {
+    "name": "End Stone",
+    "texture_image": "end_stone.png"
+  },
+  {
+    "name": "Redstone Lamp (inactive)",
+    "texture_image": "redstone_lamp_off.png"
+  },
+  {
+    "name": "Redstone Lamp (active)",
+    "texture_image": "redstone_lamp_on.png"
+  },
+  {
+    "name": "Emerald Ore",
+    "texture_image": "emerald_ore.png"
+  },
+  {
+    "name": "Emerald Block",
+    "texture_image": "emerald_block.png"
+  },
+  {
+    "name": "Redstone Block",
+    "texture_image": "redstone_block.png"
+  },
+  {
+    "name": "Nether Quartz Ore",
+    "texture_image": "quartz_ore.png"
+  },
+  {
+    "name": "Quartz Block",
+    "texture_image": "quartz_block_side.png"
+  },
+  {
+    "name": "Chiseled Quartz Block",
+    "texture_image": "quartz_block_chiseled.png"
+  },
+  {
+    "name": "Pillar Quartz Block",
+    "texture_image": "quartz_block_lines.png"
+  },
+  {
+    "name": "White Hardened Clay",
+    "texture_image": "hardened_clay_stained_white.png"
+  },
+  {
+    "name": "Orange Hardened Clay",
+    "texture_image": "hardened_clay_stained_orange.png"
+  },
+  {
+    "name": "Magenta Hardened Clay",
+    "texture_image": "hardened_clay_stained_magenta.png"
+  },
+  {
+    "name": "Light Blue Hardened Clay",
+    "texture_image": "hardened_clay_stained_light_blue.png"
+  },
+  {
+    "name": "Yellow Hardened Clay",
+    "texture_image": "hardened_clay_stained_yellow.png"
+  },
+  {
+    "name": "Pink Hardened Clay",
+    "texture_image": "hardened_clay_stained_pink.png"
+  },
+  {
+    "name": "Gray Hardened Clay",
+    "texture_image": "hardened_clay_stained_gray.png"
+  },
+  {
+    "name": "Light Gray Hardened Clay",
+    "texture_image": "hardened_clay_stained_silver.png"
+  },
+  {
+    "name": "Cyan Hardened Clay",
+    "texture_image": "hardened_clay_stained_cyan.png"
+  },
+  {
+    "name": "Purple Hardened Clay",
+    "texture_image": "hardened_clay_stained_purple.png"
+  },
+  {
+    "name": "Blue Hardened Clay",
+    "texture_image": "hardened_clay_stained_blue.png"
+  },
+  {
+    "name": "Brown Hardened Clay",
+    "texture_image": "hardened_clay_stained_brown.png"
+  },
+  {
+    "name": "Green Hardened Clay",
+    "texture_image": "hardened_clay_stained_green.png"
+  },
+  {
+    "name": "Red Hardened Clay",
+    "texture_image": "hardened_clay_stained_red.png"
+  },
+  {
+    "name": "Black Hardened Clay",
+    "texture_image": "hardened_clay_stained_black.png"
+  },
+  {
+    "name": "Acacia Wood",
+    "texture_image": "log_acacia.png"
+  },
+  {
+    "name": "Dark Oak Wood",
+    "texture_image": "log_big_oak.png"
+  },
+  {
+    "name": "Slime Block",
+    "texture_image": "slime.png"
+  },
+  {
+    "name": "Prismarine Bricks",
+    "texture_image": "prismarine_bricks.png"
+  },
+  {
+    "name": "Dark Prismarine",
+    "texture_image": "prismarine_dark.png"
+  },
+  {
+    "name": "Sea Lantern",
+    "texture_image": "sea_lantern.png"
+  },
+  {
+    "name": "Hay Bale",
+    "texture_image": "hay_block_side.png"
+  },
+  {
+    "name": "Hardened Clay",
+    "texture_image": "hardened_clay.png"
+  },
+  {
+    "name": "Block of Coal",
+    "texture_image": "coal_block.png"
+  },
+  {
+    "name": "Red Sandstone",
+    "texture_image": "red_sandstone_normal.png"
+  },
+  {
+    "name": "Chiseled Red Sandstone",
+    "texture_image": "red_sandstone_carved.png"
+  },
+  {
+    "name": "Smooth Red Sandstone",
+    "texture_image": "red_sandstone_smooth.png"
+  },
+  {
+    "name": "Chorus Plant",
+    "texture_image": "chorus_plant.png"
+  },
+  {
+    "name": "Chorus Flower",
+    "texture_image": "chorus_flower.png"
+  },
+  {
+    "name": "Purpur Block",
+    "texture_image": "purpur_block.png"
+  },
+  {
+    "name": "Purpur Pillar",
+    "texture_image": "purpur_pillar.png"
+  },
+  {
+    "name": "End Stone Bricks",
+    "texture_image": "end_bricks.png"
+  },
+  {
+    "name": "Magma Block",
+    "texture_image": "magma.png"
+  },
+  {
+    "name": "Nether Wart Block",
+    "texture_image": "nether_wart_block.png"
+  },
+  {
+    "name": "Red Nether Brick",
+    "texture_image": "red_nether_brick.png"
+  },
+  {
+    "name": "Bone Block",
+    "texture_image": "bone_block_side.png"
+  },
+  {
+    "name": "White Glazed Terracotta",
+    "texture_image": "glazed_terracotta_white.png"
+  },
+  {
+    "name": "Orange Glazed Terracotta",
+    "texture_image": "glazed_terracotta_orange.png"
+  },
+  {
+    "name": "Magenta Glazed Terracotta",
+    "texture_image": "glazed_terracotta_magenta.png"
+  },
+  {
+    "name": "Light Blue Glazed Terracotta",
+    "texture_image": "glazed_terracotta_light_blue.png"
+  },
+  {
+    "name": "Yellow Glazed Terracotta",
+    "texture_image": "glazed_terracotta_yellow.png"
+  },
+  {
+    "name": "Lime Glazed Terracotta",
+    "texture_image": "glazed_terracotta_lime.png"
+  },
+  {
+    "name": "Gray Glazed Terracotta",
+    "texture_image": "glazed_terracotta_gray.png"
+  },
+  {
+    "name": "Light Gray Glazed Terracotta",
+    "texture_image": "glazed_terracotta_silver.png"
+  },
+  {
+    "name": "Cyan Glazed Terracotta",
+    "texture_image": "glazed_terracotta_cyan.png"
+  },
+  {
+    "name": "Purple Glazed Terracotta",
+    "texture_image": "glazed_terracotta_purple.png"
+  },
+  {
+    "name": "Blue Glazed Terracotta",
+    "texture_image": "glazed_terracotta_blue.png"
+  },
+  {
+    "name": "Brown Glazed Terracotta",
+    "texture_image": "glazed_terracotta_brown.png"
+  },
+  {
+    "name": "Green Glazed Terracotta",
+    "texture_image": "glazed_terracotta_green.png"
+  },
+  {
+    "name": "Red Glazed Terracotta",
+    "texture_image": "glazed_terracotta_red.png"
+  },
+  {
+    "name": "Black Glazed Terracotta",
+    "texture_image": "glazed_terracotta_black.png"
+  },
+  {
+    "name": "White Concrete",
+    "texture_image": "concrete_white.png"
+  },
+  {
+    "name": "Orange Concrete",
+    "texture_image": "concrete_orange.png"
+  },
+  {
+    "name": "Magenta Concrete",
+    "texture_image": "concrete_magenta.png"
+  },
+  {
+    "name": "Light Blue Concrete",
+    "texture_image": "concrete_light_blue.png"
+  },
+  {
+    "name": "Yellow Concrete",
+    "texture_image": "concrete_yellow.png"
+  },
+  {
+    "name": "Lime Concrete",
+    "texture_image": "concrete_lime.png"
+  },
+  {
+    "name": "Pink Concrete",
+    "texture_image": "concrete_pink.png"
+  },
+  {
+    "name": "Gray Concrete",
+    "texture_image": "concrete_gray.png"
+  },
+  {
+    "name": "Light Gray Concrete",
+    "texture_image": "concrete_silver.png"
+  },
+  {
+    "name": "Cyan Concrete",
+    "texture_image": "concrete_cyan.png"
+  },
+  {
+    "name": "Purple Concrete",
+    "texture_image": "concrete_purple.png"
+  },
+  {
+    "name": "Blue Concrete",
+    "texture_image": "concrete_blue.png"
+  },
+  {
+    "name": "Brown Concrete",
+    "texture_image": "concrete_brown.png"
+  },
+  {
+    "name": "Green Concrete",
+    "texture_image": "concrete_green.png"
+  },
+  {
+    "name": "Red Concrete",
+    "texture_image": "concrete_red.png"
+  },
+  {
+    "name": "Black Concrete",
+    "texture_image": "concrete_black.png"
+  },
+  {
+    "name": "White Concrete Powder",
+    "texture_image": "concrete_powder_white.png"
+  },
+  {
+    "name": "Orange Concrete Powder",
+    "texture_image": "concrete_powder_orange.png"
+  },
+  {
+    "name": "Magenta Concrete Powder",
+    "texture_image": "concrete_powder_magenta.png"
+  },
+  {
+    "name": "Light Blue Concrete Powder",
+    "texture_image": "concrete_powder_light_blue.png"
+  },
+  {
+    "name": "Yellow Concrete Powder",
+    "texture_image": "concrete_powder_yellow.png"
+  },
+  {
+    "name": "Lime Concrete Powder",
+    "texture_image": "concrete_powder_lime.png"
+  },
+  {
+    "name": "Pink Concrete Powder",
+    "texture_image": "concrete_powder_pink.png"
+  },
+  {
+    "name": "Gray Concrete Powder",
+    "texture_image": "concrete_powder_gray.png"
+  },
+  {
+    "name": "Light Gray Concrete Powder",
+    "texture_image": "concrete_powder_silver.png"
+  },
+  {
+    "name": "Cyan Concrete Powder",
+    "texture_image": "concrete_powder_cyan.png"
+  },
+  {
+    "name": "Purple Concrete Powder",
+    "texture_image": "concrete_powder_purple.png"
+  },
+  {
+    "name": "Blue Concrete Powder",
+    "texture_image": "concrete_powder_blue.png"
+  },
+  {
+    "name": "Brown Concrete Powder",
+    "texture_image": "concrete_powder_brown.png"
+  },
+  {
+    "name": "Green Concrete Powder",
+    "texture_image": "concrete_powder_green.png"
+  },
+  {
+    "name": "Red Concrete Powder",
+    "texture_image": "concrete_powder_red.png"
+  },
+  {
+    "name": "Black Concrete Powder",
+    "texture_image": "concrete_powder_black.png"
+  }
+]
