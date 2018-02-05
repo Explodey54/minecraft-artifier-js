@@ -8,6 +8,7 @@
     "build": "webpack --config=./build/webpack.prod.conf.js"
   },
   "dependencies": {
+    "b64-to-blob": "^1.2.19",
     "express": "^4.16.2",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.11.0",
