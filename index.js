@@ -12,8 +12,8 @@ const store = {
     colorGroups: require('./static/baked_colors.json'),
     getBlockById(id) { return this.blocksDb[id - 1] },
     imageConvertedHex: false,
-    imageWidth: 300,
-    imageHeight: 300,
+    imageWidth: 100,
+    imageHeight: 100,
     layers: {
         loadedImage: false,
         paintedImage: {}
@@ -52,6 +52,7 @@ const store = {
     scale: {
         current: 1,
         options: [0.125, 0.25, 0.5, 1, 2, 4],
+        cacheFrom: 0.5,
         scaleUp() {
             let indexOfCurrent = this.options.indexOf(this.current)
             if ( indexOfCurrent < this.options.length - 1 ) {
@@ -84,6 +85,16 @@ store.blocksDb.forEach((item) => {
 
 canvasMain.width = store.canvasSettings.width;
 canvasMain.height = store.canvasSettings.height;
+
+function replaceStringAt(input, pos, replacement) {
+    if (pos >= input.length || pos < 0) { return input }
+    let sliceBefore = input.slice(0, pos)
+    if (pos + replacement.length >= input.length) {
+        return sliceBefore + replacement;
+    }
+    let sliceAfter = input.slice(pos + replacement.length, input.length)
+    return sliceBefore + replacement + sliceAfter
+}
 
 function rgbToHsl(r, g, b){
     r /= 255, g /= 255, b /= 255;
@@ -150,9 +161,27 @@ function findSimilarBlocks(image) {
     return output
 }
 
-
+function paint(x, y, id) {
+    let pointer = store.layers.paintedImage
+    if (pointer['x' + x] === undefined) {
+        pointer['x' + x] = {}
+    }
+    pointer = pointer['x' + x]
+    pointer['y' + y] = id
+}
 
 function render() {
+    function renderPainted() {
+        for (x in store.layers.paintedImage) {
+            for (y in store.layers.paintedImage[x]) {
+                let xInt = parseInt(x.replace(/[xy]/, ''))
+                let yInt = parseInt(y.replace(/[xy]/, ''))
+                let imageForCanvas = store.getBlockById(store.layers.paintedImage[x][y]).image
+                ctxMain.drawImage(imageForCanvas, xInt * 16 * store.scale.current + store.offset.saved.x, yInt * 16 * store.scale.current + store.offset.saved.y, store.scale.current * 16, store.scale.current * 16)
+            }
+        }
+    }
+
     function renderByLoop() {
         let topLeftX = Math.floor((-store.offset.saved.x) / store.canvasSettings.baseCellSize / store.scale.current)
         let topLeftY = Math.floor((-store.offset.saved.y) / store.canvasSettings.baseCellSize / store.scale.current)
@@ -189,22 +218,22 @@ function render() {
     }
 
     function renderByCache() {
-        let t0 = performance.now()
         ctxMain.clearRect(0, 0, store.canvasSettings.width, store.canvasSettings.height)
         if (!store.layers.loadedImage) {
-            canvasTemp.width = store.imageWidth * 16
-            canvasTemp.height = store.imageHeight * 16
+            canvasTemp.width = store.imageWidth * 16 * store.scale.cacheFrom
+            canvasTemp.height = store.imageHeight * 16 * store.scale.cacheFrom
 
             const hexLength = store.imageConvertedHex.length
             for (let i = 0; i < hexLength; i += 2) {
                 let x = ((i / 2)) % store.imageWidth + 1
                 let y = Math.ceil((i + 1) / 2 / store.imageHeight)
                 let imageForCanvas = store.getBlockById(parseInt(store.imageConvertedHex.slice(i, i + 2), 16)).image
-                ctxTemp.drawImage(imageForCanvas, (x - 1) * 16, (y - 1) * 16)
+                ctxTemp.drawImage(imageForCanvas, (x - 1) * 16 * store.scale.cacheFrom, (y - 1) * 16 * store.scale.cacheFrom, 16 * store.scale.cacheFrom, 16 * store.scale.cacheFrom)
             }
 
             store.layers.loadedImage = new Image()
             let blob = b64toBlob(canvasTemp.toDataURL().slice(22), 'image/png')
+            console.log(blob)
 
             store.layers.loadedImage.src = _URL.createObjectURL(blob)
             store.layers.loadedImage.onload = () => {
@@ -215,10 +244,16 @@ function render() {
         }
     }
 
-    if (store.scale.current > 1) {
+    if (store.scale.current > 0.5) {
+        let t = performance.now()
         renderByLoop()
+        renderPainted()
+        console.log(performance.now() - t)
     } else {
+        let t = performance.now()
         renderByCache()
+        renderPainted()
+        console.log(performance.now() - t)
     }
 }
 
@@ -268,38 +303,22 @@ $(canvasMain).mousemove(function(e) {
     mouseControls.posMouse.y = e.clientY - bound.y
     if (store.offset.grabbed) {
         store.offset.translate(mouseControls.posMouse.x - store.offset.start.x + store.offset.temp.x, mouseControls.posMouse.y - store.offset.start.y + store.offset.temp.y)
-        // if (offsetNewX <= store.offset.bounds.x.max) {
-        //     store.offset.saved.x = offsetNewX
-        // } else {
-        //     store.offset.saved.x = store.offset.bounds.x.max
-        // }
-        // if (offsetNewX <= 500) {
-        //     store.offset.saved.x = offsetNewX
-        // } else {
-        //     store.offset.saved.x = 500
-        // }
-
-        // if (offsetNewY <= 500) {
-        //     store.offset.saved.y = offsetNewY
-        // } else {
-        //     store.offset.saved.y = 500
-        // }
         render()
     }
-    // if (mouseControls.leftClick) {
-    //     let xBlock = (Math.floor((mouseControls.posMouse.x - store.offset.saved.x) / store.canvasSettings.baseCellSize / store.scale.current + 1))
-    //     let yBlock = (Math.floor((mouseControls.posMouse.y - store.offset.saved.y) / store.canvasSettings.baseCellSize / store.scale.current + 1))
-    //     paint(xBlock, yBlock, 44)
-    //     render()
-    // }
+    if (mouseControls.leftClick) {
+        let xBlock = (Math.floor((mouseControls.posMouse.x - store.offset.saved.x) / (store.canvasSettings.baseCellSize * store.scale.current)))
+        let yBlock = (Math.floor((mouseControls.posMouse.y - store.offset.saved.y) / (store.canvasSettings.baseCellSize * store.scale.current)))
+        paint(xBlock, yBlock, 44)
+        render()
+    }
 });
 
 $(canvasMain).mousedown(function (e) {
     if (e.which === 1) {
         mouseControls.leftClick = true
-        let xBlock = (Math.floor((mouseControls.posMouse.x - store.offset.saved.x) / store.canvasSettings.baseCellSize * store.scale.current + 1))
-        let yBlock = (Math.floor((mouseControls.posMouse.y - store.offset.saved.y) / store.canvasSettings.baseCellSize * store.scale.current + 1))
-        // paint(xBlock, yBlock, 44)
+        let xBlock = (Math.floor((mouseControls.posMouse.x - store.offset.saved.x) / (store.canvasSettings.baseCellSize * store.scale.current)))
+        let yBlock = (Math.floor((mouseControls.posMouse.y - store.offset.saved.y) / (store.canvasSettings.baseCellSize * store.scale.current)))
+        paint(xBlock, yBlock, 44)
         render()
     }
     if (e.which === 2) {
@@ -311,7 +330,6 @@ $(canvasMain).mousedown(function (e) {
 });
 
 $(document).mouseup(function (e) {
-    console.log(store.offset.saved)
     store.offset.temp.x = store.offset.saved.x
     store.offset.temp.y = store.offset.saved.y
     store.offset.grabbed = false
