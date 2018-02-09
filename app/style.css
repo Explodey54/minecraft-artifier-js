@@ -1,0 +1,67 @@
+html {
+  font-family: 'Arimo', sans-serif;
+}
+
+header, section, body {
+  padding: 0;
+  margin: 0;
+  display: block;
+}
+
+header {
+  background-color: #a3ffd2;
+  height: 60px;
+}
+
+header h1 {
+  padding: 0;
+  margin: 0;
+  padding-top: 10px;
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  width: 1400px;
+  height: 100%;
+}
+
+#dropzone {
+  color: #9ce2af;
+  font-weight: bold;
+  font-size: 50px;
+  text-align: center;
+  vertical-align: middle;
+  margin-left: auto;
+  margin-right: auto;
+  width: 1200px;
+  height: 500px;
+  line-height: 460px;
+  border: 8px solid #c4ffd4;
+}
+
+section.workarea {
+  margin-top: 30px;
+  min-height: 800px;
+}
+
+#paint-table {
+  height: 100%;
+  background-color: lightgray;
+  margin: 0;
+  padding: 0;
+}
+
+#paint-table div {
+  display: inline-block;
+}
+
+#paint-table canvas {
+  display: inline-block;
+  border: 3px solid grey;
+}
+
+#paint-table .tools {
+  width: 40px;
+  height: 100%;
+}
