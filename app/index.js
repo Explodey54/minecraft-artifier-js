@@ -16,6 +16,10 @@ const ctxTemp = canvasTemp.getContext('2d')
 let imageWidth = 100
 let imageHeight = 100
 
+window.changeTool = (tool) => {
+    mineartCanvas.setTool(tool)
+}
+
 dropzone.ondragleave = (e) => {
     e.preventDefault()
     console.log('drag OUT')

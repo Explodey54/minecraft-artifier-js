@@ -86,6 +86,43 @@ function MineartCanvas(canvasId) {
         store.bound = obj
     }
 
+    this.setTool = function(str) {
+        store.interface.toolCurrent = str
+    }
+
+    this.getTool = function() {
+        return store.interface.toolCurrent
+    }
+
+    this.loadImageHex = function(str) {
+        store.imageConvertedHex = str
+        this.createBlobImage(str)
+    }
+
+    this.setCanvasSize = function(w, h) {
+        store.canvasWidth = width
+        store.canvasHeight = height
+        canvasMain.width = width
+        canvasMain.height = height
+    }
+
+    this.getBlockByPosition = function(x, y) {
+        if (!store.imageConvertedHex) {
+            return null
+        }
+        let sliceSingleBegin = 2 * (y * store.imageWidth + x)
+        let blockHex = store.imageConvertedHex.slice(sliceSingleBegin, sliceSingleBegin + 2)
+        return parseInt(blockHex, 16)
+    }
+
+    this.setEyedrop = function(id) {
+        store.interface.eyedropCurrent = id
+    }
+
+    this.getEyedrop = function() {
+        return store.interface.eyedropCurrent
+    }
+
     this.createBlobImage = function(str) {
         canvasTemp.width = store.imageWidth * store.baseCellSize * store.scale.cacheFrom
         canvasTemp.height = store.imageHeight * store.baseCellSize * store.scale.cacheFrom
@@ -114,19 +151,8 @@ function MineartCanvas(canvasId) {
         }
     }
 
-    this.loadImageHex = function(str) {
-        store.imageConvertedHex = str
-        this.createBlobImage(str)
-    }
-
-    this.setCanvasSize = function(width, height) {
-        this.store.canvasWidth = width
-        this.store.canvasHeight = height
-        this.canvasMain.width = width
-        this.canvasMain.height = height
-    }
-
     this.paint = function(x, y, id) {
+        if (!id) { return }
         let pointer = store.layers.paintedImage
         if (pointer['x' + x] === undefined) {
             pointer['x' + x] = {}
@@ -231,7 +257,7 @@ function MineartCanvas(canvasId) {
         if (mouseControls.leftClick) {
             let xBlock = (Math.floor((mouseControls.posMouse.x - store.offset.saved.x) / (store.baseCellSize * store.scale.current)))
             let yBlock = (Math.floor((mouseControls.posMouse.y - store.offset.saved.y) / (store.baseCellSize * store.scale.current)))
-            thisRoot.paint(xBlock, yBlock, 44)
+            thisRoot.paint(xBlock, yBlock, thisRoot.getEyedrop())
             thisRoot.render()
         }
     })
@@ -241,8 +267,13 @@ function MineartCanvas(canvasId) {
             mouseControls.leftClick = true
             let xBlock = (Math.floor((mouseControls.posMouse.x - store.offset.saved.x) / (store.baseCellSize * store.scale.current)))
             let yBlock = (Math.floor((mouseControls.posMouse.y - store.offset.saved.y) / (store.baseCellSize * store.scale.current)))
-            thisRoot.paint(xBlock, yBlock, 44)
-            thisRoot.render()
+            if (thisRoot.getTool() === 'eyedropper') {
+                let id = thisRoot.getBlockByPosition(xBlock, yBlock)
+                thisRoot.setEyedrop(id)
+            } else {
+                thisRoot.paint(xBlock, yBlock, thisRoot.getEyedrop())
+                thisRoot.render()
+            }
         }
         if (e.which === 2) {
             e.preventDefault()

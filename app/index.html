@@ -2,10 +2,8 @@
 <html>
 <head>
   <title>Minecraft Art To Block</title>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css">
   <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
-  <!-- <script src="jquery.mousewheel.min.js"></script> -->
 </head>
 <body>
   <header>
@@ -15,11 +13,15 @@
   </header>
   <section class="workarea">
     <div class="container">
-      <div id="dropzone" >
+      <div id="dropzone">
         Drag some picture!
       </div>
       <div id="paint-table" style="display: none;">
-        <div class="tools"></div>
+        <div class="tools-area">
+          <div class="tool clicker" onclick="changeTool('clicker')">C</div>
+          <div class="tool eye-dropper" onclick="changeTool('eyedropper')">D</div>
+          <div class="tool eraser" onclick="changeTool('eraser')">E</div>
+        </div>
         <canvas id="canvasMain"></canvas>
       </div>
     </div>
