@@ -15,8 +15,8 @@ function MineartCanvas(canvasId) {
         colorGroups: require('../static/baked_colors.json'),
         getBlockById(id) { return this.blocksDb[id - 1] },
         imageConvertedHex: false,
-        imageWidth: 100,
-        imageHeight: 100,
+        imageWidth: false,
+        imageHeight: false,
         canvasWidth: 1000,
         canvasHeight: 700,
         baseCellSize: 16,
@@ -291,6 +291,7 @@ function MineartCanvas(canvasId) {
     })
 
     canvasMain.addEventListener("wheel", (e) => {
+        e.preventDefault()
         if (e.deltaY < 0) {
             if (store.scale.scaleUp()) {
                 let x = Math.floor(mouseControls.posMouse.x - store.offset.saved.x)

@@ -19,6 +19,10 @@ header h1 {
   padding-top: 10px;
 }
 
+.hidden {
+  display: none;
+}
+
 .container {
   margin-left: auto;
   margin-right: auto;
@@ -42,7 +46,7 @@ header h1 {
 
 section.workarea {
   margin-top: 30px;
-  min-height: 800px;
+  min-height: 400px;
 }
 
 #paint-table {

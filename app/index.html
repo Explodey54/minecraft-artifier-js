@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Minecraft Art To Block</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
-</head>
-<body>
-  <header>
-    <div class="container">
-      <h1>Minecraft artifier</h1>
-    </div>
-  </header>
-  <section class="workarea">
-    <div class="container">
-      <div id="dropzone">
-        Drag some picture!
-      </div>
-      <div id="paint-table" style="display: none;">
-        <div class="tools-area">
-          <div class="tool clicker" onclick="changeTool('clicker')">C</div>
-          <div class="tool eye-dropper" onclick="changeTool('eyedropper')">D</div>
-          <div class="tool eraser" onclick="changeTool('eraser')">E</div>
-        </div>
-        <canvas id="canvasMain"></canvas>
-      </div>
-    </div>
-  </section>
-</body>
+    <head>
+        <title>Minecraft Art To Block</title>
+        <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
+    </head>
+    <body>
+
+        <header>
+            <div class="container">
+                <h1>Minecraft artifier</h1>
+            </div>
+        </header>
+
+        <section class="workarea">
+            <div class="container">
+                <div id="dropzone">Drag some picture!</div>
+                <div id="settings" class="hidden">
+                    <img id="settings-img" height="200">
+                    <form action="#" id="settings-form">
+                        <input type="text" name="width">
+                        <input type="text" name="height">
+                        <input type="submit" value="Submit!">
+                    </form>
+                </div>
+                <div id="paint-table" class="hidden">
+                    <div class="tools-area">
+                        <div class="tool clicker" onclick="mineartDOM.changeTool('clicker')">C</div>
+                        <div class="tool eye-dropper" onclick="mineartDOM.changeTool('eyedropper')">D</div>
+                        <div class="tool eraser" onclick="mineartDOM.changeTool('eraser')">E</div>
+                    </div>
+                    <canvas id="canvasMain"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </body>
 </html>

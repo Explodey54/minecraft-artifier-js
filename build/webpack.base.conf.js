@@ -16,20 +16,14 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.(png|jpg|gif|css)$/, loader: 'file-loader' }
+            { test: /\.(png|jpg|gif)$/, loader: 'file-loader' },
+            { test: /\.css$/, loader: 'style-loader!css-loader' }
         ]
     },
     plugins: [
-        new CopyWebpackPlugin([
-            { from: 'style.css', to: 'style.css'},
-            { from: 'convert.js', to: 'convert.js'},
-        ]),
         new HtmlWebpackPlugin({
             template: 'index.html',
             inject: true
         })
-        // new CopyWebpackPlugin([
-        //     { from: 'assets/img', to: path.join(__dirname, '../web/assets/img')}
-        // ])
     ]
 };
