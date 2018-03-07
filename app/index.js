@@ -19,6 +19,46 @@ const $settingsForm = document.getElementById('settings-form')
 const canvasTemp = document.createElement('canvas')
 const ctxTemp = canvasTemp.getContext('2d')
 
+function CanvasCrop(imgSelector) {
+    this.$imgNode = document.querySelector(imgSelector)
+    if (this.$imgNode === null) { throw new TypeError('ImgNode is null') }
+
+    this.$wrapper = document.createElement('div')
+    this.$wrapper.className = 'cropper-wrapper'
+
+    this.$svg = `
+        <svg class="cropper-svg">
+            <rect class="cropper-svg-background"/>
+            <rect class="cropper-svg-mask"/>
+        </svg>
+    `
+    this.$svgFigures = {
+        backgroundRect: null
+    }
+
+    this.init = () => {
+        $settings.insertBefore(this.$wrapper, this.$imgNode)
+        this.$wrapper.innerHTML = this.$svg
+        this.$wrapper.append(this.$imgNode)
+
+        this.$svg = this.$wrapper.querySelector('svg')
+        this.$svgFigures.backgroundRect = this.$svg.querySelector('.cropper-svg-background')
+        
+        this.$svg.setAttribute('width', this.$imgNode.offsetWidth)
+        this.$svg.setAttribute('height', this.$imgNode.offsetHeight)
+        this.$svgFigures.backgroundRect.setAttribute('width', this.$imgNode.offsetWidth)
+        this.$svgFigures.backgroundRect.setAttribute('height', this.$imgNode.offsetHeight)
+    }
+}
+
+let pic = require('../static/pic.jpg')
+$settingsImage.src = pic
+$settingsImage.onload = () => {
+    const canvasCrop = new CanvasCrop('#settings-img')
+    canvasCrop.init()
+}
+
+
 window.mineartDOM = {
     changeTool(tool) {
         mineartCanvas.setTool(tool)

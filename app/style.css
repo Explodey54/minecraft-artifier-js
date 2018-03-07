@@ -77,3 +77,33 @@ section.workarea {
   margin-bottom: 5px;
   background-color: lightblue;
 }
+
+#settings-img {
+  display: block;
+}
+
+.cropper-wrapper {
+  display: inline-block;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+.cropper-svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.cropper-svg-background {
+  opacity: 0.5;
+  height: 100%;
+  width: 100%;
+}
+
+.cropper-svg-mask {
+  width: 130px;
+  height: 130px;
+  opacity: 0.5;
+  fill: white;
+}
