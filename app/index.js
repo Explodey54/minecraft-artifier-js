@@ -19,43 +19,116 @@ const $settingsForm = document.getElementById('settings-form')
 const canvasTemp = document.createElement('canvas')
 const ctxTemp = canvasTemp.getContext('2d')
 
-function CanvasCrop(imgSelector) {
-    this.$imgNode = document.querySelector(imgSelector)
-    if (this.$imgNode === null) { throw new TypeError('ImgNode is null') }
+function SvgCroppy(imgSelector) {
+    this.store = {
+        posData: {
+            selectRect: {
+                width: 100,
+                height: 100,
+                xOffset: 10,
+                yOffset: 10
+            }
+        },
+        nodes: {
+            img: null,
+            wrapper: null,
+            svg: null
+        },
+        svgNodes: {
+            backgroundRect: null,
+            selectRect: null,
+            cornerLeftTop: null,
+            cornerRightTop: null,
+            cornerLeftBottom: null,
+            cornerRightBottom: null
+        }
+    }
 
-    this.$wrapper = document.createElement('div')
-    this.$wrapper.className = 'cropper-wrapper'
+    this._storeSetNode = (key, node) => {
+        if (this.store.nodes[key] === undefined) {
+            throw new ReferenceError('Unknown key in store.nodes')
+        }
+        this.store.nodes[key] = node
+    }
 
-    this.$svg = `
-        <svg class="cropper-svg">
-            <rect class="cropper-svg-background"/>
-            <rect class="cropper-svg-mask"/>
-        </svg>
-    `
-    this.$svgFigures = {
-        backgroundRect: null
+    this._storeGetNode = (key) => {
+        return this.store.nodes[key]
+    }
+
+    this._storeSetSvgNode = (key, node) => {
+        if (this.store.svgNodes[key] === undefined) {
+            throw new ReferenceError('Unknown key in store.svgNodes')
+        }
+        this.store.svgNodes[key] = node
+    }
+
+    this._storeGetSvgNode = (key) => {
+        return this.store.svgNodes[key]
     }
 
     this.init = () => {
-        $settings.insertBefore(this.$wrapper, this.$imgNode)
-        this.$wrapper.innerHTML = this.$svg
-        this.$wrapper.append(this.$imgNode)
+        const $img = document.querySelector(imgSelector)
+        if ($img === null) { throw new ReferenceError('ImgNode is null') }
 
-        this.$svg = this.$wrapper.querySelector('svg')
-        this.$svgFigures.backgroundRect = this.$svg.querySelector('.cropper-svg-background')
+        const $wrapper = document.createElement('div')
+        $wrapper.className = 'croppy-wrapper'
+
+        this._storeSetNode('wrapper', $wrapper)
+        this._storeSetNode('img', $img)
+
+        const svgTemplate = `
+            <svg class="croppy-svg">
+                <rect class="croppy-svg-background"/>
+                <rect class="croppy-svg-mask"/>
+                <rect class="croppy-svg-corner croppy-svg-corner-left-top"/>
+                <rect class="croppy-svg-corner croppy-svg-corner-right-top"/>
+                <rect class="croppy-svg-corner croppy-svg-corner-left-bottom"/>
+                <rect class="croppy-svg-corner croppy-svg-corner-right-bottom"/>
+            </svg>
+        `
+
+        $settings.insertBefore($wrapper, $img) //$settings fix later
+        $wrapper.innerHTML = svgTemplate
+        $wrapper.append($img)
+
+        const $svg = $wrapper.querySelector('svg')
+        this._storeSetNode('svg', $svg)
+
+        const $svgBackgroundRect = $svg.querySelector('.croppy-svg-background')
+        this._storeSetSvgNode('backgroundRect', $svgBackgroundRect)
+
+        const $svgSelectRect = $svg.querySelector('.croppy-svg-mask')
+        this._storeSetSvgNode('selectRect', $svgSelectRect)
         
-        this.$svg.setAttribute('width', this.$imgNode.offsetWidth)
-        this.$svg.setAttribute('height', this.$imgNode.offsetHeight)
-        this.$svgFigures.backgroundRect.setAttribute('width', this.$imgNode.offsetWidth)
-        this.$svgFigures.backgroundRect.setAttribute('height', this.$imgNode.offsetHeight)
+        $svg.setAttribute('width', $img.offsetWidth)
+        $svg.setAttribute('height', $img.offsetHeight)
+        $svgBackgroundRect.setAttribute('width', $img.offsetWidth)
+        $svgBackgroundRect.setAttribute('height', $img.offsetHeight)
+        $svgSelectRect.setAttribute('width', this.store.posData.selectRect.width)
+        $svgSelectRect.setAttribute('height', this.store.posData.selectRect.height)
+        $svgSelectRect.setAttribute('x', this.store.posData.selectRect.xOffset)
+        $svgSelectRect.setAttribute('y', this.store.posData.selectRect.yOffset)
+
+        const $svgCorners = {
+            cornerLeftTop: $svg.querySelector('.croppy-svg-corner-left-top'),
+            cornerRightTop: $svg.querySelector('.croppy-svg-corner-right-top'),
+            cornerLeftBottom: $svg.querySelector('.croppy-svg-corner-left-bottom'),
+            cornerRightBottom: $svg.querySelector('.croppy-svg-corner-right-bottom')
+        }
+
+        for (let key in $svgCorners) {
+            this._storeSetSvgNode(key, $svgCorners[key])
+        }
+
+
     }
 }
 
 let pic = require('../static/pic.jpg')
 $settingsImage.src = pic
 $settingsImage.onload = () => {
-    const canvasCrop = new CanvasCrop('#settings-img')
-    canvasCrop.init()
+    const svgCroppy = new SvgCroppy('#settings-img')
+    svgCroppy.init()
 }
 
 
