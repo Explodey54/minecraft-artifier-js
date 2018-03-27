@@ -99,12 +99,12 @@ function MineartCanvas(canvasId) {
         this.createBlobImage(str)
     }
 
-    this.setCanvasSize = function(w, h) {
-        store.canvasWidth = width
-        store.canvasHeight = height
-        canvasMain.width = width
-        canvasMain.height = height
-    }
+    // this.setCanvasSize = function(w, h) {
+    //     store.canvasWidth = width
+    //     store.canvasHeight = height
+    //     canvasMain.width = width
+    //     canvasMain.height = height
+    // }
 
     this.getBlockByPosition = function(x, y) {
         if (!store.imageConvertedHex) {
@@ -130,7 +130,7 @@ function MineartCanvas(canvasId) {
         const hexLength = store.imageConvertedHex.length
         for (let i = 0; i < hexLength; i += 2) {
             let x = ((i / 2)) % store.imageWidth + 1
-            let y = Math.ceil((i + 1) / 2 / store.imageHeight)
+            let y = Math.ceil((i + 1) / 2 / store.imageWidth)
             let imageForCanvas = store.getBlockById(parseInt(store.imageConvertedHex.slice(i, i + 2), 16)).image
             ctxTemp.drawImage(imageForCanvas,
                              (x - 1) * store.baseCellSize * store.scale.cacheFrom,

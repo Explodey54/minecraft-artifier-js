@@ -79,35 +79,6 @@ section.workarea {
 }
 
 #settings-img {
+  user-select: none;
   display: block;
-}
-
-.croppy-wrapper {
-  display: inline-block;
-  position: relative;
-  margin: 0;
-  padding: 0;
-}
-
-.croppy-svg {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.croppy-svg-background {
-  opacity: 0.5;
-  height: 100%;
-  width: 100%;
-}
-
-.croppy-svg-mask {
-  opacity: 0.5;
-  fill: white;
-}
-
-.croppy-svg-corner {
-  width: 10px;
-  height: 10px;
-  background-color: black;
 }
