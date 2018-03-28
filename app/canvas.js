@@ -20,7 +20,7 @@ function MineartCanvas(canvasId) {
         canvasWidth: 1000,
         canvasHeight: 700,
         baseCellSize: 16,
-        bound: false,
+        boundingRect: false,
         layers: {
             loadedImage: false,
             paintedImage: {}
@@ -69,6 +69,16 @@ function MineartCanvas(canvasId) {
         interface: {
             eyedropCurrent: false,
             toolCurrent: false
+        },
+        debug: { //delete in prod!!!
+            renderTime: {
+                '0.125': 0,
+                '0.25': 0,
+                '0.5': 0,
+                '1': 0,
+                '2': 0,
+                '4': 0
+            }
         }
     }
 
@@ -77,13 +87,40 @@ function MineartCanvas(canvasId) {
         leftClick: false
     }
 
-    this.setImageSizes = function(w, h) {
-        store.imageWidth = w
-        store.imageHeight = h
+    this._getCornersOfVisible = () => {
+        let topLeftX = Math.floor((-store.offset.saved.x) / store.baseCellSize / store.scale.current)
+        let topLeftY = Math.floor((-store.offset.saved.y) / store.baseCellSize / store.scale.current)
+        let bottomRightX = Math.floor((store.canvasWidth - store.offset.saved.x) / store.baseCellSize / store.scale.current)
+        let bottomRightY = Math.floor((store.canvasHeight - store.offset.saved.y) / store.baseCellSize / store.scale.current)
+
+        if (topLeftX < 0) {
+            topLeftX = 0
+        }
+        if (topLeftY < 0) {
+            topLeftY = 0
+        }
+        if (bottomRightX < 0) {
+            bottomRightX = 0
+        }
+        if (bottomRightY < 0) {
+            bottomRightY = 0
+        }
+
+        return {
+            topLeftX: topLeftX,
+            topLeftY: topLeftY,
+            bottomRightX: bottomRightX,
+            bottomRightY: bottomRightY
+        }
     }
 
-    this.setBound = function(obj) {
-        store.bound = obj
+    this.setImageSizes = function(w, h) {
+        store.imageWidth = parseInt(w)
+        store.imageHeight = parseInt(h)
+    }
+
+    this.setBoundingRect = function(obj) {
+        store.boundingRect = obj
     }
 
     this.setTool = function(str) {
@@ -98,13 +135,6 @@ function MineartCanvas(canvasId) {
         store.imageConvertedHex = str
         this.createBlobImage(str)
     }
-
-    // this.setCanvasSize = function(w, h) {
-    //     store.canvasWidth = width
-    //     store.canvasHeight = height
-    //     canvasMain.width = width
-    //     canvasMain.height = height
-    // }
 
     this.getBlockByPosition = function(x, y) {
         if (!store.imageConvertedHex) {
@@ -162,6 +192,74 @@ function MineartCanvas(canvasId) {
     }
 
     this.render = function() {
+        function renderRulerLines() {
+            let rulerSizeHorizontal = 25,
+                rulerSizeVertical = 25,
+                rulerFillStyle = 'white',
+                fontStyle = '12px Helvetica'
+
+
+            let drawRulerEveryNBlocks
+            switch (store.scale.current) {
+                case 4:
+                    drawRulerEveryNBlocks = 5
+                    break
+                case 2:
+                    drawRulerEveryNBlocks = 10
+                    break
+                case 1:
+                    drawRulerEveryNBlocks = 10
+                    break
+                case 0.5:
+                    drawRulerEveryNBlocks = 20
+                    break
+                case 0.25:
+                    drawRulerEveryNBlocks = 50
+                    break
+                case 0.125:
+                    drawRulerEveryNBlocks = 100
+                    break
+            }
+
+            if (store.imageHeight >= 1000) {
+                rulerSizeVertical = 36
+            }
+
+            ctxMain.fillStyle = rulerFillStyle
+            ctxMain.rect(0, store.canvasHeight - rulerSizeHorizontal, store.canvasWidth, rulerSizeHorizontal)
+            ctxMain.fill()
+            ctxMain.rect(0, 0, rulerSizeVertical, store.canvasHeight)
+            ctxMain.fill()
+
+            ctxMain.font = fontStyle;
+            ctxMain.fillStyle = 'black'
+            ctxMain.lineWidth = 1
+            // gets lastleft/lastright visible n/coordsX and draws everything between them
+
+            for (let i = Math.ceil(-store.offset.saved.x / store.scale.current / 16 / drawRulerEveryNBlocks) * drawRulerEveryNBlocks;
+                 i <= Math.floor((-store.offset.saved.x + store.canvasWidth) / store.scale.current / 16 / drawRulerEveryNBlocks) * drawRulerEveryNBlocks; 
+                 i += drawRulerEveryNBlocks) {
+                ctxMain.beginPath()
+                ctxMain.moveTo(i * store.scale.current * 16 + store.offset.saved.x , store.canvasHeight)
+                ctxMain.lineTo(i * store.scale.current * 16 + store.offset.saved.x , store.canvasHeight - rulerSizeHorizontal)
+                ctxMain.stroke()
+                ctxMain.fillText(i, i * store.scale.current * 16 + store.offset.saved.x + 2, store.boundingRect.height - 10)
+            }
+
+            for (let i = Math.floor((store.offset.saved.y / 16 / store.scale.current + store.imageHeight) / drawRulerEveryNBlocks) * drawRulerEveryNBlocks;
+                 i >= Math.floor(((store.offset.saved.y - store.canvasHeight) / 16 / store.scale.current + store.imageHeight) / drawRulerEveryNBlocks) * drawRulerEveryNBlocks; 
+                 i -= drawRulerEveryNBlocks) {
+                ctxMain.beginPath()
+                ctxMain.moveTo(0, (store.imageHeight - i) * 16 * store.scale.current + store.offset.saved.y)
+                ctxMain.lineTo(rulerSizeVertical, (store.imageHeight - i) * 16 * store.scale.current + store.offset.saved.y)
+                ctxMain.stroke()
+                ctxMain.fillText(i, 1, (store.imageHeight - i) * 16 * store.scale.current + store.offset.saved.y - 3)
+            }
+
+            ctxMain.rect(0, store.canvasHeight - rulerSizeHorizontal, rulerSizeVertical, rulerSizeHorizontal)
+            ctxMain.fill()
+        }
+
         function renderPainted() {
             for (let x in store.layers.paintedImage) {
                 for (let y in store.layers.paintedImage[x]) {
@@ -178,23 +276,11 @@ function MineartCanvas(canvasId) {
         }
 
         function renderByLoop() {
-            let topLeftX = Math.floor((-store.offset.saved.x) / store.baseCellSize / store.scale.current)
-            let topLeftY = Math.floor((-store.offset.saved.y) / store.baseCellSize / store.scale.current)
-            let bottomRightX = Math.floor((store.canvasWidth - store.offset.saved.x) / store.baseCellSize / store.scale.current)
-            let bottomRightY = Math.floor((store.canvasHeight - store.offset.saved.y) / store.baseCellSize / store.scale.current)
-
-            if (topLeftX < 0) {
-                topLeftX = 0
-            }
-            if (topLeftY < 0) {
-                topLeftY = 0
-            }
-            if (bottomRightX < 0) {
-                bottomRightX = 0
-            }
-            if (bottomRightY < 0) {
-                bottomRightY = 0
-            }
+            const visibleCorners = thisRoot._getCornersOfVisible()
+            const topLeftX = visibleCorners.topLeftX
+            const topLeftY = visibleCorners.topLeftY
+            const bottomRightX = visibleCorners.bottomRightX
+            const bottomRightY = visibleCorners.bottomRightY
 
             var sliceBegin = 2 * (topLeftY * store.imageWidth + topLeftX)
             var sliceEnd = 2 * (bottomRightY * store.imageWidth + bottomRightX + 1) 
@@ -218,7 +304,6 @@ function MineartCanvas(canvasId) {
         }
 
         function renderByCache() {
-            ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
             ctxMain.drawImage(store.layers.loadedImage, 
                               store.offset.saved.x, 
                               store.offset.saved.y, 
@@ -226,6 +311,8 @@ function MineartCanvas(canvasId) {
                               store.imageHeight * 16 * store.scale.current)
         }
 
+        var t0 = performance.now()
+        ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
         if (store.scale.current > store.scale.cacheFrom) {
             renderByLoop()
             renderPainted()
@@ -233,6 +320,11 @@ function MineartCanvas(canvasId) {
             renderByCache()
             renderPainted()
         }
+        renderRulerLines()
+        store.debug.renderTime[store.scale.current] = (performance.now() - t0 + store.debug.renderTime[store.scale.current]) / 2
+        document.querySelector('#render-time').innerHTML = `
+            Scale: ${store.scale.current} || Average: ${Math.round(store.debug.renderTime[store.scale.current] * 1000) / 1000} ms
+        `
     }
 
     this.init = function() {
@@ -248,8 +340,8 @@ function MineartCanvas(canvasId) {
 
 
     canvasMain.addEventListener('mousemove', function(e) {
-        mouseControls.posMouse.x = e.clientX - store.bound.x
-        mouseControls.posMouse.y = e.clientY - store.bound.y
+        mouseControls.posMouse.x = e.clientX - store.boundingRect.x
+        mouseControls.posMouse.y = e.clientY - store.boundingRect.y
         if (store.offset.grabbed) {
             store.offset.translate(mouseControls.posMouse.x - store.offset.start.x + store.offset.temp.x, mouseControls.posMouse.y - store.offset.start.y + store.offset.temp.y)
             thisRoot.render()
@@ -278,8 +370,8 @@ function MineartCanvas(canvasId) {
         if (e.which === 2) {
             e.preventDefault()
             store.offset.grabbed = true
-            store.offset.start.x = e.clientX - store.bound.x
-            store.offset.start.y = e.clientY - store.bound.y
+            store.offset.start.x = e.clientX - store.boundingRect.x
+            store.offset.start.y = e.clientY - store.boundingRect.y
         }
     })
 

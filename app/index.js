@@ -20,6 +20,22 @@ const $settingsForm = document.getElementById('settings-form')
 const canvasTemp = document.createElement('canvas')
 const ctxTemp = canvasTemp.getContext('2d')
 
+// const testImage = new Image()
+// testImage.src = require('../static/pic.png')
+// testImage.onload = () => {
+//     mineartCanvas.setImageSizes(229, 220)
+//     canvasTemp.width = 229
+//     canvasTemp.height = 220
+//     ctxTemp.imageSmoothingEnabled = false
+//     ctxTemp.drawImage(testImage, 
+//                       0, 
+//                       0, 
+//                       testImage.width, 
+//                       testImage.height)
+//     const imageData = ctxTemp.getImageData(0, 0, 229, 220).data
+//     convertWorker.postMessage(imageData)
+// }
+
 window.mineartDOM = {
     changeTool(tool) {
         mineartCanvas.setTool(tool)
@@ -88,6 +104,6 @@ convertWorker.onmessage = function(e) {
 $canvasMain.addEventListener('cached', (e) => {
     $settings.classList.add('hidden')
     $paintTable.classList.remove('hidden')
-    mineartCanvas.setBound(canvasMain.getBoundingClientRect())
+    mineartCanvas.setBoundingRect(canvasMain.getBoundingClientRect())
     mineartCanvas.render()
 })

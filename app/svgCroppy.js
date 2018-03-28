@@ -72,7 +72,6 @@ function SvgCroppy(rootSelector) {
                 } else if (value >= this.store.posData.boundingRect.width - this.store.posData.selectRect.offsetX) {
                     this.store.posData.selectRect.width = this.store.posData.boundingRect.width - this.store.posData.selectRect.offsetX
                 } else {
-                    console.log(value)
                     this.store.posData.selectRect.width = value
                 }
                 break
