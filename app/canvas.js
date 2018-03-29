@@ -41,8 +41,8 @@ function MineartCanvas(canvasId) {
             },
             start: {},
             translate(x, y) {
-                this.saved.x = x
-                this.saved.y = y
+                this.saved.x = Math.round(x)
+                this.saved.y = Math.round(y)
             }
         },
         scale: {
@@ -233,6 +233,7 @@ function MineartCanvas(canvasId) {
 
             ctxMain.font = fontStyle;
             ctxMain.fillStyle = 'black'
+            ctxMain.strokeStyle = 'black'
             ctxMain.lineWidth = 1
             // gets lastleft/lastright visible n/coordsX and draws everything between them
 
@@ -240,8 +241,8 @@ function MineartCanvas(canvasId) {
                  i <= Math.floor((-store.offset.saved.x + store.canvasWidth) / store.scale.current / 16 / drawRulerEveryNBlocks) * drawRulerEveryNBlocks; 
                  i += drawRulerEveryNBlocks) {
                 ctxMain.beginPath()
-                ctxMain.moveTo(i * store.scale.current * 16 + store.offset.saved.x , store.canvasHeight)
-                ctxMain.lineTo(i * store.scale.current * 16 + store.offset.saved.x , store.canvasHeight - rulerSizeHorizontal)
+                ctxMain.moveTo(i * store.scale.current * 16 + store.offset.saved.x + 0.5, store.canvasHeight)
+                ctxMain.lineTo(i * store.scale.current * 16 + store.offset.saved.x + 0.5, store.canvasHeight - rulerSizeHorizontal)
                 ctxMain.stroke()
                 ctxMain.fillText(i, i * store.scale.current * 16 + store.offset.saved.x + 2, store.boundingRect.height - 10)
             }
@@ -250,14 +251,104 @@ function MineartCanvas(canvasId) {
                  i >= Math.floor(((store.offset.saved.y - store.canvasHeight) / 16 / store.scale.current + store.imageHeight) / drawRulerEveryNBlocks) * drawRulerEveryNBlocks; 
                  i -= drawRulerEveryNBlocks) {
                 ctxMain.beginPath()
-                ctxMain.moveTo(0, (store.imageHeight - i) * 16 * store.scale.current + store.offset.saved.y)
-                ctxMain.lineTo(rulerSizeVertical, (store.imageHeight - i) * 16 * store.scale.current + store.offset.saved.y)
+                ctxMain.moveTo(0, (store.imageHeight - i) * 16 * store.scale.current + store.offset.saved.y + 0.5) // + 0.5 for just the right thickness
+                ctxMain.lineTo(rulerSizeVertical, (store.imageHeight - i) * 16 * store.scale.current + store.offset.saved.y + 0.5)
                 ctxMain.stroke()
                 ctxMain.fillText(i, 1, (store.imageHeight - i) * 16 * store.scale.current + store.offset.saved.y - 3)
             }
 
             ctxMain.rect(0, store.canvasHeight - rulerSizeHorizontal, rulerSizeVertical, rulerSizeHorizontal)
             ctxMain.fill()
+        }
+
+        function renderGrid() {
+            let lineWidthBig = 2,
+                lineWidthSmall = 1,
+                strokeStyle = '#ff4778'
+
+            let mainGridLineEveryN
+            switch (store.scale.current) {
+                case 4:
+                    mainGridLineEveryN = 10
+                    break
+                case 2:
+                    mainGridLineEveryN = 10
+                    break
+                case 1:
+                    mainGridLineEveryN = 20
+                    break
+                case 0.5:
+                    mainGridLineEveryN = 20
+                    break
+                case 0.25:
+                    mainGridLineEveryN = 50
+                    break
+                case 0.125:
+                    mainGridLineEveryN = 50
+                    break
+            }
+
+            ctxMain.lineWidth = lineWidthBig
+            ctxMain.strokeStyle = strokeStyle
+            let topOfGridVertical = -store.offset.saved.y >= 0 ? 0 : store.offset.saved.y
+            let bottomOfGridVertical = store.offset.saved.y + store.imageHeight * 16 * store.scale.current
+            let topOfGridHorizontal = store.offset.saved.x < 0 ? 0 : store.offset.saved.x
+            let bottomOfGridHorizontal = store.offset.saved.x + store.imageWidth * 16 * store.scale.current
+
+            if (bottomOfGridVertical > store.canvasHeight) {
+                bottomOfGridVertical = store.canvasHeight
+            }
+            if (bottomOfGridHorizontal > store.canvasWidth) {
+                bottomOfGridHorizontal = store.canvasWidth
+            }
+
+            let startOfRenderGridHorizontal = Math.ceil((store.offset.saved.y - store.canvasHeight) / 16 / store.scale.current + store.imageHeight)
+            let endOfRenderGridHorizontal = Math.floor(store.offset.saved.y / 16 / store.scale.current + store.imageHeight)
+
+            let startOfRenderGridVertical = Math.ceil(-store.offset.saved.x / 16 / store.scale.current)
+            let endOfRenderGridVertical = Math.floor((-store.offset.saved.x + store.canvasWidth) / store.scale.current / 16)
+
+            if (startOfRenderGridHorizontal <= 0) { 
+                startOfRenderGridHorizontal = 0
+            }
+            if (endOfRenderGridHorizontal >= store.imageHeight) {
+                endOfRenderGridHorizontal = store.imageHeight
+            }
+
+            if (startOfRenderGridVertical <= 0) { 
+                startOfRenderGridVertical = 0
+            }
+            if (endOfRenderGridVertical >= store.imageWidth) {
+                endOfRenderGridVertical = store.imageWidth
+            }
+
+            for (let i = startOfRenderGridHorizontal; i <= endOfRenderGridHorizontal; i += 1) {
+                ctxMain.beginPath()
+                if (i % mainGridLineEveryN === 0) {
+                    ctxMain.lineWidth = lineWidthBig
+                    ctxMain.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.saved.y)
+                    ctxMain.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.saved.y)
+                } else {
+                    ctxMain.lineWidth = lineWidthSmall
+                    ctxMain.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.saved.y + 0.5)
+                    ctxMain.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.saved.y + 0.5)
+                }
+                ctxMain.stroke()
+            }
+
+            for (let i = startOfRenderGridVertical; i <= endOfRenderGridVertical; i += 1) {
+                ctxMain.beginPath()
+                if (i % mainGridLineEveryN === 0) {
+                    ctxMain.lineWidth = lineWidthBig
+                    ctxMain.moveTo(i * store.scale.current * 16 + store.offset.saved.x, topOfGridVertical)
+                    ctxMain.lineTo(i * store.scale.current * 16 + store.offset.saved.x, bottomOfGridVertical)
+                } else {
+                    ctxMain.lineWidth = lineWidthSmall
+                    ctxMain.moveTo(i * store.scale.current * 16 + store.offset.saved.x, topOfGridVertical + 0.5)
+                    ctxMain.lineTo(i * store.scale.current * 16 + store.offset.saved.x, bottomOfGridVertical + 0.5)
+                }
+                ctxMain.stroke()
+            }
         }
 
         function renderPainted() {
@@ -320,6 +411,7 @@ function MineartCanvas(canvasId) {
             renderByCache()
             renderPainted()
         }
+        renderGrid()
         renderRulerLines()
         store.debug.renderTime[store.scale.current] = (performance.now() - t0 + store.debug.renderTime[store.scale.current]) / 2
         document.querySelector('#render-time').innerHTML = `
