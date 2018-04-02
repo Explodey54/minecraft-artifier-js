@@ -67,7 +67,7 @@ onmessage = function(e) {
     console.log('Started in: ' + performance.now())
     
     const imageData = e.data
-    let output = ''
+    let output = []
 
     if (imageData.constructor.name != 'Uint8ClampedArray') {
         console.log('not uint8!!!')
@@ -87,9 +87,9 @@ onmessage = function(e) {
         })
 
         if (temp.id < 16) {
-            output += '0' + temp.id.toString(16)
+            output[i / 4] = '0' + temp.id.toString(16)
         } else {
-            output += temp.id.toString(16)
+            output[i / 4] = temp.id.toString(16)
         }
     }
 

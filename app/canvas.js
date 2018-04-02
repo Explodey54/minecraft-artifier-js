@@ -108,8 +108,11 @@ function MineartCanvas(canvasId) {
         if (!store.imageConvertedHex) {
             return null
         }
-        let sliceSingleBegin = 2 * (y * store.imageWidth + x)
-        let blockHex = store.imageConvertedHex.slice(sliceSingleBegin, sliceSingleBegin + 2)
+        if (x < 0 || x >= store.imageWidth || y < 0 || y >= store.imageHeight) {
+            return null
+        }
+
+        let blockHex = store.imageConvertedHex[y * store.imageWidth + x]
         return parseInt(blockHex, 16)
     }
 
@@ -117,11 +120,10 @@ function MineartCanvas(canvasId) {
         canvasTemp.width = store.imageWidth * store.baseCellSize * store.scale.cacheFrom
         canvasTemp.height = store.imageHeight * store.baseCellSize * store.scale.cacheFrom
 
-        const hexLength = store.imageConvertedHex.length
-        for (let i = 0; i < hexLength; i += 2) {
-            let x = ((i / 2)) % store.imageWidth + 1
-            let y = Math.ceil((i + 1) / 2 / store.imageWidth)
-            let imageForCanvas = store.getBlockById(parseInt(store.imageConvertedHex.slice(i, i + 2), 16)).image
+        for (let i = 0; i < store.imageConvertedHex.length; i++) {
+            let x = (i) % store.imageWidth + 1
+            let y = Math.ceil((i + 1) / store.imageWidth)
+            let imageForCanvas = store.getBlockById(parseInt(store.imageConvertedHex[i], 16)).image
             ctxTemp.drawImage(imageForCanvas,
                              (x - 1) * store.baseCellSize * store.scale.cacheFrom,
                              (y - 1) * store.baseCellSize * store.scale.cacheFrom,
@@ -221,6 +223,16 @@ function MineartCanvas(canvasId) {
         })
     }
 
+    this.getBlockInfoByMouseXY = (pageX, pageY) => {
+        let xBlock = (Math.floor((pageX - store.boundingRect.x - store.offset.x) / (store.baseCellSize * store.scale.current)))
+        let yBlock = (Math.floor((pageY - store.boundingRect.y - store.offset.y) / (store.baseCellSize * store.scale.current)))
+        return {
+            x: xBlock,
+            y: store.imageHeight - yBlock - 1,
+            info: store.getBlockById(this._getBlockIdByPosition(xBlock, yBlock))
+        } 
+    }
+
     this.setImageSizes = (w, h) => {
         store.imageWidth = parseInt(w)
         store.imageHeight = parseInt(h)
@@ -238,9 +250,9 @@ function MineartCanvas(canvasId) {
         return store.interface.toolCurrent
     }
 
-    this.loadImageHex = (str) => {
-        store.imageConvertedHex = str
-        this._createBlobImage(str)
+    this.loadImageHex = (arr) => {
+        store.imageConvertedHex = arr
+        this._createBlobImage(arr)
     }
 
     this.setEyedrop = (id) => {
@@ -272,7 +284,7 @@ function MineartCanvas(canvasId) {
             let drawRulerEveryNBlocks
             switch (store.scale.current) {
                 case 4:
-                    drawRulerEveryNBlocks = 5
+                    drawRulerEveryNBlocks = 10
                     break
                 case 2:
                     drawRulerEveryNBlocks = 10
@@ -444,16 +456,11 @@ function MineartCanvas(canvasId) {
             const bottomRightX = visibleCorners.bottomRightX
             const bottomRightY = visibleCorners.bottomRightY
 
-            var sliceBegin = 2 * (topLeftY * store.imageWidth + topLeftX)
-            var sliceEnd = 2 * (bottomRightY * store.imageWidth + bottomRightX + 1) 
-            let hexSlice = store.imageConvertedHex.slice(sliceBegin, sliceEnd)
-
             ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
             for (let y = topLeftY; y <= bottomRightY; y++) {
                 for (let x = topLeftX; x <= bottomRightX; x++) {
                     if (x < store.imageWidth && y < store.imageHeight) {
-                        let sliceSingleBegin = 2 * (y * store.imageWidth + x) - sliceBegin
-                        let hexBlock = hexSlice.slice(sliceSingleBegin, sliceSingleBegin + 2)
+                        let hexBlock = store.imageConvertedHex[y * store.imageWidth + x]
                         let imageForCanvas = store.getBlockById(parseInt(hexBlock, 16)).image
                         ctxMain.drawImage(imageForCanvas, 
                                           x * store.baseCellSize * store.scale.current + store.offset.x,
@@ -482,7 +489,7 @@ function MineartCanvas(canvasId) {
             renderByCache()
             renderPainted()
         }
-        renderGrid()
+        // renderGrid()
         renderRulerLines()
         store.debug.renderTime[store.scale.current] = (performance.now() - t0 + store.debug.renderTime[store.scale.current]) / 2
         document.querySelector('#render-time').innerHTML = `

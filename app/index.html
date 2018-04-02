@@ -14,7 +14,7 @@
 
         <section class="workarea">
             <div class="container">
-                <div id="dropzone">Drag some picture!</div>
+                <div id="dropzone" class="hidden">Drag some picture!</div>
                 <div id="settings" class="hidden">
                     <img id="settings-img" height="200">
                     <form action="#" id="settings-form">
@@ -30,10 +30,22 @@
                         <div class="tool eraser" onclick="mineartDOM.changeTool('eraser')">E</div>
                     </div>
                     <canvas id="canvasMain"></canvas>
-                </div>
-                <div>
-                    Debug info:
-                    <p id="render-time"></p>
+                    <div class="info-area">
+                        <div>
+                            <p>Width: <span class="info-area-span-width"></span></p>
+                            <p>Height: <span class="info-area-span-height"></span></p>
+                        </div>
+                        <div>
+                            Block
+                            <p><img class="info-area-span-block-img" src="null" height="60"></p>
+                            <p>X: <span class="info-area-span-block-x"></span> Y: <span class="info-area-span-block-y"></span></p>
+                            <p>Name: <span class="info-area-span-block-name"></span></p>
+                        </div>
+                        <div>
+                            Debug info:
+                            <p id="render-time"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

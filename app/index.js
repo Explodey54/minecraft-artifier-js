@@ -92,11 +92,13 @@ $dropzone.ondrop = (e) => {
                           img.height)
         const imageData = ctxTemp.getImageData(0, 0, formWidth, formHeight).data
         convertWorker.postMessage(imageData)
+
+        document.querySelector('.info-area-span-width').innerHTML = formWidth
+        document.querySelector('.info-area-span-height').innerHTML = formHeight
     }
 }
 
 convertWorker.onmessage = function(e) {
-    console.log(e.data.length)
     mineartCanvas.loadImageHex(e.data)
     console.log('Ended in: ' + performance.now())
 }
@@ -106,4 +108,14 @@ $canvasMain.addEventListener('cached', (e) => {
     $paintTable.classList.remove('hidden')
     mineartCanvas.setBoundingRect(canvasMain.getBoundingClientRect())
     mineartCanvas.render()
+})
+
+$canvasMain.addEventListener('mousemove', (e) => {
+    const blockInfo = mineartCanvas.getBlockInfoByMouseXY(e.pageX, e.pageY)
+    if (blockInfo.info) {
+        document.querySelector('.info-area-span-block-x').innerHTML = blockInfo.x + 1
+        document.querySelector('.info-area-span-block-y').innerHTML = blockInfo.y + 1
+        document.querySelector('.info-area-span-block-name').innerHTML = blockInfo.info.name
+        document.querySelector('.info-area-span-block-img').src = blockInfo.info.image.src
+    }
 })
