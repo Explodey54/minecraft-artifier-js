@@ -15,6 +15,7 @@ function MineartCanvas(canvasId) {
         colorGroups: require('../static/baked_colors.json'),
         getBlockById(id) { return this.blocksDb[id - 1] },
         imageConvertedHex: null,
+        paintedHex: {},
         imageWidth: null,
         imageHeight: null,
         canvasWidth: 1000,
@@ -116,17 +117,19 @@ function MineartCanvas(canvasId) {
         return parseInt(blockHex, 16)
     }
 
-    this._createBlobImage = (str) => {
+    this._createMainBlobImage = (str) => {
         canvasTemp.width = store.imageWidth * store.baseCellSize * store.scale.cacheFrom
         canvasTemp.height = store.imageHeight * store.baseCellSize * store.scale.cacheFrom
 
+        ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
+
         for (let i = 0; i < store.imageConvertedHex.length; i++) {
-            let x = (i) % store.imageWidth + 1
-            let y = Math.ceil((i + 1) / store.imageWidth)
+            let x = i % store.imageWidth
+            let y = Math.floor(i / store.imageWidth)
             let imageForCanvas = store.getBlockById(parseInt(store.imageConvertedHex[i], 16)).image
             ctxTemp.drawImage(imageForCanvas,
-                             (x - 1) * store.baseCellSize * store.scale.cacheFrom,
-                             (y - 1) * store.baseCellSize * store.scale.cacheFrom,
+                             x * store.baseCellSize * store.scale.cacheFrom,
+                             y * store.baseCellSize * store.scale.cacheFrom,
                              store.baseCellSize * store.scale.cacheFrom,
                              store.baseCellSize * store.scale.cacheFrom)
         }
@@ -134,11 +137,25 @@ function MineartCanvas(canvasId) {
         store.layers.loadedImage = new Image()
 
         let blob = b64toBlob(canvasTemp.toDataURL().slice(22), 'image/png')
+        ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
 
         store.layers.loadedImage.src = _URL.createObjectURL(blob)
 
         store.layers.loadedImage.onload = () => {
             canvasMain.dispatchEvent(store.events.cached)
+        }
+    }
+
+    this._createPaintedBlobImage = () => {
+        let blob = b64toBlob(canvasTemp.toDataURL().slice(22), 'image/png')
+
+        let tempImg = new Image()
+        tempImg.src = _URL.createObjectURL(blob)
+
+        tempImg.onload = () => {
+            store.layers.paintedImage.key1 = tempImg
+            store.paintedHex = {}
+            thisRoot.render()
         }
     }
 
@@ -153,7 +170,29 @@ function MineartCanvas(canvasId) {
                 startY: 0,
                 oldOffsetX: null,
                 oldOffsetY: null,
+                lastMouseX: null,
+                lastMouseY: null
             }
+        }
+
+        let tempFakePaintedPoints = {}
+
+        function bresenhamLine(x0, y0, x1, y1) {
+            var dx = Math.abs(x1-x0);
+            var dy = Math.abs(y1-y0);
+            var sx = (x0 < x1) ? 1 : -1;
+            var sy = (y0 < y1) ? 1 : -1;
+            var err = dx-dy;
+            var output = []
+
+            while(true) {
+                output.push([x0, y0])
+                if ((x0==x1) && (y0==y1)) break;
+                var e2 = 2*err;
+                if (e2 >-dy){ err -= dy; x0  += sx; }
+                if (e2 < dx){ err += dx; y0  += sy; }
+            }
+            return output
         }
 
         canvasMain.addEventListener('mousemove', function(e) {
@@ -163,26 +202,39 @@ function MineartCanvas(canvasId) {
                 store.offset.translate(controls.mouse.localX + controls.mouse.oldOffsetX, controls.mouse.localY + controls.mouse.oldOffsetY)
                 thisRoot.render()
             }
-            if (controls.mouse.leftClick) {
+            if (controls.mouse.leftClick && thisRoot.getTool() === 'clicker') {
                 let xBlock = (Math.floor((controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
                 let yBlock = (Math.floor((controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                thisRoot.paint(xBlock, yBlock, thisRoot.getEyedrop())
-                thisRoot.render()
+                let paintedLinePoints = bresenhamLine(controls.mouse.lastMouseX, controls.mouse.lastMouseY, xBlock, yBlock)
+                
+                for (let i in paintedLinePoints) {
+                    let xBlock = paintedLinePoints[i][0]
+                    let yBlock = paintedLinePoints[i][1]
+                    thisRoot.fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
+                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = {
+                        x: xBlock,
+                        y: yBlock,
+                        id: thisRoot.getEyedrop()
+                    }
+                }
+
+                controls.mouse.lastMouseX = xBlock
+                controls.mouse.lastMouseY = yBlock
             }
         })
 
         canvasMain.addEventListener('mousedown', function(e) {
             if (e.which === 1) {
-                controls.mouse.leftClick = true
+
                 let xBlock = (Math.floor((controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
                 let yBlock = (Math.floor((controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+                controls.mouse.lastMouseX = xBlock
+                controls.mouse.lastMouseY = yBlock
+                controls.mouse.leftClick = true
                 if (thisRoot.getTool() === 'eyedropper') {
                     let id = thisRoot._getBlockIdByPosition(xBlock, yBlock)
                     thisRoot.setEyedrop(id)
-                } else {
-                    thisRoot.paint(xBlock, yBlock, thisRoot.getEyedrop())
-                    thisRoot.render()
-                }
+                }  
             }
             if (e.which === 2) {
                 e.preventDefault()
@@ -199,6 +251,13 @@ function MineartCanvas(canvasId) {
             controls.mouse.leftClick = false
             controls.mouse.startX = 0
             controls.mouse.startY = 0
+            for (let i in tempFakePaintedPoints) {
+                thisRoot.paint(tempFakePaintedPoints[i].x, tempFakePaintedPoints[i].y, tempFakePaintedPoints[i].id)
+            }
+            if (Object.keys(store.paintedHex).length > 500) {
+                thisRoot._createPaintedBlobImage()
+            }
+            tempFakePaintedPoints = {}
         })
 
         canvasMain.addEventListener("wheel", (e) => {
@@ -252,7 +311,7 @@ function MineartCanvas(canvasId) {
 
     this.loadImageHex = (arr) => {
         store.imageConvertedHex = arr
-        this._createBlobImage(arr)
+        this._createMainBlobImage(arr)
     }
 
     this.setEyedrop = (id) => {
@@ -265,12 +324,22 @@ function MineartCanvas(canvasId) {
 
     this.paint = (x, y, id) => {
         if (!id) { return }
-        let pointer = store.layers.paintedImage
-        if (pointer['x' + x] === undefined) {
-            pointer['x' + x] = {}
-        }
-        pointer = pointer['x' + x]
-        pointer['y' + y] = id
+        store.paintedHex[y * store.imageWidth + x] = id
+    }
+
+    this.fakePaint = (x, y, id) => {
+        let imageForCanvas = store.getBlockById(id).image
+        ctxMain.drawImage(imageForCanvas,
+                          x * store.baseCellSize * store.scale.current + store.offset.x, 
+                          y * store.baseCellSize * store.scale.current + store.offset.y, 
+                          store.scale.current * store.baseCellSize, 
+                          store.scale.current * store.baseCellSize)
+
+        ctxTemp.drawImage(imageForCanvas,
+                          x * store.baseCellSize, 
+                          y * store.baseCellSize, 
+                          store.baseCellSize, 
+                          store.baseCellSize)
     }
 
     this.render = function() {
@@ -435,17 +504,23 @@ function MineartCanvas(canvasId) {
         }
 
         function renderPainted() {
-            for (let x in store.layers.paintedImage) {
-                for (let y in store.layers.paintedImage[x]) {
-                    let xInt = parseInt(x.replace(/[xy]/, ''))
-                    let yInt = parseInt(y.replace(/[xy]/, ''))
-                    let imageForCanvas = store.getBlockById(store.layers.paintedImage[x][y]).image
-                    ctxMain.drawImage(imageForCanvas,
-                                      xInt * store.baseCellSize * store.scale.current + store.offset.x, 
-                                      yInt * store.baseCellSize * store.scale.current + store.offset.y, 
-                                      store.scale.current * store.baseCellSize, 
-                                      store.scale.current * store.baseCellSize)
-                }
+            if (store.layers.paintedImage.key1) {
+                ctxMain.drawImage(store.layers.paintedImage.key1, 
+                                  store.offset.x, 
+                                  store.offset.y, 
+                                  store.imageWidth * 16 * store.scale.current, 
+                                  store.imageHeight * 16 * store.scale.current)
+            }
+
+            for (let i in store.paintedHex) {
+                let x = i % store.imageWidth
+                let y = Math.floor(i / store.imageWidth)
+                let imageForCanvas = store.getBlockById(store.paintedHex[i]).image
+                ctxMain.drawImage(imageForCanvas,
+                                  x * store.baseCellSize * store.scale.current + store.offset.x, 
+                                  y * store.baseCellSize * store.scale.current + store.offset.y, 
+                                  store.scale.current * store.baseCellSize, 
+                                  store.scale.current * store.baseCellSize)
             }
         }
 
