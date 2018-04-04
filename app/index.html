@@ -29,7 +29,10 @@
                         <div class="tool eye-dropper" onclick="mineartDOM.changeTool('eyedropper')">D</div>
                         <div class="tool eraser" onclick="mineartDOM.changeTool('eraser')">E</div>
                     </div>
-                    <canvas id="canvasMain"></canvas>
+                    <div class="canvas-area">
+                        <canvas id="canvasOverlay"></canvas>
+                        <canvas id="canvasMain"></canvas>
+                    </div>
                     <div class="info-area">
                         <div>
                             <p>Width: <span class="info-area-span-width"></span></p>

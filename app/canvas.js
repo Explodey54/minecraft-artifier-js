@@ -2,6 +2,9 @@ function MineartCanvas(canvasId) {
     const canvasMain = document.getElementById(canvasId)
     const ctxMain = canvasMain.getContext('2d')
 
+    const canvasOverlay = document.getElementById('canvasOverlay')
+    const ctxOverlay = canvasOverlay.getContext('2d')
+
     const canvasTemp = document.createElement('canvas')
     const ctxTemp = canvasTemp.getContext('2d')
 
@@ -15,7 +18,8 @@ function MineartCanvas(canvasId) {
         colorGroups: require('../static/baked_colors.json'),
         getBlockById(id) { return this.blocksDb[id - 1] },
         imageConvertedHex: null,
-        paintedHex: {},
+        paintedHexRendered: {},
+        paintedHexSaved: {},
         imageWidth: null,
         imageHeight: null,
         canvasWidth: 1000,
@@ -66,7 +70,22 @@ function MineartCanvas(canvasId) {
         events: {
             cached: new Event('cached')
         },
+        controls: {
+            mouse: {
+                localX: null,
+                localY: null,
+                grabbed: false,
+                leftClick: false,
+                startX: 0,
+                startY: 0,
+                oldOffsetX: null,
+                oldOffsetY: null,
+                lastMouseX: null,
+                lastMouseY: null
+            }
+        },
         debug: { //delete in prod!!!
+            renderAllPainted: false,
             renderTime: {
                 '0.125': 0,
                 '0.25': 0,
@@ -151,12 +170,32 @@ function MineartCanvas(canvasId) {
 
         let tempImg = new Image()
         tempImg.src = _URL.createObjectURL(blob)
+        for (let i in store.paintedHexRendered) {
+            store.paintedHexSaved[i] = store.paintedHexRendered[i]
+        }
+        store.paintedHexRendered = {}
+
 
         tempImg.onload = () => {
             store.layers.paintedImage.key1 = tempImg
-            store.paintedHex = {}
+            
             thisRoot.render()
         }
+    }
+
+    this._fakePaint = (x, y, id) => {
+        let imageForCanvas = store.getBlockById(id).image
+        ctxMain.drawImage(imageForCanvas,
+                          x * store.baseCellSize * store.scale.current + store.offset.x, 
+                          y * store.baseCellSize * store.scale.current + store.offset.y, 
+                          store.scale.current * store.baseCellSize, 
+                          store.scale.current * store.baseCellSize)
+
+        ctxTemp.drawImage(imageForCanvas,
+                          x * store.baseCellSize, 
+                          y * store.baseCellSize, 
+                          store.baseCellSize, 
+                          store.baseCellSize)
     }
 
     this._setEventListeners = function() {
@@ -195,22 +234,22 @@ function MineartCanvas(canvasId) {
             return output
         }
 
-        canvasMain.addEventListener('mousemove', function(e) {
-            controls.mouse.localX = e.pageX - store.boundingRect.x - controls.mouse.startX
-            controls.mouse.localY = e.pageY - store.boundingRect.y - controls.mouse.startY
-            if (controls.mouse.grabbed) {
-                store.offset.translate(controls.mouse.localX + controls.mouse.oldOffsetX, controls.mouse.localY + controls.mouse.oldOffsetY)
+        canvasOverlay.addEventListener('mousemove', function(e) {
+            store.controls.mouse.localX = e.pageX - store.boundingRect.x - store.controls.mouse.startX
+            store.controls.mouse.localY = e.pageY - store.boundingRect.y - store.controls.mouse.startY
+            if (store.controls.mouse.grabbed) {
+                store.offset.translate(store.controls.mouse.localX + store.controls.mouse.oldOffsetX, store.controls.mouse.localY + store.controls.mouse.oldOffsetY)
                 thisRoot.render()
             }
-            if (controls.mouse.leftClick && thisRoot.getTool() === 'clicker') {
-                let xBlock = (Math.floor((controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
-                let yBlock = (Math.floor((controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                let paintedLinePoints = bresenhamLine(controls.mouse.lastMouseX, controls.mouse.lastMouseY, xBlock, yBlock)
+            if (store.controls.mouse.leftClick && thisRoot.getTool() === 'clicker') {
+                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
+                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+                let paintedLinePoints = bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock)
                 
                 for (let i in paintedLinePoints) {
                     let xBlock = paintedLinePoints[i][0]
                     let yBlock = paintedLinePoints[i][1]
-                    thisRoot.fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
+                    thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
                     tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = {
                         x: xBlock,
                         y: yBlock,
@@ -218,19 +257,19 @@ function MineartCanvas(canvasId) {
                     }
                 }
 
-                controls.mouse.lastMouseX = xBlock
-                controls.mouse.lastMouseY = yBlock
+                store.controls.mouse.lastMouseX = xBlock
+                store.controls.mouse.lastMouseY = yBlock
             }
         })
 
-        canvasMain.addEventListener('mousedown', function(e) {
+        canvasOverlay.addEventListener('mousedown', function(e) {
             if (e.which === 1) {
 
-                let xBlock = (Math.floor((controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
-                let yBlock = (Math.floor((controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                controls.mouse.lastMouseX = xBlock
-                controls.mouse.lastMouseY = yBlock
-                controls.mouse.leftClick = true
+                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
+                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+                store.controls.mouse.lastMouseX = xBlock
+                store.controls.mouse.lastMouseY = yBlock
+                store.controls.mouse.leftClick = true
                 if (thisRoot.getTool() === 'eyedropper') {
                     let id = thisRoot._getBlockIdByPosition(xBlock, yBlock)
                     thisRoot.setEyedrop(id)
@@ -238,34 +277,36 @@ function MineartCanvas(canvasId) {
             }
             if (e.which === 2) {
                 e.preventDefault()
-                controls.mouse.grabbed = true
-                controls.mouse.startX = e.clientX - store.boundingRect.x
-                controls.mouse.startY = e.clientY - store.boundingRect.y
-                controls.mouse.oldOffsetX = store.offset.x
-                controls.mouse.oldOffsetY = store.offset.y
+                store.controls.mouse.grabbed = true
+                store.controls.mouse.startX = e.clientX - store.boundingRect.x
+                store.controls.mouse.startY = e.clientY - store.boundingRect.y
+                store.controls.mouse.oldOffsetX = store.offset.x
+                store.controls.mouse.oldOffsetY = store.offset.y
             }
         })
 
         document.addEventListener('mouseup', function(e) {
-            controls.mouse.grabbed = false
-            controls.mouse.leftClick = false
-            controls.mouse.startX = 0
-            controls.mouse.startY = 0
+            store.controls.mouse.grabbed = false
+            store.controls.mouse.leftClick = false
+            store.controls.mouse.startX = 0
+            store.controls.mouse.startY = 0
             for (let i in tempFakePaintedPoints) {
                 thisRoot.paint(tempFakePaintedPoints[i].x, tempFakePaintedPoints[i].y, tempFakePaintedPoints[i].id)
             }
-            if (Object.keys(store.paintedHex).length > 500) {
+            // console.log(Object.keys(store.paintedHexRendered).length)
+            if (Object.keys(store.paintedHexRendered).length > 1000) {
+                console.log('renderingrenderer')
                 thisRoot._createPaintedBlobImage()
             }
             tempFakePaintedPoints = {}
         })
 
-        canvasMain.addEventListener("wheel", (e) => {
+        canvasOverlay.addEventListener("wheel", (e) => {
             e.preventDefault()
             if (e.deltaY < 0) {
                 if (store.scale.scaleUp()) {
-                    let x = Math.floor(controls.mouse.localX - store.offset.x)
-                    let y = Math.floor(controls.mouse.localY - store.offset.y)
+                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
+                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
                     store.offset.translate(store.offset.x - x, store.offset.y - y)
                     thisRoot.render()
                 }
@@ -273,13 +314,18 @@ function MineartCanvas(canvasId) {
 
             if (e.deltaY > 0) {
                 if (store.scale.scaleDown()) {
-                    let x = Math.floor(controls.mouse.localX - store.offset.x)
-                    let y = Math.floor(controls.mouse.localY - store.offset.y)
+                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
+                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
                     store.offset.translate(store.offset.x + x / 2, store.offset.y + y / 2)
                     thisRoot.render()
                 }
             }
         })
+    }
+
+    this.debugRenderAllPainted = () => {
+        store.debug.renderAllPainted = !store.debug.renderAllPainted
+        return store.debug.renderAllPainted
     }
 
     this.getBlockInfoByMouseXY = (pageX, pageY) => {
@@ -324,26 +370,11 @@ function MineartCanvas(canvasId) {
 
     this.paint = (x, y, id) => {
         if (!id) { return }
-        store.paintedHex[y * store.imageWidth + x] = id
-    }
-
-    this.fakePaint = (x, y, id) => {
-        let imageForCanvas = store.getBlockById(id).image
-        ctxMain.drawImage(imageForCanvas,
-                          x * store.baseCellSize * store.scale.current + store.offset.x, 
-                          y * store.baseCellSize * store.scale.current + store.offset.y, 
-                          store.scale.current * store.baseCellSize, 
-                          store.scale.current * store.baseCellSize)
-
-        ctxTemp.drawImage(imageForCanvas,
-                          x * store.baseCellSize, 
-                          y * store.baseCellSize, 
-                          store.baseCellSize, 
-                          store.baseCellSize)
+        store.paintedHexRendered[y * store.imageWidth + x] = id
     }
 
     this.render = function() {
-        function renderRulerLines() {
+        function renderRulers() {
             let rulerSizeHorizontal = 25,
                 rulerSizeVertical = 25,
                 rulerFillStyle = 'white',
@@ -504,6 +535,20 @@ function MineartCanvas(canvasId) {
         }
 
         function renderPainted() {
+            if (store.debug.renderAllPainted) {
+                for (let i in store.paintedHexSaved) {
+                    let x = i % store.imageWidth
+                    let y = Math.floor(i / store.imageWidth)
+                    let imageForCanvas = store.getBlockById(store.paintedHexSaved[i]).image
+                    ctxMain.drawImage(imageForCanvas,
+                                      x * store.baseCellSize * store.scale.current + store.offset.x, 
+                                      y * store.baseCellSize * store.scale.current + store.offset.y, 
+                                      store.scale.current * store.baseCellSize, 
+                                      store.scale.current * store.baseCellSize)
+                }
+                return
+            }
+
             if (store.layers.paintedImage.key1) {
                 ctxMain.drawImage(store.layers.paintedImage.key1, 
                                   store.offset.x, 
@@ -512,10 +557,10 @@ function MineartCanvas(canvasId) {
                                   store.imageHeight * 16 * store.scale.current)
             }
 
-            for (let i in store.paintedHex) {
+            for (let i in store.paintedHexRendered) {
                 let x = i % store.imageWidth
                 let y = Math.floor(i / store.imageWidth)
-                let imageForCanvas = store.getBlockById(store.paintedHex[i]).image
+                let imageForCanvas = store.getBlockById(store.paintedHexRendered[i]).image
                 ctxMain.drawImage(imageForCanvas,
                                   x * store.baseCellSize * store.scale.current + store.offset.x, 
                                   y * store.baseCellSize * store.scale.current + store.offset.y, 
@@ -524,48 +569,69 @@ function MineartCanvas(canvasId) {
             }
         }
 
-        function renderByLoop() {
-            const visibleCorners = thisRoot._getCornersOfVisible()
-            const topLeftX = visibleCorners.topLeftX
-            const topLeftY = visibleCorners.topLeftY
-            const bottomRightX = visibleCorners.bottomRightX
-            const bottomRightY = visibleCorners.bottomRightY
+        function renderMain() {
+            function renderByLoop() {
+                const visibleCorners = thisRoot._getCornersOfVisible()
+                const topLeftX = visibleCorners.topLeftX
+                const topLeftY = visibleCorners.topLeftY
+                const bottomRightX = visibleCorners.bottomRightX
+                const bottomRightY = visibleCorners.bottomRightY
 
-            ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
-            for (let y = topLeftY; y <= bottomRightY; y++) {
-                for (let x = topLeftX; x <= bottomRightX; x++) {
-                    if (x < store.imageWidth && y < store.imageHeight) {
-                        let hexBlock = store.imageConvertedHex[y * store.imageWidth + x]
-                        let imageForCanvas = store.getBlockById(parseInt(hexBlock, 16)).image
-                        ctxMain.drawImage(imageForCanvas, 
-                                          x * store.baseCellSize * store.scale.current + store.offset.x,
-                                          y * store.baseCellSize * store.scale.current + store.offset.y,
-                                          store.scale.current * store.baseCellSize,
-                                          store.scale.current * store.baseCellSize)
+                ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
+                for (let y = topLeftY; y <= bottomRightY; y++) {
+                    for (let x = topLeftX; x <= bottomRightX; x++) {
+                        if (x < store.imageWidth && y < store.imageHeight) {
+                            let hexBlock = store.imageConvertedHex[y * store.imageWidth + x]
+                            let imageForCanvas = store.getBlockById(parseInt(hexBlock, 16)).image
+                            ctxMain.drawImage(imageForCanvas, 
+                                              x * store.baseCellSize * store.scale.current + store.offset.x,
+                                              y * store.baseCellSize * store.scale.current + store.offset.y,
+                                              store.scale.current * store.baseCellSize,
+                                              store.scale.current * store.baseCellSize)
+                        }
                     }
                 }
             }
+
+            function renderByCache() {
+                ctxMain.drawImage(store.layers.loadedImage, 
+                                  store.offset.x, 
+                                  store.offset.y, 
+                                  store.imageWidth * 16 * store.scale.current, 
+                                  store.imageHeight * 16 * store.scale.current)
+            }
+
+            if (store.scale.current > store.scale.cacheFrom) {
+                renderByLoop()
+            } else {
+                renderByCache()
+            }
+        }
+        
+
+        const renderList = {
+            'RENDER_MAIN': renderMain,
+            'RENDER_PAINTED': renderPainted,
+            'RENDER_RULERS': renderRulers,
+            'RENDER_GRID': renderGrid
         }
 
-        function renderByCache() {
-            ctxMain.drawImage(store.layers.loadedImage, 
-                              store.offset.x, 
-                              store.offset.y, 
-                              store.imageWidth * 16 * store.scale.current, 
-                              store.imageHeight * 16 * store.scale.current)
+        function renderHelper(list) {
+            for (let key in list) {
+                if (renderList[list[key]]) { renderList[list[key]]() }
+            }
         }
 
         var t0 = performance.now()
         ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
-        if (store.scale.current > store.scale.cacheFrom) {
-            renderByLoop()
-            renderPainted()
-        } else {
-            renderByCache()
-            renderPainted()
-        }
-        // renderGrid()
-        renderRulerLines()
+
+        renderHelper([
+            'RENDER_MAIN',
+            'RENDER_PAINTED',
+            // 'RENDER_GRID',
+            'RENDER_RULERS'
+        ])
+        
         store.debug.renderTime[store.scale.current] = (performance.now() - t0 + store.debug.renderTime[store.scale.current]) / 2
         document.querySelector('#render-time').innerHTML = `
             Scale: ${store.scale.current} || Average: ${Math.round(store.debug.renderTime[store.scale.current] * 1000) / 1000} ms
@@ -575,6 +641,8 @@ function MineartCanvas(canvasId) {
     this.init = function() {
         canvasMain.width = store.canvasWidth
         canvasMain.height = store.canvasHeight
+        canvasOverlay.width = store.canvasWidth
+        canvasOverlay.height = store.canvasHeight
         store.blocksDb.forEach((item) => {
             item.image = new Image()
             item.image.src = require('../static/textures/' + item.texture_image)

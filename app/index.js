@@ -10,6 +10,7 @@ const convertWorker = new ConvertWorker()
 const mineartCanvas = new MineartCanvas('canvasMain')
 
 const $canvasMain = document.getElementById('canvasMain')
+const $canvasOverlay = document.getElementById('canvasOverlay')
 const $dropzone = document.getElementById('dropzone')
 const $paintTable = document.getElementById('paint-table')
 const $settings = document.getElementById('settings')
@@ -39,6 +40,9 @@ const ctxTemp = canvasTemp.getContext('2d')
 window.mineartDOM = {
     changeTool(tool) {
         mineartCanvas.setTool(tool)
+    },
+    testShowPainted() {
+        return mineartCanvas.debugRenderAllPainted()
     }
 }
 
@@ -110,7 +114,7 @@ $canvasMain.addEventListener('cached', (e) => {
     mineartCanvas.render()
 })
 
-$canvasMain.addEventListener('mousemove', (e) => {
+$canvasOverlay.addEventListener('mousemove', (e) => {
     const blockInfo = mineartCanvas.getBlockInfoByMouseXY(e.pageX, e.pageY)
     if (blockInfo.info) {
         document.querySelector('.info-area-span-block-x').innerHTML = blockInfo.x + 1

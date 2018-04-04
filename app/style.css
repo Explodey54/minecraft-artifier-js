@@ -57,7 +57,7 @@ section.workarea {
 }
 
 #paint-table canvas {
-  display: inline-block;
+  position: absolute;
   border: 3px solid grey;
 }
 
@@ -99,4 +99,19 @@ section.workarea {
 #settings-img {
   user-select: none;
   display: block;
+}
+
+.canvas-area { 
+  width: 1010px;
+  height: 720px;
+  display: inline-block;
+  position: relative;
+}
+
+#canvasOverlay {
+  z-index: 10;
+}
+
+#canvasMain {
+  z-index: 1;
 }
