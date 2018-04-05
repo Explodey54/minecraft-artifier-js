@@ -65,7 +65,8 @@ function MineartCanvas(canvasId) {
         },
         interface: {
             eyedropCurrent: null,
-            toolCurrent: null
+            toolCurrent: null,
+            brushSize: 5
         },
         events: {
             cached: new Event('cached')
@@ -83,6 +84,9 @@ function MineartCanvas(canvasId) {
                 lastMouseX: null,
                 lastMouseY: null
             }
+        },
+        settings: {
+            cachePaintedAfter: 3000
         },
         debug: { //delete in prod!!!
             renderAllPainted: false,
@@ -166,7 +170,9 @@ function MineartCanvas(canvasId) {
     }
 
     this._createPaintedBlobImage = () => {
+        let t = performance.now()
         let blob = b64toBlob(canvasTemp.toDataURL().slice(22), 'image/png')
+        console.log(performance.now() - t)
 
         let tempImg = new Image()
         tempImg.src = _URL.createObjectURL(blob)
@@ -178,12 +184,13 @@ function MineartCanvas(canvasId) {
 
         tempImg.onload = () => {
             store.layers.paintedImage.key1 = tempImg
-            
-            thisRoot.render()
+            thisRoot._renderMainCanvas()
         }
     }
 
     this._fakePaint = (x, y, id) => {
+        if (x < 0 || x >= store.imageWidth ) { return }
+        if (y < 0 || y >= store.imageHeight ) { return }
         let imageForCanvas = store.getBlockById(id).image
         ctxMain.drawImage(imageForCanvas,
                           x * store.baseCellSize * store.scale.current + store.offset.x, 
@@ -198,182 +205,8 @@ function MineartCanvas(canvasId) {
                           store.baseCellSize)
     }
 
-    this._setEventListeners = function() {
-        const controls = {
-            mouse: {
-                localX: null,
-                localY: null,
-                grabbed: false,
-                leftClick: false,
-                startX: 0,
-                startY: 0,
-                oldOffsetX: null,
-                oldOffsetY: null,
-                lastMouseX: null,
-                lastMouseY: null
-            }
-        }
+    this._renderOverlayCanvas = () => {
 
-        let tempFakePaintedPoints = {}
-
-        function bresenhamLine(x0, y0, x1, y1) {
-            var dx = Math.abs(x1-x0);
-            var dy = Math.abs(y1-y0);
-            var sx = (x0 < x1) ? 1 : -1;
-            var sy = (y0 < y1) ? 1 : -1;
-            var err = dx-dy;
-            var output = []
-
-            while(true) {
-                output.push([x0, y0])
-                if ((x0==x1) && (y0==y1)) break;
-                var e2 = 2*err;
-                if (e2 >-dy){ err -= dy; x0  += sx; }
-                if (e2 < dx){ err += dx; y0  += sy; }
-            }
-            return output
-        }
-
-        canvasOverlay.addEventListener('mousemove', function(e) {
-            store.controls.mouse.localX = e.pageX - store.boundingRect.x - store.controls.mouse.startX
-            store.controls.mouse.localY = e.pageY - store.boundingRect.y - store.controls.mouse.startY
-            if (store.controls.mouse.grabbed) {
-                store.offset.translate(store.controls.mouse.localX + store.controls.mouse.oldOffsetX, store.controls.mouse.localY + store.controls.mouse.oldOffsetY)
-                thisRoot.render()
-            }
-            if (store.controls.mouse.leftClick && thisRoot.getTool() === 'clicker') {
-                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
-                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                let paintedLinePoints = bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock)
-                
-                for (let i in paintedLinePoints) {
-                    let xBlock = paintedLinePoints[i][0]
-                    let yBlock = paintedLinePoints[i][1]
-                    thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
-                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = {
-                        x: xBlock,
-                        y: yBlock,
-                        id: thisRoot.getEyedrop()
-                    }
-                }
-
-                store.controls.mouse.lastMouseX = xBlock
-                store.controls.mouse.lastMouseY = yBlock
-            }
-        })
-
-        canvasOverlay.addEventListener('mousedown', function(e) {
-            if (e.which === 1) {
-
-                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
-                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                store.controls.mouse.lastMouseX = xBlock
-                store.controls.mouse.lastMouseY = yBlock
-                store.controls.mouse.leftClick = true
-                if (thisRoot.getTool() === 'eyedropper') {
-                    let id = thisRoot._getBlockIdByPosition(xBlock, yBlock)
-                    thisRoot.setEyedrop(id)
-                }  
-            }
-            if (e.which === 2) {
-                e.preventDefault()
-                store.controls.mouse.grabbed = true
-                store.controls.mouse.startX = e.clientX - store.boundingRect.x
-                store.controls.mouse.startY = e.clientY - store.boundingRect.y
-                store.controls.mouse.oldOffsetX = store.offset.x
-                store.controls.mouse.oldOffsetY = store.offset.y
-            }
-        })
-
-        document.addEventListener('mouseup', function(e) {
-            store.controls.mouse.grabbed = false
-            store.controls.mouse.leftClick = false
-            store.controls.mouse.startX = 0
-            store.controls.mouse.startY = 0
-            for (let i in tempFakePaintedPoints) {
-                thisRoot.paint(tempFakePaintedPoints[i].x, tempFakePaintedPoints[i].y, tempFakePaintedPoints[i].id)
-            }
-            // console.log(Object.keys(store.paintedHexRendered).length)
-            if (Object.keys(store.paintedHexRendered).length > 1000) {
-                console.log('renderingrenderer')
-                thisRoot._createPaintedBlobImage()
-            }
-            tempFakePaintedPoints = {}
-        })
-
-        canvasOverlay.addEventListener("wheel", (e) => {
-            e.preventDefault()
-            if (e.deltaY < 0) {
-                if (store.scale.scaleUp()) {
-                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
-                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
-                    store.offset.translate(store.offset.x - x, store.offset.y - y)
-                    thisRoot.render()
-                }
-            }
-
-            if (e.deltaY > 0) {
-                if (store.scale.scaleDown()) {
-                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
-                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
-                    store.offset.translate(store.offset.x + x / 2, store.offset.y + y / 2)
-                    thisRoot.render()
-                }
-            }
-        })
-    }
-
-    this.debugRenderAllPainted = () => {
-        store.debug.renderAllPainted = !store.debug.renderAllPainted
-        return store.debug.renderAllPainted
-    }
-
-    this.getBlockInfoByMouseXY = (pageX, pageY) => {
-        let xBlock = (Math.floor((pageX - store.boundingRect.x - store.offset.x) / (store.baseCellSize * store.scale.current)))
-        let yBlock = (Math.floor((pageY - store.boundingRect.y - store.offset.y) / (store.baseCellSize * store.scale.current)))
-        return {
-            x: xBlock,
-            y: store.imageHeight - yBlock - 1,
-            info: store.getBlockById(this._getBlockIdByPosition(xBlock, yBlock))
-        } 
-    }
-
-    this.setImageSizes = (w, h) => {
-        store.imageWidth = parseInt(w)
-        store.imageHeight = parseInt(h)
-    }
-
-    this.setBoundingRect = (obj) => {
-        store.boundingRect = obj
-    }
-
-    this.setTool = (str) => {
-        store.interface.toolCurrent = str
-    }
-
-    this.getTool = () => {
-        return store.interface.toolCurrent
-    }
-
-    this.loadImageHex = (arr) => {
-        store.imageConvertedHex = arr
-        this._createMainBlobImage(arr)
-    }
-
-    this.setEyedrop = (id) => {
-        store.interface.eyedropCurrent = id
-    }
-
-    this.getEyedrop = () => {
-        return store.interface.eyedropCurrent
-    }
-
-    this.paint = (x, y, id) => {
-        if (!id) { return }
-        store.paintedHexRendered[y * store.imageWidth + x] = id
-    }
-
-    this.render = function() {
         function renderRulers() {
             let rulerSizeHorizontal = 25,
                 rulerSizeVertical = 25,
@@ -407,41 +240,73 @@ function MineartCanvas(canvasId) {
                 rulerSizeVertical = 36
             }
 
-            ctxMain.fillStyle = rulerFillStyle
-            ctxMain.rect(0, store.canvasHeight - rulerSizeHorizontal, store.canvasWidth, rulerSizeHorizontal)
-            ctxMain.fill()
-            ctxMain.rect(0, 0, rulerSizeVertical, store.canvasHeight)
-            ctxMain.fill()
+            ctxOverlay.beginPath()
+            ctxOverlay.fillStyle = rulerFillStyle
+            ctxOverlay.rect(0, store.canvasHeight - rulerSizeHorizontal, store.canvasWidth, rulerSizeHorizontal)
+            ctxOverlay.fill()
+            ctxOverlay.rect(0, 0, rulerSizeVertical, store.canvasHeight)
+            ctxOverlay.fill()
 
-            ctxMain.font = fontStyle;
-            ctxMain.fillStyle = 'black'
-            ctxMain.strokeStyle = 'black'
-            ctxMain.lineWidth = 1
+            ctxOverlay.font = fontStyle;
+            ctxOverlay.fillStyle = 'black'
+            ctxOverlay.strokeStyle = 'black'
+            ctxOverlay.lineWidth = 1
             // gets lastleft/lastright visible n/coordsX and draws everything between them
 
             for (let i = Math.ceil(-store.offset.x / store.scale.current / 16 / drawRulerEveryNBlocks) * drawRulerEveryNBlocks;
                  i <= Math.floor((-store.offset.x + store.canvasWidth) / store.scale.current / 16 / drawRulerEveryNBlocks) * drawRulerEveryNBlocks; 
                  i += drawRulerEveryNBlocks) {
-                ctxMain.beginPath()
-                ctxMain.moveTo(i * store.scale.current * 16 + store.offset.x + 0.5, store.canvasHeight)
-                ctxMain.lineTo(i * store.scale.current * 16 + store.offset.x + 0.5, store.canvasHeight - rulerSizeHorizontal)
-                ctxMain.stroke()
-                ctxMain.fillText(i, i * store.scale.current * 16 + store.offset.x + 2, store.boundingRect.height - 10)
+                ctxOverlay.beginPath()
+                ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x + 0.5, store.canvasHeight)
+                ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x + 0.5, store.canvasHeight - rulerSizeHorizontal)
+                ctxOverlay.stroke()
+                ctxOverlay.fillText(i, i * store.scale.current * 16 + store.offset.x + 2, store.boundingRect.height - 10)
             }
 
             for (let i = Math.floor((store.offset.y / 16 / store.scale.current + store.imageHeight) / drawRulerEveryNBlocks) * drawRulerEveryNBlocks;
                  i >= Math.floor(((store.offset.y - store.canvasHeight) / 16 / store.scale.current + store.imageHeight) / drawRulerEveryNBlocks) * drawRulerEveryNBlocks; 
                  i -= drawRulerEveryNBlocks) {
-                ctxMain.beginPath()
-                ctxMain.moveTo(0, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y + 0.5) // + 0.5 for just the right thickness
-                ctxMain.lineTo(rulerSizeVertical, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y + 0.5)
-                ctxMain.stroke()
-                ctxMain.fillText(i, 1, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y - 3)
+                ctxOverlay.beginPath()
+                ctxOverlay.moveTo(0, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y + 0.5) // + 0.5 for just the right thickness
+                ctxOverlay.lineTo(rulerSizeVertical, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y + 0.5)
+                ctxOverlay.stroke()
+                ctxOverlay.fillText(i, 1, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y - 3)
             }
 
-            ctxMain.rect(0, store.canvasHeight - rulerSizeHorizontal, rulerSizeVertical, rulerSizeHorizontal)
-            ctxMain.fill()
+            ctxOverlay.rect(0, store.canvasHeight - rulerSizeHorizontal, rulerSizeVertical, rulerSizeHorizontal)
+            ctxOverlay.fill()
         }
+
+        function renderBrush() {
+            let brushSize = store.interface.brushSize * store.baseCellSize * store.scale.current
+            ctxOverlay.strokeStyle = "black 1.5px"
+            ctxOverlay.fillStyle = "rgba(0,0,0,0)"
+            ctxOverlay.beginPath()
+            ctxOverlay.rect(store.controls.mouse.localX - brushSize / 2, store.controls.mouse.localY - brushSize / 2, brushSize, brushSize)
+            ctxOverlay.stroke()
+        }
+
+        const renderList = {
+            'RENDER_BRUSH': renderBrush,
+            'RENDER_RULERS': renderRulers
+        }
+
+        function renderHelper(list) {
+            ctxOverlay.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
+            ctxOverlay.save()
+            for (let key in list) {
+                if (renderList[list[key]]) { renderList[list[key]]() }
+                ctxOverlay.restore()
+            }
+        }
+
+        renderHelper([
+            'RENDER_BRUSH',
+            'RENDER_RULERS'
+        ])
+    }
+
+    this._renderMainCanvas = () => {
 
         function renderGrid() {
             let lineWidthBig = 2,
@@ -608,11 +473,9 @@ function MineartCanvas(canvasId) {
             }
         }
         
-
         const renderList = {
             'RENDER_MAIN': renderMain,
             'RENDER_PAINTED': renderPainted,
-            'RENDER_RULERS': renderRulers,
             'RENDER_GRID': renderGrid
         }
 
@@ -636,6 +499,205 @@ function MineartCanvas(canvasId) {
         document.querySelector('#render-time').innerHTML = `
             Scale: ${store.scale.current} || Average: ${Math.round(store.debug.renderTime[store.scale.current] * 1000) / 1000} ms
         `
+    }
+
+    this._setEventListeners = function() {
+        let tempFakePaintedPoints = {}
+
+        function bresenhamLine(x0, y0, x1, y1, skipEveryN, callback) {
+            var dx = Math.abs(x1-x0);
+            var dy = Math.abs(y1-y0);
+            var sx = (x0 < x1) ? 1 : -1;
+            var sy = (y0 < y1) ? 1 : -1;
+            var err = dx-dy;
+            let i = 0
+
+            while(true) {
+                if ((x0==x1) && (y0==y1)) break;
+                var e2 = 2*err;
+                if (e2 >-dy){ err -= dy; x0  += sx; }
+                if (e2 < dx){ err += dx; y0  += sy; }
+                if (i % skipEveryN === 0) {
+                    callback(x0, y0)
+                }
+                i++
+            }
+        }
+
+        canvasOverlay.addEventListener('mousemove', function(e) {
+            store.controls.mouse.localX = Math.round(e.pageX - store.boundingRect.x - store.controls.mouse.startX)
+            store.controls.mouse.localY = Math.round(e.pageY - store.boundingRect.y - store.controls.mouse.startY)
+            if (store.controls.mouse.grabbed) {
+                store.offset.translate(store.controls.mouse.localX + store.controls.mouse.oldOffsetX, store.controls.mouse.localY + store.controls.mouse.oldOffsetY)
+                thisRoot._renderMainCanvas()
+                thisRoot._renderOverlayCanvas()
+            }
+            if (store.controls.mouse.leftClick && thisRoot.getTool() === 'clicker') {
+                //get block coords
+                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
+                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+                if (xBlock < 0 || xBlock >= store.imageWidth ) { return }
+                if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
+
+                //start the bresenham algorithm with the callback
+                bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock, 10, (x, y) => {
+                    let size = store.interface.brushSize
+                    let totalBlocks = Math.pow(size, 2)
+                    let startPointX = x - Math.floor(size / 2)
+                    let startPointY = y - Math.floor(size / 2)
+
+                    //for every block in line call fakepaint for blocks in brush size
+                    for (let i = 0; i < totalBlocks; i++) {
+                        let xBlock = startPointX + (i % size)
+                        let yBlock = startPointY + Math.floor(i / size)
+                        if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { return }
+                        thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
+                        tempFakePaintedPoints[xBlock * store.imageWidth + yBlock] = {
+                            x: xBlock,
+                            y: yBlock,
+                            id: thisRoot.getEyedrop()
+                        }
+                    }
+                })
+
+                store.controls.mouse.lastMouseX = xBlock
+                store.controls.mouse.lastMouseY = yBlock
+            }
+            thisRoot._renderOverlayCanvas()
+        })
+
+        canvasOverlay.addEventListener('mousedown', function(e) {
+            if (e.which === 1) {
+                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
+                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+                store.controls.mouse.lastMouseX = xBlock
+                store.controls.mouse.lastMouseY = yBlock
+                store.controls.mouse.leftClick = true
+
+                if (thisRoot.getTool() === 'eyedropper') {
+                    let id = thisRoot._getBlockIdByPosition(xBlock, yBlock)
+                    thisRoot.setEyedrop(id)
+                }
+
+                if (thisRoot.getTool() === 'clicker') {
+                    let size = store.interface.brushSize
+                    let totalBlocks = Math.pow(size, 2)
+                    let startPointX = xBlock - Math.floor(size / 2)
+                    let startPointY = yBlock - Math.floor(size / 2)
+
+                    for (let i = 0; i < totalBlocks; i++) {
+                        let xBlock = startPointX + (i % size)
+                        let yBlock = startPointY + Math.floor(i / size)
+                        if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { return }
+                        thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
+                        tempFakePaintedPoints[xBlock * store.imageWidth + yBlock] = {
+                            x: xBlock,
+                            y: yBlock,
+                            id: thisRoot.getEyedrop()
+                        }
+                    }
+
+                }
+            }
+            if (e.which === 2) {
+                e.preventDefault()
+                store.controls.mouse.grabbed = true
+                store.controls.mouse.startX = e.clientX - store.boundingRect.x
+                store.controls.mouse.startY = e.clientY - store.boundingRect.y
+                store.controls.mouse.oldOffsetX = store.offset.x
+                store.controls.mouse.oldOffsetY = store.offset.y
+            }
+        })
+
+        document.addEventListener('mouseup', function(e) {
+            store.controls.mouse.grabbed = false
+            store.controls.mouse.leftClick = false
+            store.controls.mouse.startX = 0
+            store.controls.mouse.startY = 0
+            for (let i in tempFakePaintedPoints) {
+                thisRoot.paint(tempFakePaintedPoints[i].x, tempFakePaintedPoints[i].y, tempFakePaintedPoints[i].id)
+            }
+            if (Object.keys(store.paintedHexRendered).length > store.settings.cachePaintedAfter) {
+                thisRoot._createPaintedBlobImage()
+            }
+            tempFakePaintedPoints = {}
+        })
+
+        canvasOverlay.addEventListener("wheel", (e) => {
+            e.preventDefault()
+            if (e.deltaY < 0) {
+                if (store.scale.scaleUp()) {
+                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
+                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
+                    store.offset.translate(store.offset.x - x, store.offset.y - y)
+                }
+            }
+
+            if (e.deltaY > 0) {
+                if (store.scale.scaleDown()) {
+                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
+                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
+                    store.offset.translate(store.offset.x + x / 2, store.offset.y + y / 2)
+                }
+            }
+            thisRoot._renderMainCanvas()
+            thisRoot._renderOverlayCanvas()
+        })
+    }
+
+    this.debugRenderAllPainted = () => {
+        store.debug.renderAllPainted = !store.debug.renderAllPainted
+        return store.debug.renderAllPainted
+    }
+
+    this.getBlockInfoByMouseXY = (pageX, pageY) => {
+        let xBlock = (Math.floor((pageX - store.boundingRect.x - store.offset.x) / (store.baseCellSize * store.scale.current)))
+        let yBlock = (Math.floor((pageY - store.boundingRect.y - store.offset.y) / (store.baseCellSize * store.scale.current)))
+        return {
+            x: xBlock,
+            y: store.imageHeight - yBlock - 1,
+            info: store.getBlockById(this._getBlockIdByPosition(xBlock, yBlock))
+        } 
+    }
+
+    this.setImageSizes = (w, h) => {
+        store.imageWidth = parseInt(w)
+        store.imageHeight = parseInt(h)
+    }
+
+    this.setBoundingRect = (obj) => {
+        store.boundingRect = obj
+    }
+
+    this.setTool = (str) => {
+        store.interface.toolCurrent = str
+    }
+
+    this.getTool = () => {
+        return store.interface.toolCurrent
+    }
+
+    this.loadImageHex = (arr) => {
+        store.imageConvertedHex = arr
+        this._createMainBlobImage(arr)
+    }
+
+    this.setEyedrop = (id) => {
+        store.interface.eyedropCurrent = id
+    }
+
+    this.getEyedrop = () => {
+        return store.interface.eyedropCurrent
+    }
+
+    this.paint = (x, y, id) => {
+        if (!id) { return }
+        store.paintedHexRendered[y * store.imageWidth + x] = id
+    }
+
+    this.render = () => {
+        this._renderMainCanvas()
+        this._renderOverlayCanvas()
     }
 
     this.init = function() {
