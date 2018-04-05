@@ -43,6 +43,12 @@ window.mineartDOM = {
     },
     testShowPainted() {
         return mineartCanvas.debugRenderAllPainted()
+    },
+    plusOneBrushSize() {
+        mineartCanvas.addToBrushSize(1)
+    },
+    minusOneBrushSize() {
+        mineartCanvas.addToBrushSize(-1)
     }
 }
 

@@ -66,7 +66,8 @@ function MineartCanvas(canvasId) {
         interface: {
             eyedropCurrent: null,
             toolCurrent: null,
-            brushSize: 5
+            brushSize: 13,
+            brushType: 'circle'
         },
         events: {
             cached: new Event('cached')
@@ -86,6 +87,7 @@ function MineartCanvas(canvasId) {
             }
         },
         settings: {
+            maxBrushSize: 25,
             cachePaintedAfter: 3000
         },
         debug: { //delete in prod!!!
@@ -278,7 +280,8 @@ function MineartCanvas(canvasId) {
         }
 
         function renderBrush() {
-            let brushSize = store.interface.brushSize * store.baseCellSize * store.scale.current
+            let size = store.interface.brushSize % 2 === 0 ? store.interface.brushSize + 1 : store.interface.brushSize
+            let brushSize = size * store.baseCellSize * store.scale.current
             ctxOverlay.strokeStyle = "black 1.5px"
             ctxOverlay.fillStyle = "rgba(0,0,0,0)"
             ctxOverlay.beginPath()
@@ -524,6 +527,41 @@ function MineartCanvas(canvasId) {
             }
         }
 
+        function draw(x, y) {
+            let size = store.interface.brushSize % 2 === 0 ? store.interface.brushSize + 1 : store.interface.brushSize
+            let radius = Math.floor(size / 2)
+            let totalBlocks = Math.pow(size, 2)
+            let startPointX = x - radius
+            let startPointY = y - radius
+            const maxWidthForRow = {}
+
+            if (store.interface.brushType === 'circle') {
+                const PIPortion = 0.5 / (radius + 1)
+                for (let i = 1; i <= radius; i ++) {
+                    maxWidthForRow[i] = Math.round(Math.cos(i * PIPortion * Math.PI) * store.interface.brushSize / 2)
+                }
+            }
+
+
+            for (let i = 0; i < totalBlocks; i++) {
+                let xBlock = startPointX + (i % size)
+                let yBlock = startPointY + Math.floor(i / size)
+                if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { continue }
+
+                if (store.interface.brushType === 'circle') {
+                    let tempMaxRow = maxWidthForRow[Math.abs(Math.floor(i / size) - radius)]
+                    if (tempMaxRow < Math.abs(i % size - radius)) { continue }
+                }
+
+                thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
+                tempFakePaintedPoints[xBlock * store.imageWidth + yBlock] = {
+                    x: xBlock,
+                    y: yBlock,
+                    id: thisRoot.getEyedrop()
+                }
+            }
+        }
+
         canvasOverlay.addEventListener('mousemove', function(e) {
             store.controls.mouse.localX = Math.round(e.pageX - store.boundingRect.x - store.controls.mouse.startX)
             store.controls.mouse.localY = Math.round(e.pageY - store.boundingRect.y - store.controls.mouse.startY)
@@ -540,25 +578,8 @@ function MineartCanvas(canvasId) {
                 if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
 
                 //start the bresenham algorithm with the callback
-                bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock, 10, (x, y) => {
-                    let size = store.interface.brushSize
-                    let totalBlocks = Math.pow(size, 2)
-                    let startPointX = x - Math.floor(size / 2)
-                    let startPointY = y - Math.floor(size / 2)
-
-                    //for every block in line call fakepaint for blocks in brush size
-                    for (let i = 0; i < totalBlocks; i++) {
-                        let xBlock = startPointX + (i % size)
-                        let yBlock = startPointY + Math.floor(i / size)
-                        if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { return }
-                        thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
-                        tempFakePaintedPoints[xBlock * store.imageWidth + yBlock] = {
-                            x: xBlock,
-                            y: yBlock,
-                            id: thisRoot.getEyedrop()
-                        }
-                    }
-                })
+                const skipEveryN = Math.round(store.interface.brushSize / 4)
+                bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock, skipEveryN, draw)
 
                 store.controls.mouse.lastMouseX = xBlock
                 store.controls.mouse.lastMouseY = yBlock
@@ -580,23 +601,7 @@ function MineartCanvas(canvasId) {
                 }
 
                 if (thisRoot.getTool() === 'clicker') {
-                    let size = store.interface.brushSize
-                    let totalBlocks = Math.pow(size, 2)
-                    let startPointX = xBlock - Math.floor(size / 2)
-                    let startPointY = yBlock - Math.floor(size / 2)
-
-                    for (let i = 0; i < totalBlocks; i++) {
-                        let xBlock = startPointX + (i % size)
-                        let yBlock = startPointY + Math.floor(i / size)
-                        if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { return }
-                        thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
-                        tempFakePaintedPoints[xBlock * store.imageWidth + yBlock] = {
-                            x: xBlock,
-                            y: yBlock,
-                            id: thisRoot.getEyedrop()
-                        }
-                    }
-
+                    draw(xBlock, yBlock)
                 }
             }
             if (e.which === 2) {
@@ -614,6 +619,7 @@ function MineartCanvas(canvasId) {
             store.controls.mouse.leftClick = false
             store.controls.mouse.startX = 0
             store.controls.mouse.startY = 0
+
             for (let i in tempFakePaintedPoints) {
                 thisRoot.paint(tempFakePaintedPoints[i].x, tempFakePaintedPoints[i].y, tempFakePaintedPoints[i].id)
             }
@@ -693,6 +699,19 @@ function MineartCanvas(canvasId) {
     this.paint = (x, y, id) => {
         if (!id) { return }
         store.paintedHexRendered[y * store.imageWidth + x] = id
+    }
+
+    this.addToBrushSize = (int) => {
+        let temp = store.interface.brushSize + int
+        if (temp < 1) {
+            store.interface.brushSize = 1 
+        } else if(temp > store.settings.maxBrushSize) {
+            store.interface.brushSize = store.settings.maxBrushSize
+        } else {
+            store.interface.brushSize = temp
+        }
+        console.log(store.interface.brushSize)
+        this._renderOverlayCanvas()      
     }
 
     this.render = () => {
