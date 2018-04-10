@@ -103,6 +103,10 @@ function MineartCanvas(canvasId) {
         }
     }
 
+    this._debugReturnStore = () => {
+        return store
+    }
+
     this._getCornersOfVisible = () => {
         let topLeftX = Math.floor((-store.offset.x) / store.baseCellSize / store.scale.current)
         let topLeftY = Math.floor((-store.offset.y) / store.baseCellSize / store.scale.current)
