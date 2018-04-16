@@ -64,7 +64,7 @@ function findSimilarBlocks(image) {
 }
 
 onmessage = function(e) {
-    console.log('Started in: ' + performance.now())
+    console.log('Started converting in: ' + performance.now())
     
     const imageData = e.data
     let output = []

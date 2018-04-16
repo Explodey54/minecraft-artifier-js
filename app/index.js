@@ -49,6 +49,9 @@ window.mineartDOM = {
     },
     minusOneBrushSize() {
         mineartCanvas.addToBrushSize(-1)
+    },
+    undo() {
+        mineartCanvas.undoOnce()
     }
 }
 
@@ -110,7 +113,7 @@ $dropzone.ondrop = (e) => {
 
 convertWorker.onmessage = function(e) {
     mineartCanvas.loadImageHex(e.data)
-    console.log('Ended in: ' + performance.now())
+    console.log('Ended converting in: ' + performance.now())
 }
 
 $canvasMain.addEventListener('cached', (e) => {
