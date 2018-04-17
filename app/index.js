@@ -21,21 +21,24 @@ const $settingsForm = document.getElementById('settings-form')
 const canvasTemp = document.createElement('canvas')
 const ctxTemp = canvasTemp.getContext('2d')
 
-// const testImage = new Image()
-// testImage.src = require('../static/pic.png')
-// testImage.onload = () => {
-//     mineartCanvas.setImageSizes(229, 220)
-//     canvasTemp.width = 229
-//     canvasTemp.height = 220
-//     ctxTemp.imageSmoothingEnabled = false
-//     ctxTemp.drawImage(testImage, 
-//                       0, 
-//                       0, 
-//                       testImage.width, 
-//                       testImage.height)
-//     const imageData = ctxTemp.getImageData(0, 0, 229, 220).data
-//     convertWorker.postMessage(imageData)
-// }
+const history = {}
+const $historyBlock = document.querySelector('.info-area-history-actions-block')
+
+const testImage = new Image()
+testImage.src = require('../static/pic.png')
+testImage.onload = () => {
+    mineartCanvas.setImageSizes(229, 220)
+    canvasTemp.width = 229
+    canvasTemp.height = 220
+    ctxTemp.imageSmoothingEnabled = false
+    ctxTemp.drawImage(testImage, 
+                      0, 
+                      0, 
+                      testImage.width, 
+                      testImage.height)
+    const imageData = ctxTemp.getImageData(0, 0, 229, 220).data
+    convertWorker.postMessage(imageData)
+}
 
 window.mineartDOM = {
     changeTool(tool) {
@@ -52,6 +55,9 @@ window.mineartDOM = {
     },
     undo() {
         mineartCanvas.undoOnce()
+    },
+    logStore() {
+        console.log(mineartCanvas._debugReturnStore())
     }
 }
 
@@ -121,6 +127,16 @@ $canvasMain.addEventListener('cached', (e) => {
     $paintTable.classList.remove('hidden')
     mineartCanvas.setBoundingRect(canvasMain.getBoundingClientRect())
     mineartCanvas.render()
+})
+$canvasMain.addEventListener('history', (e) => {
+    const $historyAction = document.createElement('div')
+    $historyAction.innerHTML = e.details.type
+    $historyAction.className = "info-area-history-action"
+    $historyAction.setAttribute('data-action-pos', e.details.pos)
+    $historyAction.onclick = function() {
+        mineartCanvas.undoTo(this.dataset.actionPos)
+    }
+    $historyBlock.appendChild($historyAction)
 })
 
 $canvasOverlay.addEventListener('mousemove', (e) => {

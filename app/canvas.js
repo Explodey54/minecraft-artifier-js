@@ -28,7 +28,7 @@ function MineartCanvas(canvasId) {
         boundingRect: null,
         layers: {
             loadedImage: null,
-            paintedImage: {}
+            paintedImage: null
         },
         offset: {
             bounds: {
@@ -65,7 +65,8 @@ function MineartCanvas(canvasId) {
         },
         history: {
             log: [],
-            currentPos: -1
+            currentPos: -1,
+            cachedPainted: {}
         },
     
         interface: {
@@ -75,7 +76,8 @@ function MineartCanvas(canvasId) {
             brushType: 'circle1'
         },
         events: {
-            cached: new Event('cached')
+            cached: new CustomEvent('cached'),
+            history: new CustomEvent('history')
         },
         controls: {
             mouse: {
@@ -108,6 +110,9 @@ function MineartCanvas(canvasId) {
             }
         }
     }
+
+    /* PRIVATE METHODS */
+    //////////////////////////////////////
 
     this._debugReturnStore = () => {
         return store
@@ -195,6 +200,9 @@ function MineartCanvas(canvasId) {
         canvasTemp.toBlob((blob) => {
             tempImg.src = _URL.createObjectURL(blob)
         })
+        const copyPaintedRendered = Object.assign({}, store.paintedHexRendered)
+        const copyPaintedSaved = Object.assign({}, store.paintedHexSaved)
+        this._addCachedPaintedToHistory(copyPaintedRendered, copyPaintedSaved, store.layers.paintedImage)
 
         for (let i in store.paintedHexRendered) {
             store.paintedHexSaved[i] = store.paintedHexRendered[i]
@@ -202,7 +210,7 @@ function MineartCanvas(canvasId) {
 
         tempImg.onload = () => {
             store.paintedHexRendered = {}
-            store.layers.paintedImage.key1 = tempImg
+            store.layers.paintedImage = tempImg
             thisRoot._renderMainCanvas()
             console.log('Rendered painted in: ' + performance.now() - t)
         }
@@ -231,15 +239,34 @@ function MineartCanvas(canvasId) {
             type: type,
             data: data
         }
+        const event = store.events.history
+        event.details = {
+            pos: store.history.currentPos,
+            type: store.history.log[store.history.currentPos].type
+        }
+        canvasMain.dispatchEvent(event)
+    }
+
+    this._addCachedPaintedToHistory = (rendered, saved, image) => {
+        store.history.cachedPainted[store.history.currentPos] = {
+            rendered: rendered,
+            saved: saved,
+            image: image
+        }
     }
 
     this._undoTo = (pos) => {
         for (let i = store.history.currentPos; i > pos; i += -1) {
+            if (store.history.cachedPainted[i]) {
+                let cached = store.history.cachedPainted[i] 
+                store.paintedHexRendered = cached.rendered
+                store.paintedHexSaved = cached.saved
+                store.layers.paintedImage = cached.image
+            }
             const logStep = store.history.log[i]
-            let xBlock, yBlock
             for (let key in logStep.data.before) {
-                xBlock = key % store.imageWidth
-                yBlock = Math.floor(key / store.imageWidth)
+                let xBlock = key % store.imageWidth
+                let yBlock = Math.floor(key / store.imageWidth)
                 if (logStep.data.before[key] == undefined) {
                     delete store.paintedHexRendered[key]
                     ctxTemp.clearRect(
@@ -251,16 +278,16 @@ function MineartCanvas(canvasId) {
                 } else {
                     let imageForCanvas = store.getBlockById(logStep.data.before[key]).image
                     store.paintedHexRendered[key] = logStep.data.before[key]
-                    // maybe add later
-                    // ctxTemp.drawImage(imageForCanvas,
-                    //     xBlock * store.baseCellSize, 
-                    //     yBlock * store.baseCellSize, 
-                    //     store.baseCellSize, 
-                    //     store.baseCellSize)
+                    ctxTemp.drawImage(imageForCanvas,
+                        xBlock * store.baseCellSize, 
+                        yBlock * store.baseCellSize, 
+                        store.baseCellSize, 
+                        store.baseCellSize)
                 }
             }
         }
         store.history.currentPos = pos
+
         this._renderMainCanvas()
     }
 
@@ -474,8 +501,8 @@ function MineartCanvas(canvasId) {
                 return
             }
 
-            if (store.layers.paintedImage.key1) {
-                ctxMain.drawImage(store.layers.paintedImage.key1, 
+            if (store.layers.paintedImage) {
+                ctxMain.drawImage(store.layers.paintedImage, 
                                   store.offset.x, 
                                   store.offset.y, 
                                   store.imageWidth * 16 * store.scale.current, 
@@ -717,6 +744,9 @@ function MineartCanvas(canvasId) {
         })
     }
 
+    /* PUBLIC METHODS */
+    //////////////////////////////////////
+
     this.debugRenderAllPainted = () => {
         store.debug.renderAllPainted = !store.debug.renderAllPainted
         return store.debug.renderAllPainted
@@ -782,6 +812,14 @@ function MineartCanvas(canvasId) {
 
     this.undoOnce = () => {
         this._undoTo(store.history.currentPos - 1)
+    }
+
+    this.undoTo = (pos) => {
+        this._undoTo(pos)
+    }
+
+    this.getCurrentHistoryPos = () => {
+        return store.history.currentPos
     }
 
     this.render = () => {
