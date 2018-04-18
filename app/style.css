@@ -108,6 +108,14 @@ section.workarea {
  	color: white;
 }
 
+#paint-table .info-area .info-area-history .info-area-history-actions-block .info-area-history-action-returned {
+ 	background-color: #9675b2;
+}
+
+#paint-table .info-area .info-area-history .info-area-history-actions-block .info-area-history-action-start {
+ 	border-bottom: 2px solid #ffcb2d;
+}
+
 .tools-area .tool {
   text-align: center;
   font-weight: bold;

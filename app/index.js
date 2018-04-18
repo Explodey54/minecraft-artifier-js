@@ -128,14 +128,36 @@ $canvasMain.addEventListener('cached', (e) => {
     mineartCanvas.setBoundingRect(canvasMain.getBoundingClientRect())
     mineartCanvas.render()
 })
+
+function historyActionOnClick() {
+    const thisActionPos = parseInt(this.dataset.actionPos)
+    const actions = document.querySelectorAll('.info-area-history-action')
+    mineartCanvas.undoTo(thisActionPos)
+    actions.forEach((item) => {
+        let itemActionPos = parseInt(item.getAttribute('data-action-pos'))
+        if (itemActionPos > thisActionPos) {
+            item.classList.add('info-area-history-action-returned')
+        }
+        if (itemActionPos <= thisActionPos) {
+            item.classList.remove('info-area-history-action-returned')
+        }
+    })
+}
+
 $canvasMain.addEventListener('history', (e) => {
+    const actions = document.querySelectorAll('.info-area-history-action')
+    actions.forEach((item, i) => {
+        let itemActionPos = parseInt(item.getAttribute('data-action-pos'))
+        if (itemActionPos >= e.details.pos) {
+            item.remove()
+        }
+    })
+
     const $historyAction = document.createElement('div')
     $historyAction.innerHTML = e.details.type
     $historyAction.className = "info-area-history-action"
     $historyAction.setAttribute('data-action-pos', e.details.pos)
-    $historyAction.onclick = function() {
-        mineartCanvas.undoTo(this.dataset.actionPos)
-    }
+    $historyAction.onclick = historyActionOnClick
     $historyBlock.appendChild($historyAction)
 })
 
@@ -148,3 +170,5 @@ $canvasOverlay.addEventListener('mousemove', (e) => {
         document.querySelector('.info-area-span-block-img').src = blockInfo.info.image.src
     }
 })
+
+document.querySelector('.info-area-history-action-start').onclick = historyActionOnClick

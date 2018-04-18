@@ -66,14 +66,15 @@ function MineartCanvas(canvasId) {
         history: {
             log: [],
             currentPos: -1,
+            lastMaxPos: -1,
             cachedPainted: {}
         },
     
         interface: {
-            eyedropCurrent: null,
-            toolCurrent: null,
-            brushSize: 15,
-            brushType: 'circle1'
+            eyedropCurrent: 44,
+            toolCurrent: 'clicker',
+            brushSize: 5,
+            brushType: 'circle'
         },
         events: {
             cached: new CustomEvent('cached'),
@@ -202,7 +203,7 @@ function MineartCanvas(canvasId) {
         })
         const copyPaintedRendered = Object.assign({}, store.paintedHexRendered)
         const copyPaintedSaved = Object.assign({}, store.paintedHexSaved)
-        this._addCachedPaintedToHistory(copyPaintedRendered, copyPaintedSaved, store.layers.paintedImage)
+        this._addCachedPaintedToHistory(copyPaintedRendered, copyPaintedSaved, tempImg)
 
         for (let i in store.paintedHexRendered) {
             store.paintedHexSaved[i] = store.paintedHexRendered[i]
@@ -212,7 +213,7 @@ function MineartCanvas(canvasId) {
             store.paintedHexRendered = {}
             store.layers.paintedImage = tempImg
             thisRoot._renderMainCanvas()
-            console.log('Rendered painted in: ' + performance.now() - t)
+            console.log('Rendered painted in: ' + (performance.now() - t))
         }
     }
 
@@ -235,6 +236,13 @@ function MineartCanvas(canvasId) {
 
     this._addToHistory = (type, data) => {
         store.history.currentPos++
+
+        for (let i = store.history.currentPos; i <= store.history.lastMaxPos; i++) {
+            delete store.history.log[i]
+            delete store.history.cachedPainted[i]
+        }
+
+        store.history.lastMaxPos = store.history.currentPos
         store.history.log[store.history.currentPos] = {
             type: type,
             data: data
@@ -256,12 +264,27 @@ function MineartCanvas(canvasId) {
     }
 
     this._undoTo = (pos) => {
+        pos = parseInt(pos)
+        if (pos === store.history.currentPos || pos < -1) { return }
+
+        const cachedActions = Object.keys(store.history.cachedPainted).reverse()
+        let cachedImage = null
+
+        for (let key in cachedActions) {
+            let item = cachedActions[key]
+            if (item <= pos) {
+                cachedImage = store.history.cachedPainted[item].image
+                break
+            }
+        }
+
+        store.layers.paintedImage = cachedImage
+
         for (let i = store.history.currentPos; i > pos; i += -1) {
             if (store.history.cachedPainted[i]) {
-                let cached = store.history.cachedPainted[i] 
+                let cached = store.history.cachedPainted[i]
                 store.paintedHexRendered = cached.rendered
                 store.paintedHexSaved = cached.saved
-                store.layers.paintedImage = cached.image
             }
             const logStep = store.history.log[i]
             for (let key in logStep.data.before) {
