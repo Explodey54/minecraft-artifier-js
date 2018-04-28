@@ -15,7 +15,7 @@ function MineartCanvas(canvasId) {
 
     const store = {
         blocksDb: require('../static/baked_blocks.json'),
-        colorGroups: require('../static/baked_colors.json'),
+        // colorGroups: require('../static/baked_colors.json'),
         getBlockById(id) { return this.blocksDb[id - 1] },
         imageConvertedHex: null,
         paintedHexRendered: {},
@@ -73,7 +73,7 @@ function MineartCanvas(canvasId) {
         interface: {
             eyedropCurrent: 44,
             toolCurrent: 'clicker',
-            brushSize: 5,
+            brushSize: 1,
             brushType: 'circle'
         },
         events: {
@@ -96,7 +96,7 @@ function MineartCanvas(canvasId) {
         },
         settings: {
             maxBrushSize: 25,
-            cachePaintedAfter: 1000
+            cachePaintedAfter: 10
         },
         debug: { //delete in prod!!!
             showTempCanvas: false,
@@ -263,29 +263,67 @@ function MineartCanvas(canvasId) {
         }
     }
 
-    this._undoTo = (pos) => {
-        pos = parseInt(pos)
-        if (pos === store.history.currentPos || pos < -1) { return }
+    this._undoBack = (pos) => {
+        
+        // let cachedImage = null
+        let cachedPaintedPos = Object.keys(store.history.cachedPainted)
+        let maxCachedPos = Math.max.apply(Math, cachedPaintedPos)
+        let minCachedPos = Math.min.apply(Math, cachedPaintedPos)
+        let lastCachedPos = store.history.currentPos
 
-        const cachedActions = Object.keys(store.history.cachedPainted).reverse()
-        let cachedImage = null
-
-        for (let key in cachedActions) {
-            let item = cachedActions[key]
-            if (item <= pos) {
-                cachedImage = store.history.cachedPainted[item].image
-                break
+        if (cachedPaintedPos.length > 0 && maxCachedPos > pos) {
+            let hookIncr = 0
+            for (let i = cachedPaintedPos.length - 1; i >= 0; i+= -1) {
+                if (pos >= cachedPaintedPos[i]) {
+                    hookIncr = i
+                    break
+                }
             }
+            if (hookIncr - 1 > 0) {
+                store.layers.paintedImage = store.history.cachedPainted[cachedPaintedPos[hookIncr - 1]].image
+            } else {
+                store.layers.paintedImage = null
+            }
+            // console.log(cachedPaintedPos, hookIncr)
+            lastCachedPos = cachedPaintedPos[hookIncr + 1]
+            if (store.history.currentPos >= minCachedPos) {
+                console.log()
+                store.paintedHexRendered = store.history.cachedPainted[cachedPaintedPos[hookIncr]].rendered
+                store.paintedHexSaved = store.history.cachedPainted[cachedPaintedPos[hookIncr]].saved
+            }
+            // for (let i = cachedPaintedPos.length - 1; i >= 0; i+= -1) {
+            //     let item = cachedPaintedPos[i]
+            //     console.log(item <= pos, maxCachedPos > pos)
+            //     if (item <= pos && maxCachedPos > pos) {
+            //         lastCachedPos = item
+            //         let cache = store.history.cachedPainted[item]
+            //         store.paintedHexRendered = cache.rendered
+            //         store.paintedHexSaved = cache.saved
+            //         if (i - 1 > 0) {
+            //             console.log('Image pos: ' + cachedPaintedPos[i - 1])
+            //             store.layers.paintedImage = store.history.cachedPainted[cachedPaintedPos[i - 1]].image
+            //         } else {
+            //             store.layers.paintedImage = null
+            //         }
+            //         break
+            //     }
+            // }
+
         }
+        // store.layers.paintedImage = null
+        // console.log(lastCachedPos)
 
-        store.layers.paintedImage = cachedImage
+        // cachedImage = store.history.cachedPainted[item].image
 
-        for (let i = store.history.currentPos; i > pos; i += -1) {
-            if (store.history.cachedPainted[i]) {
-                let cached = store.history.cachedPainted[i]
-                store.paintedHexRendered = cached.rendered
-                store.paintedHexSaved = cached.saved
-            }
+        // store.layers.paintedImage = cachedImage
+
+        for (let i = lastCachedPos; i > pos; i += -1) {
+            // if (store.history.cachedPainted[i]) {
+            //     console.log(i)
+            //     let cached = store.history.cachedPainted[i]
+            //     store.paintedHexRendered = cached.rendered
+            //     store.paintedHexSaved = cached.saved
+            // }
             const logStep = store.history.log[i]
             for (let key in logStep.data.before) {
                 let xBlock = key % store.imageWidth
@@ -309,6 +347,128 @@ function MineartCanvas(canvasId) {
                 }
             }
         }
+    }
+
+        this._undoForward = (pos) => {
+        // const cachedPaintedPos = Object.keys(store.history.cachedPainted).reverse()
+        // let cachedImage = null
+
+        // for (let key in cachedActions) {
+        //     let item = cachedActions[key]
+        //     if (item <= pos) {
+        //         cachedImage = store.history.cachedPainted[item].image
+        //         break
+        //     }
+        // }
+
+        // store.layers.paintedImage = cachedImage
+
+        // for (let i = store.history.currentPos; i > pos; i += -1) {
+        //     if (store.history.cachedPainted[i]) {
+        //         let cached = store.history.cachedPainted[i]
+        //         store.paintedHexRendered = cached.rendered
+        //         store.paintedHexSaved = cached.saved
+        //     }
+        //     const logStep = store.history.log[i]
+        //     for (let key in logStep.data.before) {
+        //         let xBlock = key % store.imageWidth
+        //         let yBlock = Math.floor(key / store.imageWidth)
+        //         if (logStep.data.before[key] == undefined) {
+        //             delete store.paintedHexRendered[key]
+        //             ctxTemp.clearRect(
+        //                 xBlock * store.baseCellSize, 
+        //                 yBlock * store.baseCellSize, 
+        //                 store.baseCellSize, 
+        //                 store.baseCellSize)
+                    
+        //         } else {
+        //             let imageForCanvas = store.getBlockById(logStep.data.before[key]).image
+        //             store.paintedHexRendered[key] = logStep.data.before[key]
+        //             ctxTemp.drawImage(imageForCanvas,
+        //                 xBlock * store.baseCellSize, 
+        //                 yBlock * store.baseCellSize, 
+        //                 store.baseCellSize, 
+        //                 store.baseCellSize)
+        //         }
+        //     }
+        // }
+    }
+
+    this._undoTo = (pos) => {
+        pos = parseInt(pos)
+        if (pos === store.history.currentPos) { return }
+
+        // const cachedPaintedPos = Object.keys(store.history.cachedPainted).reverse()
+        // let cachedImage = null
+
+        // for (let key in cachedPaintedPos) {
+        //     let item = cachedPaintedPos[key]
+        //     if (item <= pos) {
+        //         console.log(item)
+        //         let cached = store.history.cachedPainted[item]
+        //         store.paintedHexRendered = cached.rendered
+        //         store.paintedHexSaved = cached.saved
+        //         // store.layers.paintedImage = cached.image
+        //         break
+        //     }
+        // }
+
+        if (pos === -1) {
+            store.paintedHexRendered = {}
+            store.paintedHexSaved = {}
+            store.layers.paintedImage = null
+        } else {
+            if (store.history.currentPos - pos > 0) {
+                this._undoBack(pos)
+            } else {
+                this._undoForward(pos)
+            }
+        }
+
+
+
+        // const cachedActions = Object.keys(store.history.cachedPainted).reverse()
+        // let cachedImage = null
+
+        // for (let key in cachedActions) {
+        //     let item = cachedActions[key]
+        //     if (item <= pos) {
+        //         cachedImage = store.history.cachedPainted[item].image
+        //         break
+        //     }
+        // }
+
+        // store.layers.paintedImage = cachedImage
+
+        // for (let i = store.history.currentPos; i > pos; i += -1) {
+        //     if (store.history.cachedPainted[i]) {
+        //         let cached = store.history.cachedPainted[i]
+        //         store.paintedHexRendered = cached.rendered
+        //         store.paintedHexSaved = cached.saved
+        //     }
+        //     const logStep = store.history.log[i]
+        //     for (let key in logStep.data.before) {
+        //         let xBlock = key % store.imageWidth
+        //         let yBlock = Math.floor(key / store.imageWidth)
+        //         if (logStep.data.before[key] == undefined) {
+        //             delete store.paintedHexRendered[key]
+        //             ctxTemp.clearRect(
+        //                 xBlock * store.baseCellSize, 
+        //                 yBlock * store.baseCellSize, 
+        //                 store.baseCellSize, 
+        //                 store.baseCellSize)
+                    
+        //         } else {
+        //             let imageForCanvas = store.getBlockById(logStep.data.before[key]).image
+        //             store.paintedHexRendered[key] = logStep.data.before[key]
+        //             ctxTemp.drawImage(imageForCanvas,
+        //                 xBlock * store.baseCellSize, 
+        //                 yBlock * store.baseCellSize, 
+        //                 store.baseCellSize, 
+        //                 store.baseCellSize)
+        //         }
+        //     }
+        // }
         store.history.currentPos = pos
 
         this._renderMainCanvas()
