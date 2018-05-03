@@ -264,66 +264,44 @@ function MineartCanvas(canvasId) {
     }
 
     this._undoBack = (pos) => {
-        
-        // let cachedImage = null
-        let cachedPaintedPos = Object.keys(store.history.cachedPainted)
-        let maxCachedPos = Math.max.apply(Math, cachedPaintedPos)
-        let minCachedPos = Math.min.apply(Math, cachedPaintedPos)
-        let lastCachedPos = store.history.currentPos
+        let cachedPaintedPos = Object.keys(store.history.cachedPainted),
+            lastCachedPosInc = null,
+            lastCachedPos
 
-        if (cachedPaintedPos.length > 0 && maxCachedPos > pos) {
-            let hookIncr = 0
+        if (cachedPaintedPos.length > 0) {
             for (let i = cachedPaintedPos.length - 1; i >= 0; i+= -1) {
-                if (pos >= cachedPaintedPos[i]) {
-                    hookIncr = i
-                    break
+                let cachedPosInt = parseInt(cachedPaintedPos[i])
+                if (cachedPosInt <= pos) { break }
+                if (cachedPosInt > pos && cachedPosInt < store.history.currentPos) {
+                    lastCachedPosInc = i
                 }
             }
-            if (hookIncr - 1 > 0) {
-                store.layers.paintedImage = store.history.cachedPainted[cachedPaintedPos[hookIncr - 1]].image
-            } else {
-                store.layers.paintedImage = null
-            }
-            // console.log(cachedPaintedPos, hookIncr)
-            lastCachedPos = cachedPaintedPos[hookIncr + 1]
-            if (store.history.currentPos >= minCachedPos) {
-                console.log()
-                store.paintedHexRendered = store.history.cachedPainted[cachedPaintedPos[hookIncr]].rendered
-                store.paintedHexSaved = store.history.cachedPainted[cachedPaintedPos[hookIncr]].saved
-            }
-            // for (let i = cachedPaintedPos.length - 1; i >= 0; i+= -1) {
-            //     let item = cachedPaintedPos[i]
-            //     console.log(item <= pos, maxCachedPos > pos)
-            //     if (item <= pos && maxCachedPos > pos) {
-            //         lastCachedPos = item
-            //         let cache = store.history.cachedPainted[item]
-            //         store.paintedHexRendered = cache.rendered
-            //         store.paintedHexSaved = cache.saved
-            //         if (i - 1 > 0) {
-            //             console.log('Image pos: ' + cachedPaintedPos[i - 1])
-            //             store.layers.paintedImage = store.history.cachedPainted[cachedPaintedPos[i - 1]].image
-            //         } else {
-            //             store.layers.paintedImage = null
-            //         }
-            //         break
-            //     }
-            // }
+        }   
 
+        if (lastCachedPosInc === null) {
+            lastCachedPos = store.history.currentPos
+        } else {
+            lastCachedPos = cachedPaintedPos[lastCachedPosInc]
         }
-        // store.layers.paintedImage = null
-        // console.log(lastCachedPos)
 
-        // cachedImage = store.history.cachedPainted[item].image
-
-        // store.layers.paintedImage = cachedImage
+        lastCachedPos = parseInt(lastCachedPos)
 
         for (let i = lastCachedPos; i > pos; i += -1) {
-            // if (store.history.cachedPainted[i]) {
-            //     console.log(i)
-            //     let cached = store.history.cachedPainted[i]
-            //     store.paintedHexRendered = cached.rendered
-            //     store.paintedHexSaved = cached.saved
-            // }
+            if (store.history.cachedPainted[i]) {
+                let cached = store.history.cachedPainted[i]
+                store.paintedHexRendered = cached.rendered
+                store.paintedHexSaved = cached.saved
+
+                let tempPosInt = cachedPaintedPos.indexOf(i.toString())
+                if (tempPosInt > 0) {
+                    let cachedImgInc = cachedPaintedPos[tempPosInt - 1]
+                    store.layers.paintedImage = store.history.cachedPainted[cachedImgInc].image
+                } else {
+                    store.layers.paintedImage = null
+                }
+                ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
+                ctxTemp.drawImage(store.history.cachedPainted[i].image, 0, 0)
+            }
             const logStep = store.history.log[i]
             for (let key in logStep.data.before) {
                 let xBlock = key % store.imageWidth
@@ -681,7 +659,18 @@ function MineartCanvas(canvasId) {
                                       store.scale.current * store.baseCellSize, 
                                       store.scale.current * store.baseCellSize)
                 }
+                for (let i in store.paintedHexRendered) {
+                    let x = i % store.imageWidth
+                    let y = Math.floor(i / store.imageWidth)
+                    let imageForCanvas = store.getBlockById(store.paintedHexRendered[i]).image
+                    ctxMain.drawImage(imageForCanvas,
+                                      x * store.baseCellSize * store.scale.current + store.offset.x, 
+                                      y * store.baseCellSize * store.scale.current + store.offset.y, 
+                                      store.scale.current * store.baseCellSize, 
+                                      store.scale.current * store.baseCellSize)
+                }
                 return
+
             }
 
             if (store.layers.paintedImage) {
