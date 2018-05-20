@@ -25,18 +25,18 @@ const history = {}
 const $historyBlock = document.querySelector('.info-area-history-actions-block')
 
 const testImage = new Image()
-testImage.src = require('../static/pic.png')
+testImage.src = require('../static/pic_200.png')
 testImage.onload = () => {
-    mineartCanvas.setImageSizes(229, 220)
-    canvasTemp.width = 229
-    canvasTemp.height = 220
+    mineartCanvas.setImageSizes(200, 200)
+    canvasTemp.width = 200
+    canvasTemp.height = 200
     ctxTemp.imageSmoothingEnabled = false
     ctxTemp.drawImage(testImage, 
                       0, 
                       0, 
                       testImage.width, 
                       testImage.height)
-    const imageData = ctxTemp.getImageData(0, 0, 229, 220).data
+    const imageData = ctxTemp.getImageData(0, 0, 200, 200).data
     convertWorker.postMessage(imageData)
 }
 
@@ -57,7 +57,13 @@ window.mineartDOM = {
         mineartCanvas.undoOnce()
     },
     logStore() {
-        console.log(mineartCanvas._debugReturnStore())
+        return mineartCanvas._debugReturnStore()
+    },
+    debugSaveHistory() {
+        mineartCanvas._debugSaveHistory()
+    },
+    debugCompareHistory() {
+        return mineartCanvas._debugCompareHistory()
     }
 }
 
