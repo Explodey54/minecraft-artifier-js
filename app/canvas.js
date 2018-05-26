@@ -96,7 +96,7 @@ function MineartCanvas(canvasId) {
         },
         settings: {
             maxBrushSize: 25,
-            cachePaintedAfter: 2
+            cachePaintedAfter: 100
         },
         debug: { //delete in prod!!!
             showTempCanvas: false,
@@ -243,18 +243,33 @@ function MineartCanvas(canvasId) {
     this._fakePaint = (x, y, id) => {
         if (x < 0 || x >= store.imageWidth ) { return }
         if (y < 0 || y >= store.imageHeight ) { return }
-        let imageForCanvas = store.getBlockById(id).image
-        ctxMain.drawImage(imageForCanvas,
+
+        if (id === 0) {
+            ctxMain.clearRect(
                           x * store.baseCellSize * store.scale.current + store.offset.x, 
                           y * store.baseCellSize * store.scale.current + store.offset.y, 
                           store.scale.current * store.baseCellSize, 
                           store.scale.current * store.baseCellSize)
 
-        ctxTemp.drawImage(imageForCanvas,
+            ctxTemp.clearRect(
                           x * store.baseCellSize, 
                           y * store.baseCellSize, 
                           store.baseCellSize, 
                           store.baseCellSize)
+        } else {
+            let imageForCanvas = store.getBlockById(id).image
+            ctxMain.drawImage(imageForCanvas,
+                              x * store.baseCellSize * store.scale.current + store.offset.x, 
+                              y * store.baseCellSize * store.scale.current + store.offset.y, 
+                              store.scale.current * store.baseCellSize, 
+                              store.scale.current * store.baseCellSize)
+
+            ctxTemp.drawImage(imageForCanvas,
+                              x * store.baseCellSize, 
+                              y * store.baseCellSize, 
+                              store.baseCellSize, 
+                              store.baseCellSize)
+        }
     }
 
     this._addToHistory = (type, data) => {
@@ -374,6 +389,7 @@ function MineartCanvas(canvasId) {
         lastCachedPos = parseInt(lastCachedPos)
 
         for (let i = lastCachedPos; i <= pos; i++) {
+            if (i === -1) { continue }
             if (store.history.cachedPainted[i]) {
                 let cachedRendered = Object.assign({}, store.history.cachedPainted[i].rendered)
                 let cachedSaved = Object.assign({}, store.history.cachedPainted[i].saved)
@@ -654,7 +670,6 @@ function MineartCanvas(canvasId) {
                                       store.scale.current * store.baseCellSize)
                 }
                 return
-
             }
 
             if (store.layers.paintedImage) {
@@ -665,16 +680,38 @@ function MineartCanvas(canvasId) {
                                   store.imageHeight * 16 * store.scale.current)
             }
 
-            for (let i in store.paintedHexRendered) {
+            for (let i in store.paintedHexSaved) {
                 let x = i % store.imageWidth
                 let y = Math.floor(i / store.imageWidth)
-                let imageForCanvas = store.getBlockById(store.paintedHexRendered[i]).image
-                ctxMain.drawImage(imageForCanvas,
+                if (store.paintedHexSaved[i] === 0) {
+                    ctxMain.clearRect(
                                   x * store.baseCellSize * store.scale.current + store.offset.x, 
                                   y * store.baseCellSize * store.scale.current + store.offset.y, 
                                   store.scale.current * store.baseCellSize, 
                                   store.scale.current * store.baseCellSize)
+                }
             }
+
+            for (let i in store.paintedHexRendered) {
+                let x = i % store.imageWidth
+                let y = Math.floor(i / store.imageWidth)
+                if (store.paintedHexRendered[i] === 0) {
+                    ctxMain.clearRect(
+                                  x * store.baseCellSize * store.scale.current + store.offset.x, 
+                                  y * store.baseCellSize * store.scale.current + store.offset.y, 
+                                  store.scale.current * store.baseCellSize, 
+                                  store.scale.current * store.baseCellSize)
+                } else {
+                    let imageForCanvas = store.getBlockById(store.paintedHexRendered[i]).image
+                    ctxMain.drawImage(imageForCanvas,
+                                  x * store.baseCellSize * store.scale.current + store.offset.x, 
+                                  y * store.baseCellSize * store.scale.current + store.offset.y, 
+                                  store.scale.current * store.baseCellSize, 
+                                  store.scale.current * store.baseCellSize)
+                }
+            }
+
+
         }
 
         function renderMain() {
@@ -787,16 +824,24 @@ function MineartCanvas(canvasId) {
                 let yBlock = startPointY + Math.floor(i / size)
                 if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { continue }
 
-                if (store.interface.brushType === 'circle') {
-                    let tempMaxRow = maxWidthForRow[Math.abs(Math.floor(i / size) - radius)]
-                    if (tempMaxRow < Math.abs(i % size - radius)) { continue }
-                }
-
-                thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
-                tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = {
-                    x: xBlock,
-                    y: yBlock,
-                    id: thisRoot.getEyedrop()
+                if (thisRoot.getTool() === 'eraser') {
+                    thisRoot._fakePaint(xBlock, yBlock, 0)
+                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = {
+                        x: xBlock,
+                        y: yBlock,
+                        id: 0
+                    }
+                } else {
+                    if (store.interface.brushType === 'circle') {
+                        let tempMaxRow = maxWidthForRow[Math.abs(Math.floor(i / size) - radius)]
+                        if (tempMaxRow < Math.abs(i % size - radius)) { continue }
+                    }
+                    thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
+                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = {
+                        x: xBlock,
+                        y: yBlock,
+                        id: thisRoot.getEyedrop()
+                    }
                 }
             }
         }
@@ -809,7 +854,7 @@ function MineartCanvas(canvasId) {
                 thisRoot._renderMainCanvas()
                 thisRoot._renderOverlayCanvas()
             }
-            if (store.controls.mouse.leftClick && thisRoot.getTool() === 'clicker') {
+            if (store.controls.mouse.leftClick && (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser')) {
                 //get block coords
                 let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
                 let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
@@ -839,7 +884,7 @@ function MineartCanvas(canvasId) {
                     thisRoot.setEyedrop(id)
                 }
 
-                if (thisRoot.getTool() === 'clicker') {
+                if (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser') {
                     draw(xBlock, yBlock)
                 }
             }
@@ -862,6 +907,7 @@ function MineartCanvas(canvasId) {
             store.controls.mouse.startX = 0
             store.controls.mouse.startY = 0
 
+            console.log(tempFakePaintedPoints)
             if (!thisRoot._isEmptyObject(tempFakePaintedPoints)) {
                 const history = {
                     current: {},
@@ -872,7 +918,7 @@ function MineartCanvas(canvasId) {
                     history.before[i] = store.paintedHexRendered[i]
                     thisRoot.addToPaintedRender(tempFakePaintedPoints[i].x, tempFakePaintedPoints[i].y, tempFakePaintedPoints[i].id)
                 }
-                thisRoot._addToHistory('brush', history)
+                thisRoot._addToHistory(thisRoot.getTool(), history)
                 tempFakePaintedPoints = {}
                 console.log(Object.keys(store.paintedHexRendered).length)
             }
@@ -949,7 +995,6 @@ function MineartCanvas(canvasId) {
     }
 
     this.addToPaintedRender = (x, y, id) => {
-        if (!id) { return }
         store.paintedHexRendered[y * store.imageWidth + x] = id
     }
 

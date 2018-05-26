@@ -135,21 +135,6 @@ $canvasMain.addEventListener('cached', (e) => {
     mineartCanvas.render()
 })
 
-function historyActionOnClick() {
-    const thisActionPos = parseInt(this.dataset.actionPos)
-    const actions = document.querySelectorAll('.info-area-history-action')
-    mineartCanvas.undoTo(thisActionPos)
-    actions.forEach((item) => {
-        let itemActionPos = parseInt(item.getAttribute('data-action-pos'))
-        if (itemActionPos > thisActionPos) {
-            item.classList.add('info-area-history-action-returned')
-        }
-        if (itemActionPos <= thisActionPos) {
-            item.classList.remove('info-area-history-action-returned')
-        }
-    })
-}
-
 $canvasMain.addEventListener('history', (e) => {
     const actions = document.querySelectorAll('.info-area-history-action')
     actions.forEach((item, i) => {
@@ -177,4 +162,18 @@ $canvasOverlay.addEventListener('mousemove', (e) => {
     }
 })
 
+function historyActionOnClick() {
+    const thisActionPos = parseInt(this.dataset.actionPos)
+    const actions = document.querySelectorAll('.info-area-history-action')
+    mineartCanvas.undoTo(thisActionPos)
+    actions.forEach((item) => {
+        let itemActionPos = parseInt(item.getAttribute('data-action-pos'))
+        if (itemActionPos > thisActionPos) {
+            item.classList.add('info-area-history-action-returned')
+        }
+        if (itemActionPos <= thisActionPos) {
+            item.classList.remove('info-area-history-action-returned')
+        }
+    })
+}
 document.querySelector('.info-area-history-action-start').onclick = historyActionOnClick
