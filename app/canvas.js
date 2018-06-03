@@ -8,6 +8,9 @@ function MineartCanvas(canvasId) {
     const canvasTemp = document.createElement('canvas')
     const ctxTemp = canvasTemp.getContext('2d')
 
+    const canvasPainted = document.createElement('canvas')
+    const canvasErased = document.createElement('canvas')
+
     const _URL = window.URL || window.webkitURL
     const b64toBlob = require('b64-to-blob')
 
@@ -15,11 +18,9 @@ function MineartCanvas(canvasId) {
 
     const store = {
         blocksDb: require('../static/baked_blocks.json'),
-        // colorGroups: require('../static/baked_colors.json'),
         getBlockById(id) { return this.blocksDb[id - 1] },
         imageConvertedHex: null,
-        paintedHexRendered: {},
-        paintedHexSaved: {},
+        renderedPainted: {},
         imageWidth: null,
         imageHeight: null,
         canvasWidth: 1000,
@@ -28,7 +29,8 @@ function MineartCanvas(canvasId) {
         boundingRect: null,
         layers: {
             loadedImage: null,
-            paintedImage: null
+            paintedCtx: canvasPainted.getContext('2d'),
+            erasedCtx: canvasErased.getContext('2d')
         },
         offset: {
             bounds: {
@@ -66,10 +68,8 @@ function MineartCanvas(canvasId) {
         history: {
             log: [],
             currentPos: -1,
-            lastMaxPos: -1,
-            cachedPainted: {}
+            lastMaxPos: -1
         },
-    
         interface: {
             eyedropCurrent: 44,
             toolCurrent: 'clicker',
@@ -95,8 +95,7 @@ function MineartCanvas(canvasId) {
             }
         },
         settings: {
-            maxBrushSize: 25,
-            cachePaintedAfter: 100
+            maxBrushSize: 25
         },
         debug: { //delete in prod!!!
             showTempCanvas: false,
@@ -131,7 +130,6 @@ function MineartCanvas(canvasId) {
             log: store.history.log
         }
         history = JSON.parse(JSON.stringify(history))
-        console.log(store.debug.savedStartHistory, history)
         return deepEqual(store.debug.savedStartHistory, history)
     }
 
@@ -217,59 +215,45 @@ function MineartCanvas(canvasId) {
         }
     }
 
-    this._createPaintedBlobImage = () => {
-        let tempImg = new Image()
-
-        let t = performance.now()
-        canvasTemp.toBlob((blob) => {
-            tempImg.src = _URL.createObjectURL(blob)
-        })
-        const copyPaintedRendered = Object.assign({}, store.paintedHexRendered)
-        const copyPaintedSaved = Object.assign({}, store.paintedHexSaved)
-        this._addCachedPaintedToHistory(copyPaintedRendered, copyPaintedSaved, tempImg)
-
-        for (let i in store.paintedHexRendered) {
-            store.paintedHexSaved[i] = store.paintedHexRendered[i]
-        }
-
-        tempImg.onload = () => {
-            store.paintedHexRendered = {}
-            store.layers.paintedImage = tempImg
-            thisRoot._renderMainCanvas()
-            console.log('Rendered painted in: ' + (performance.now() - t))
-        }
-    }
-
     this._fakePaint = (x, y, id) => {
         if (x < 0 || x >= store.imageWidth ) { return }
         if (y < 0 || y >= store.imageHeight ) { return }
 
-        if (id === 0) {
-            ctxMain.clearRect(
+        let imageForCanvas = store.getBlockById(id).image
+        ctxMain.drawImage(imageForCanvas,
                           x * store.baseCellSize * store.scale.current + store.offset.x, 
                           y * store.baseCellSize * store.scale.current + store.offset.y, 
                           store.scale.current * store.baseCellSize, 
                           store.scale.current * store.baseCellSize)
 
-            ctxTemp.clearRect(
+        store.layers.paintedCtx.drawImage(imageForCanvas,
                           x * store.baseCellSize, 
                           y * store.baseCellSize, 
                           store.baseCellSize, 
                           store.baseCellSize)
-        } else {
-            let imageForCanvas = store.getBlockById(id).image
-            ctxMain.drawImage(imageForCanvas,
-                              x * store.baseCellSize * store.scale.current + store.offset.x, 
-                              y * store.baseCellSize * store.scale.current + store.offset.y, 
-                              store.scale.current * store.baseCellSize, 
-                              store.scale.current * store.baseCellSize)
 
-            ctxTemp.drawImage(imageForCanvas,
-                              x * store.baseCellSize, 
-                              y * store.baseCellSize, 
-                              store.baseCellSize, 
-                              store.baseCellSize)
-        }
+        store.layers.erasedCtx.clearRect(
+                          x * store.baseCellSize, 
+                          y * store.baseCellSize, 
+                          store.baseCellSize, 
+                          store.baseCellSize)
+    }
+
+    this._fakeErase = (x, y) => {
+        if (x < 0 || x >= store.imageWidth ) { return }
+        if (y < 0 || y >= store.imageHeight ) { return }
+
+        ctxMain.clearRect(x * store.baseCellSize * store.scale.current + store.offset.x, 
+                          y * store.baseCellSize * store.scale.current + store.offset.y, 
+                          store.scale.current * store.baseCellSize, 
+                          store.scale.current * store.baseCellSize)
+
+        store.layers.erasedCtx.fillStyle = "black"
+        store.layers.erasedCtx.fillRect(
+                          x * store.baseCellSize, 
+                          y * store.baseCellSize, 
+                          store.baseCellSize, 
+                          store.baseCellSize)
     }
 
     this._addToHistory = (type, data) => {
@@ -277,7 +261,6 @@ function MineartCanvas(canvasId) {
 
         for (let i = store.history.currentPos; i <= store.history.lastMaxPos; i++) {
             delete store.history.log[i]
-            delete store.history.cachedPainted[i]
         }
 
         store.history.lastMaxPos = store.history.currentPos
@@ -293,140 +276,88 @@ function MineartCanvas(canvasId) {
         canvasMain.dispatchEvent(event)
     }
 
-    this._addCachedPaintedToHistory = (rendered, saved, image) => {
-        const copy = Object.assign({}, {
-            rendered: rendered,
-            saved: saved,
-            image: image
-        })
-        store.history.cachedPainted[store.history.currentPos] = copy
-    }
-
     this._undoBack = (pos) => {
-        let cachedPaintedPos = Object.keys(store.history.cachedPainted),
-            lastCachedPosInc = null,
-            lastCachedPos
-
-        if (cachedPaintedPos.length > 0) {
-            for (let i = cachedPaintedPos.length - 1; i >= 0; i+= -1) {
-                let cachedPosInt = parseInt(cachedPaintedPos[i])
-                if (cachedPosInt <= pos) { break }
-                if (cachedPosInt > pos && cachedPosInt < store.history.currentPos) {
-                    lastCachedPosInc = i
-                }
-            }
-        }   
-
-        if (lastCachedPosInc === null) {
-            lastCachedPos = store.history.currentPos
-        } else {
-            lastCachedPos = cachedPaintedPos[lastCachedPosInc]
-        }
-
-        lastCachedPos = parseInt(lastCachedPos)
-
-        for (let i = lastCachedPos; i > pos; i += -1) {
-            if (store.history.cachedPainted[i]) {
-                let cached = store.history.cachedPainted[i]
-                store.paintedHexRendered = Object.assign({}, cached.rendered)
-                store.paintedHexSaved = Object.assign({}, cached.saved)
-                let tempPosInt = cachedPaintedPos.indexOf(i.toString())
-                if (tempPosInt > 0) {
-                    let cachedImgInc = cachedPaintedPos[tempPosInt - 1]
-                    store.layers.paintedImage = store.history.cachedPainted[cachedImgInc].image
-                } else {
-                    store.layers.paintedImage = null
-                }
-
-                ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
-                ctxTemp.drawImage(store.history.cachedPainted[i].image, 0, 0)
-            }
+        for (let i = store.history.currentPos; i > pos; i += -1) {
             const logStep = store.history.log[i]
             for (let key in logStep.data.before) {
                 let xBlock = key % store.imageWidth
                 let yBlock = Math.floor(key / store.imageWidth)
-                if (logStep.data.before[key] == undefined) {
-                    delete store.paintedHexRendered[key]
-                    ctxTemp.clearRect(
+                if (logStep.data.before[key] === undefined) {
+                    delete store.renderedPainted[key]
+                    store.layers.paintedCtx.clearRect(
                         xBlock * store.baseCellSize, 
                         yBlock * store.baseCellSize, 
                         store.baseCellSize, 
                         store.baseCellSize)
+                    store.layers.erasedCtx.clearRect(
+                              xBlock * store.baseCellSize, 
+                              yBlock * store.baseCellSize, 
+                              store.baseCellSize, 
+                              store.baseCellSize)
                 } else {
-                    let imageForCanvas = store.getBlockById(logStep.data.before[key]).image
-                    store.paintedHexRendered[key] = logStep.data.before[key]
-                    ctxTemp.drawImage(imageForCanvas,
-                        xBlock * store.baseCellSize, 
-                        yBlock * store.baseCellSize, 
-                        store.baseCellSize, 
-                        store.baseCellSize)
+                    if (logStep.data.before[key] === 0) {
+                        store.layers.erasedCtx.fillStyle = "black"
+                        store.layers.erasedCtx.fillRect(
+                                  xBlock * store.baseCellSize, 
+                                  yBlock * store.baseCellSize, 
+                                  store.baseCellSize, 
+                                  store.baseCellSize)
+                    } else {
+                        let imageForCanvas = store.getBlockById(logStep.data.before[key]).image
+                        store.layers.paintedCtx.drawImage(imageForCanvas,
+                              xBlock * store.baseCellSize, 
+                              yBlock * store.baseCellSize, 
+                              store.baseCellSize, 
+                              store.baseCellSize)
+                        store.layers.erasedCtx.clearRect(
+                              xBlock * store.baseCellSize, 
+                              yBlock * store.baseCellSize, 
+                              store.baseCellSize, 
+                              store.baseCellSize)
+                    }
+                    store.renderedPainted[key] = logStep.data.before[key]
                 }
             }
         }
     }
 
     this._undoForward = (pos) => {
-        let cachedPaintedPos = Object.keys(store.history.cachedPainted),
-            lastCachedPosInc = null,
-            lastCachedPos
-
-        if (cachedPaintedPos.length > 0) {
-            for (let i = 0; i < cachedPaintedPos.length; i++) {
-                let cachedPosInt = parseInt(cachedPaintedPos[i])
-                if (cachedPosInt > pos) { break }
-                if (cachedPosInt <= pos && cachedPosInt > store.history.currentPos) {
-                    lastCachedPosInc = i
-                }
-            }
-        }   
-
-        if (lastCachedPosInc === null) {
-            lastCachedPos = store.history.currentPos
-        } else {
-            lastCachedPos = cachedPaintedPos[lastCachedPosInc]
-        }
-
-        lastCachedPos = parseInt(lastCachedPos)
-
-        for (let i = lastCachedPos; i <= pos; i++) {
+        for (let i = store.history.currentPos; i <= pos; i++) {
             if (i === -1) { continue }
-            if (store.history.cachedPainted[i]) {
-                let cachedRendered = Object.assign({}, store.history.cachedPainted[i].rendered)
-                let cachedSaved = Object.assign({}, store.history.cachedPainted[i].saved)
-                for (let key in cachedRendered) {
-                    cachedSaved[key] = cachedRendered[key]
-                }
-                store.paintedHexRendered = {}
-                store.paintedHexSaved = cachedSaved
-
-                let tempPosInt = cachedPaintedPos.indexOf(i.toString())
-                let cachedImgInc = cachedPaintedPos[tempPosInt]
-                store.layers.paintedImage = store.history.cachedPainted[cachedImgInc].image
-
-                ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
-                ctxTemp.drawImage(store.history.cachedPainted[i].image, 0, 0)
-                continue
-            }
             const logStep = store.history.log[i]
-            for (let key in logStep.data.before) {
+            for (let key in logStep.data.current) {
                 let xBlock = key % store.imageWidth
                 let yBlock = Math.floor(key / store.imageWidth)
-                if (logStep.data.current[key] == undefined) {
-                    delete store.paintedHexRendered[key]
-                    ctxTemp.clearRect(
+                if (logStep.data.current[key] === undefined) {
+                    delete store.renderedPainted[key]
+                    store.layers.paintedCtx.clearRect(
                         xBlock * store.baseCellSize, 
                         yBlock * store.baseCellSize, 
                         store.baseCellSize, 
                         store.baseCellSize)
                 } else {
-                    let imageForCanvas = store.getBlockById(logStep.data.current[key]).image
-                    store.paintedHexRendered[key] = logStep.data.current[key]
-                    ctxTemp.drawImage(imageForCanvas,
-                        xBlock * store.baseCellSize, 
-                        yBlock * store.baseCellSize, 
-                        store.baseCellSize, 
-                        store.baseCellSize)
-                }
+                    if (logStep.data.current[key] === 0) {
+                        store.layers.erasedCtx.fillStyle = "black"
+                        store.layers.erasedCtx.fillRect(
+                                  xBlock * store.baseCellSize, 
+                                  yBlock * store.baseCellSize, 
+                                  store.baseCellSize, 
+                                  store.baseCellSize)
+                    } else {
+                        let imageForCanvas = store.getBlockById(logStep.data.current[key]).image
+                        store.layers.paintedCtx.drawImage(imageForCanvas,
+                              xBlock * store.baseCellSize, 
+                              yBlock * store.baseCellSize, 
+                              store.baseCellSize, 
+                              store.baseCellSize)
+                        store.layers.erasedCtx.clearRect(
+                              xBlock * store.baseCellSize, 
+                              yBlock * store.baseCellSize, 
+                              store.baseCellSize, 
+                              store.baseCellSize)
+                    }
+                    store.renderedPainted[key] = logStep.data.current[key]
+                }       
             }
         }
     }
@@ -436,9 +367,9 @@ function MineartCanvas(canvasId) {
         if (pos === store.history.currentPos) { return }
 
         if (pos === -1) {
-            store.paintedHexRendered = {}
-            store.paintedHexSaved = {}
-            store.layers.paintedImage = null
+            store.renderedPainted = {}
+            store.layers.paintedCtx.clearRect(0, 0, canvasPainted.width, canvasPainted.height)
+            store.layers.erasedCtx.clearRect(0, 0, canvasErased.width, canvasErased.height)
         } else {
             if (store.history.currentPos - pos > 0) {
                 this._undoBack(pos)
@@ -659,10 +590,10 @@ function MineartCanvas(canvasId) {
                                       store.scale.current * store.baseCellSize, 
                                       store.scale.current * store.baseCellSize)
                 }
-                for (let i in store.paintedHexRendered) {
+                for (let i in store.renderedPainted) {
                     let x = i % store.imageWidth
                     let y = Math.floor(i / store.imageWidth)
-                    let imageForCanvas = store.getBlockById(store.paintedHexRendered[i]).image
+                    let imageForCanvas = store.getBlockById(store.renderedPainted[i]).image
                     ctxMain.drawImage(imageForCanvas,
                                       x * store.baseCellSize * store.scale.current + store.offset.x, 
                                       y * store.baseCellSize * store.scale.current + store.offset.y, 
@@ -672,46 +603,25 @@ function MineartCanvas(canvasId) {
                 return
             }
 
-            if (store.layers.paintedImage) {
-                ctxMain.drawImage(store.layers.paintedImage, 
-                                  store.offset.x, 
-                                  store.offset.y, 
-                                  store.imageWidth * 16 * store.scale.current, 
-                                  store.imageHeight * 16 * store.scale.current)
+            if (!thisRoot._isEmptyObject(store.renderedPainted)) {
+                ctxMain.drawImage(canvasPainted, 
+                          store.offset.x, 
+                          store.offset.y, 
+                          store.imageWidth * 16 * store.scale.current, 
+                          store.imageHeight * 16 * store.scale.current)
             }
+        }
 
-            for (let i in store.paintedHexSaved) {
-                let x = i % store.imageWidth
-                let y = Math.floor(i / store.imageWidth)
-                if (store.paintedHexSaved[i] === 0) {
-                    ctxMain.clearRect(
-                                  x * store.baseCellSize * store.scale.current + store.offset.x, 
-                                  y * store.baseCellSize * store.scale.current + store.offset.y, 
-                                  store.scale.current * store.baseCellSize, 
-                                  store.scale.current * store.baseCellSize)
-                }
+        function renderErased() {
+            if (!thisRoot._isEmptyObject(store.renderedPainted)) {
+                ctxMain.globalCompositeOperation = 'destination-out';
+                ctxMain.drawImage(canvasErased,
+                              store.offset.x, 
+                              store.offset.y, 
+                              store.imageWidth * 16 * store.scale.current, 
+                              store.imageHeight * 16 * store.scale.current)
+                ctxMain.globalCompositeOperation = 'source-over';
             }
-
-            for (let i in store.paintedHexRendered) {
-                let x = i % store.imageWidth
-                let y = Math.floor(i / store.imageWidth)
-                if (store.paintedHexRendered[i] === 0) {
-                    ctxMain.clearRect(
-                                  x * store.baseCellSize * store.scale.current + store.offset.x, 
-                                  y * store.baseCellSize * store.scale.current + store.offset.y, 
-                                  store.scale.current * store.baseCellSize, 
-                                  store.scale.current * store.baseCellSize)
-                } else {
-                    let imageForCanvas = store.getBlockById(store.paintedHexRendered[i]).image
-                    ctxMain.drawImage(imageForCanvas,
-                                  x * store.baseCellSize * store.scale.current + store.offset.x, 
-                                  y * store.baseCellSize * store.scale.current + store.offset.y, 
-                                  store.scale.current * store.baseCellSize, 
-                                  store.scale.current * store.baseCellSize)
-                }
-            }
-
-
         }
 
         function renderMain() {
@@ -756,6 +666,7 @@ function MineartCanvas(canvasId) {
         const renderList = {
             'RENDER_MAIN': renderMain,
             'RENDER_PAINTED': renderPainted,
+            'RENDER_ERASED': renderErased,
             'RENDER_GRID': renderGrid
         }
 
@@ -772,7 +683,7 @@ function MineartCanvas(canvasId) {
             'RENDER_MAIN',
             'RENDER_PAINTED',
             // 'RENDER_GRID',
-            'RENDER_RULERS'
+            'RENDER_ERASED'
         ])
         
         store.debug.renderTime[store.scale.current] = (performance.now() - t0 + store.debug.renderTime[store.scale.current]) / 2
@@ -825,23 +736,15 @@ function MineartCanvas(canvasId) {
                 if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { continue }
 
                 if (thisRoot.getTool() === 'eraser') {
-                    thisRoot._fakePaint(xBlock, yBlock, 0)
-                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = {
-                        x: xBlock,
-                        y: yBlock,
-                        id: 0
-                    }
+                    thisRoot._fakeErase(xBlock, yBlock)
+                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = 0
                 } else {
                     if (store.interface.brushType === 'circle') {
                         let tempMaxRow = maxWidthForRow[Math.abs(Math.floor(i / size) - radius)]
                         if (tempMaxRow < Math.abs(i % size - radius)) { continue }
                     }
                     thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
-                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = {
-                        x: xBlock,
-                        y: yBlock,
-                        id: thisRoot.getEyedrop()
-                    }
+                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = thisRoot.getEyedrop()
                 }
             }
         }
@@ -890,9 +793,6 @@ function MineartCanvas(canvasId) {
             }
             if (e.which === 2) {
                 e.preventDefault()
-                if (Object.keys(store.paintedHexRendered).length > store.settings.cachePaintedAfter) {
-                    thisRoot._createPaintedBlobImage()
-                }
                 store.controls.mouse.grabbed = true
                 store.controls.mouse.startX = e.clientX - store.boundingRect.x
                 store.controls.mouse.startY = e.clientY - store.boundingRect.y
@@ -907,21 +807,34 @@ function MineartCanvas(canvasId) {
             store.controls.mouse.startX = 0
             store.controls.mouse.startY = 0
 
-            console.log(tempFakePaintedPoints)
             if (!thisRoot._isEmptyObject(tempFakePaintedPoints)) {
                 const history = {
                     current: {},
                     before: {}
                 }
                 for (let i in tempFakePaintedPoints) {
-                    history.current[i] = tempFakePaintedPoints[i].id
-                    history.before[i] = store.paintedHexRendered[i]
-                    thisRoot.addToPaintedRender(tempFakePaintedPoints[i].x, tempFakePaintedPoints[i].y, tempFakePaintedPoints[i].id)
+                    history.current[i] = tempFakePaintedPoints[i]
+                    history.before[i] = store.renderedPainted[i]
+                    store.renderedPainted[i] = tempFakePaintedPoints[i]
                 }
                 thisRoot._addToHistory(thisRoot.getTool(), history)
                 tempFakePaintedPoints = {}
-                console.log(Object.keys(store.paintedHexRendered).length)
+                console.log(Object.keys(store.renderedPainted).length)
             }
+
+            // if (!thisRoot._isEmptyObject(tempFakeErasedPoints)) {
+            //     const history = {
+            //         current: {},
+            //         before: {}
+            //     }
+            //     for (let i in tempFakeErasedPoints) {
+            //         history.current[i] = tempFakeErasedPoints[i]
+            //         history.before[i] = store.renderedPainted[i]
+            //         store.renderedPainted[i] = tempFakeErasedPoints[i]
+            //     }
+            //     thisRoot._addToHistory(thisRoot.getTool(), history)
+            //     tempFakeErasedPoints = {}
+            // }
         })
 
         canvasOverlay.addEventListener("wheel", (e) => {
@@ -967,6 +880,12 @@ function MineartCanvas(canvasId) {
     this.setImageSizes = (w, h) => {
         store.imageWidth = parseInt(w)
         store.imageHeight = parseInt(h)
+        canvasPainted.width = store.imageWidth * 16
+        canvasPainted.height = store.imageHeight * 16
+        canvasErased.width = store.imageWidth * 16
+        canvasErased.height = store.imageHeight * 16
+        store.layers.paintedCtx.clearRect(0, 0, canvasPainted.width, canvasPainted.height)
+        store.layers.erasedCtx.clearRect(0, 0, canvasErased.width, canvasErased.height)
     }
 
     this.setBoundingRect = (obj) => {
@@ -992,10 +911,6 @@ function MineartCanvas(canvasId) {
 
     this.getEyedrop = () => {
         return store.interface.eyedropCurrent
-    }
-
-    this.addToPaintedRender = (x, y, id) => {
-        store.paintedHexRendered[y * store.imageWidth + x] = id
     }
 
     this.addToBrushSize = (int) => {
