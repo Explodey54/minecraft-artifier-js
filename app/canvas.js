@@ -383,6 +383,159 @@ function MineartCanvas(canvasId) {
         this._renderMainCanvas()
     }
 
+    this._setEventListeners = function() {
+        let tempFakePaintedPoints = {}
+
+        function bresenhamLine(x0, y0, x1, y1, skipEveryN, callback) {
+            var dx = Math.abs(x1-x0);
+            var dy = Math.abs(y1-y0);
+            var sx = (x0 < x1) ? 1 : -1;
+            var sy = (y0 < y1) ? 1 : -1;
+            var err = dx-dy;
+            let i = 0
+
+            while(true) {
+                if ((x0==x1) && (y0==y1)) break;
+                var e2 = 2*err;
+                if (e2 >-dy){ err -= dy; x0  += sx; }
+                if (e2 < dx){ err += dx; y0  += sy; }
+                if (i % skipEveryN === 0) {
+                    callback(x0, y0)
+                }
+                i++
+            }
+        }
+
+        function draw(x, y) {
+            let size = store.interface.brushSize % 2 === 0 ? store.interface.brushSize + 1 : store.interface.brushSize
+            let radius = Math.floor(size / 2)
+            let totalBlocks = Math.pow(size, 2)
+            let startPointX = x - radius
+            let startPointY = y - radius
+            const maxWidthForRow = {}
+
+            if (store.interface.brushType === 'circle') {
+                const PIPortion = 0.5 / (radius + 1)
+                for (let i = 1; i <= radius; i ++) {
+                    maxWidthForRow[i] = Math.round(Math.cos(i * PIPortion * Math.PI) * store.interface.brushSize / 2)
+                }
+            }
+
+            for (let i = 0; i < totalBlocks; i++) {
+                let xBlock = startPointX + (i % size)
+                let yBlock = startPointY + Math.floor(i / size)
+                if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { continue }
+
+                if (thisRoot.getTool() === 'eraser') {
+                    thisRoot._fakeErase(xBlock, yBlock)
+                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = 0
+                } else {
+                    if (store.interface.brushType === 'circle') {
+                        let tempMaxRow = maxWidthForRow[Math.abs(Math.floor(i / size) - radius)]
+                        if (tempMaxRow < Math.abs(i % size - radius)) { continue }
+                    }
+                    thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
+                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = thisRoot.getEyedrop()
+                }
+            }
+        }
+
+        canvasOverlay.addEventListener('mousemove', function(e) {
+            store.controls.mouse.localX = Math.round(e.pageX - store.boundingRect.x - store.controls.mouse.startX)
+            store.controls.mouse.localY = Math.round(e.pageY - store.boundingRect.y - store.controls.mouse.startY)
+            if (store.controls.mouse.grabbed) {
+                store.offset.translate(store.controls.mouse.localX + store.controls.mouse.oldOffsetX, store.controls.mouse.localY + store.controls.mouse.oldOffsetY)
+                thisRoot._renderMainCanvas()
+                thisRoot._renderOverlayCanvas()
+            }
+            if (store.controls.mouse.leftClick && (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser')) {
+                //get block coords
+                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
+                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+                if (xBlock < 0 || xBlock >= store.imageWidth ) { return }
+                if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
+
+                //start the bresenham algorithm with the callback
+                const skipEveryN = Math.ceil(store.interface.brushSize / 4)
+                bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock, skipEveryN, draw)
+
+                store.controls.mouse.lastMouseX = xBlock
+                store.controls.mouse.lastMouseY = yBlock
+            }
+            thisRoot._renderOverlayCanvas()
+        })
+
+        canvasOverlay.addEventListener('mousedown', function(e) {
+            if (e.which === 1) {
+                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
+                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+                store.controls.mouse.lastMouseX = xBlock
+                store.controls.mouse.lastMouseY = yBlock
+                store.controls.mouse.leftClick = true
+
+                if (thisRoot.getTool() === 'eyedropper') {
+                    let id = thisRoot._getBlockIdByPosition(xBlock, yBlock)
+                    thisRoot.setEyedrop(id)
+                }
+
+                if (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser') {
+                    draw(xBlock, yBlock)
+                }
+            }
+            if (e.which === 2) {
+                e.preventDefault()
+                store.controls.mouse.grabbed = true
+                store.controls.mouse.startX = e.clientX - store.boundingRect.x
+                store.controls.mouse.startY = e.clientY - store.boundingRect.y
+                store.controls.mouse.oldOffsetX = store.offset.x
+                store.controls.mouse.oldOffsetY = store.offset.y
+            }
+        })
+
+        document.addEventListener('mouseup', function(e) {
+            store.controls.mouse.grabbed = false
+            store.controls.mouse.leftClick = false
+            store.controls.mouse.startX = 0
+            store.controls.mouse.startY = 0
+
+            if (!thisRoot._isEmptyObject(tempFakePaintedPoints)) {
+                const history = {
+                    current: {},
+                    before: {}
+                }
+                for (let i in tempFakePaintedPoints) {
+                    history.current[i] = tempFakePaintedPoints[i]
+                    history.before[i] = store.renderedPainted[i]
+                    store.renderedPainted[i] = tempFakePaintedPoints[i]
+                }
+                thisRoot._addToHistory(thisRoot.getTool(), history)
+                tempFakePaintedPoints = {}
+                console.log(Object.keys(store.renderedPainted).length)
+            }
+        })
+
+        canvasOverlay.addEventListener("wheel", (e) => {
+            e.preventDefault()
+            if (e.deltaY < 0) {
+                if (store.scale.scaleUp()) {
+                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
+                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
+                    store.offset.translate(store.offset.x - x, store.offset.y - y)
+                }
+            }
+
+            if (e.deltaY > 0) {
+                if (store.scale.scaleDown()) {
+                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
+                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
+                    store.offset.translate(store.offset.x + x / 2, store.offset.y + y / 2)
+                }
+            }
+            thisRoot._renderMainCanvas()
+            thisRoot._renderOverlayCanvas()
+        })
+    }
+
     this._renderOverlayCanvas = () => {
 
         function renderRulers() {
@@ -690,173 +843,6 @@ function MineartCanvas(canvasId) {
         document.querySelector('#render-time').innerHTML = `
             Scale: ${store.scale.current} || Average: ${Math.round(store.debug.renderTime[store.scale.current] * 1000) / 1000} ms
         `
-    }
-
-    this._setEventListeners = function() {
-        let tempFakePaintedPoints = {}
-
-        function bresenhamLine(x0, y0, x1, y1, skipEveryN, callback) {
-            var dx = Math.abs(x1-x0);
-            var dy = Math.abs(y1-y0);
-            var sx = (x0 < x1) ? 1 : -1;
-            var sy = (y0 < y1) ? 1 : -1;
-            var err = dx-dy;
-            let i = 0
-
-            while(true) {
-                if ((x0==x1) && (y0==y1)) break;
-                var e2 = 2*err;
-                if (e2 >-dy){ err -= dy; x0  += sx; }
-                if (e2 < dx){ err += dx; y0  += sy; }
-                if (i % skipEveryN === 0) {
-                    callback(x0, y0)
-                }
-                i++
-            }
-        }
-
-        function draw(x, y) {
-            let size = store.interface.brushSize % 2 === 0 ? store.interface.brushSize + 1 : store.interface.brushSize
-            let radius = Math.floor(size / 2)
-            let totalBlocks = Math.pow(size, 2)
-            let startPointX = x - radius
-            let startPointY = y - radius
-            const maxWidthForRow = {}
-
-            if (store.interface.brushType === 'circle') {
-                const PIPortion = 0.5 / (radius + 1)
-                for (let i = 1; i <= radius; i ++) {
-                    maxWidthForRow[i] = Math.round(Math.cos(i * PIPortion * Math.PI) * store.interface.brushSize / 2)
-                }
-            }
-
-            for (let i = 0; i < totalBlocks; i++) {
-                let xBlock = startPointX + (i % size)
-                let yBlock = startPointY + Math.floor(i / size)
-                if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { continue }
-
-                if (thisRoot.getTool() === 'eraser') {
-                    thisRoot._fakeErase(xBlock, yBlock)
-                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = 0
-                } else {
-                    if (store.interface.brushType === 'circle') {
-                        let tempMaxRow = maxWidthForRow[Math.abs(Math.floor(i / size) - radius)]
-                        if (tempMaxRow < Math.abs(i % size - radius)) { continue }
-                    }
-                    thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
-                    tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = thisRoot.getEyedrop()
-                }
-            }
-        }
-
-        canvasOverlay.addEventListener('mousemove', function(e) {
-            store.controls.mouse.localX = Math.round(e.pageX - store.boundingRect.x - store.controls.mouse.startX)
-            store.controls.mouse.localY = Math.round(e.pageY - store.boundingRect.y - store.controls.mouse.startY)
-            if (store.controls.mouse.grabbed) {
-                store.offset.translate(store.controls.mouse.localX + store.controls.mouse.oldOffsetX, store.controls.mouse.localY + store.controls.mouse.oldOffsetY)
-                thisRoot._renderMainCanvas()
-                thisRoot._renderOverlayCanvas()
-            }
-            if (store.controls.mouse.leftClick && (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser')) {
-                //get block coords
-                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
-                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                if (xBlock < 0 || xBlock >= store.imageWidth ) { return }
-                if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
-
-                //start the bresenham algorithm with the callback
-                const skipEveryN = Math.ceil(store.interface.brushSize / 4)
-                bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock, skipEveryN, draw)
-
-                store.controls.mouse.lastMouseX = xBlock
-                store.controls.mouse.lastMouseY = yBlock
-            }
-            thisRoot._renderOverlayCanvas()
-        })
-
-        canvasOverlay.addEventListener('mousedown', function(e) {
-            if (e.which === 1) {
-                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
-                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                store.controls.mouse.lastMouseX = xBlock
-                store.controls.mouse.lastMouseY = yBlock
-                store.controls.mouse.leftClick = true
-
-                if (thisRoot.getTool() === 'eyedropper') {
-                    let id = thisRoot._getBlockIdByPosition(xBlock, yBlock)
-                    thisRoot.setEyedrop(id)
-                }
-
-                if (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser') {
-                    draw(xBlock, yBlock)
-                }
-            }
-            if (e.which === 2) {
-                e.preventDefault()
-                store.controls.mouse.grabbed = true
-                store.controls.mouse.startX = e.clientX - store.boundingRect.x
-                store.controls.mouse.startY = e.clientY - store.boundingRect.y
-                store.controls.mouse.oldOffsetX = store.offset.x
-                store.controls.mouse.oldOffsetY = store.offset.y
-            }
-        })
-
-        document.addEventListener('mouseup', function(e) {
-            store.controls.mouse.grabbed = false
-            store.controls.mouse.leftClick = false
-            store.controls.mouse.startX = 0
-            store.controls.mouse.startY = 0
-
-            if (!thisRoot._isEmptyObject(tempFakePaintedPoints)) {
-                const history = {
-                    current: {},
-                    before: {}
-                }
-                for (let i in tempFakePaintedPoints) {
-                    history.current[i] = tempFakePaintedPoints[i]
-                    history.before[i] = store.renderedPainted[i]
-                    store.renderedPainted[i] = tempFakePaintedPoints[i]
-                }
-                thisRoot._addToHistory(thisRoot.getTool(), history)
-                tempFakePaintedPoints = {}
-                console.log(Object.keys(store.renderedPainted).length)
-            }
-
-            // if (!thisRoot._isEmptyObject(tempFakeErasedPoints)) {
-            //     const history = {
-            //         current: {},
-            //         before: {}
-            //     }
-            //     for (let i in tempFakeErasedPoints) {
-            //         history.current[i] = tempFakeErasedPoints[i]
-            //         history.before[i] = store.renderedPainted[i]
-            //         store.renderedPainted[i] = tempFakeErasedPoints[i]
-            //     }
-            //     thisRoot._addToHistory(thisRoot.getTool(), history)
-            //     tempFakeErasedPoints = {}
-            // }
-        })
-
-        canvasOverlay.addEventListener("wheel", (e) => {
-            e.preventDefault()
-            if (e.deltaY < 0) {
-                if (store.scale.scaleUp()) {
-                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
-                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
-                    store.offset.translate(store.offset.x - x, store.offset.y - y)
-                }
-            }
-
-            if (e.deltaY > 0) {
-                if (store.scale.scaleDown()) {
-                    let x = Math.floor(store.controls.mouse.localX - store.offset.x)
-                    let y = Math.floor(store.controls.mouse.localY - store.offset.y)
-                    store.offset.translate(store.offset.x + x / 2, store.offset.y + y / 2)
-                }
-            }
-            thisRoot._renderMainCanvas()
-            thisRoot._renderOverlayCanvas()
-        })
     }
 
     /* PUBLIC METHODS */
