@@ -64,6 +64,9 @@ window.mineartDOM = {
     },
     debugCompareHistory() {
         return mineartCanvas._debugCompareHistory()
+    },
+    replace(target, replace) {
+        mineartCanvas.replace(target, replace)
     }
 }
 

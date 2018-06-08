@@ -74,7 +74,11 @@ function MineartCanvas(canvasId) {
             eyedropCurrent: 44,
             toolCurrent: 'clicker',
             brushSize: 1,
-            brushType: 'circle'
+            brushType: 'circle',
+            selection: {
+                start: null,
+                end: null
+            }
         },
         events: {
             cached: new CustomEvent('cached'),
@@ -147,6 +151,17 @@ function MineartCanvas(canvasId) {
     /* PRIVATE METHODS */
     //////////////////////////////////////
 
+    this._getPosFromInt = (int) => {
+        return {
+            x: int % store.imageWidth,
+            y: Math.floor(int / store.imageWidth)
+        }
+    }
+
+    this._getIntFromPos = (x, y) => {
+        return y * store.imageWidth + x
+    }
+
     this._getCornersOfVisible = () => {
         let topLeftX = Math.floor((-store.offset.x) / store.baseCellSize / store.scale.current)
         let topLeftY = Math.floor((-store.offset.y) / store.baseCellSize / store.scale.current)
@@ -182,8 +197,25 @@ function MineartCanvas(canvasId) {
             return null
         }
 
-        let blockHex = store.imageConvertedHex[y * store.imageWidth + x]
-        return parseInt(blockHex, 16)
+        return store.imageConvertedHex[y * store.imageWidth + x]
+    }
+
+    this._checkIfInSelection = (int) => {
+        if (store.interface.selection.start === null || store.interface.selection.start === null) { return NaN }
+        let tempStart, tempEnd
+        if (store.interface.selection.start < store.interface.selection.end) {
+            tempStart = store.interface.selection.start
+            tempEnd = store.interface.selection.end
+        } else {
+            tempStart = store.interface.selection.end
+            tempEnd = store.interface.selection.start
+        }
+        if (int < tempStart || int > tempEnd) { return false }
+        let startModulo = tempStart % store.imageWidth
+        let endModulo = tempEnd % store.imageWidth
+        let intModulo = int % store.imageWidth
+        if (intModulo < startModulo || intModulo > endModulo) { return false }
+        return true
     }
 
     this._createMainBlobImage = (str) => {
@@ -195,7 +227,7 @@ function MineartCanvas(canvasId) {
         for (let i = 0; i < store.imageConvertedHex.length; i++) {
             let x = i % store.imageWidth
             let y = Math.floor(i / store.imageWidth)
-            let imageForCanvas = store.getBlockById(parseInt(store.imageConvertedHex[i], 16)).image
+            let imageForCanvas = store.getBlockById(store.imageConvertedHex[i]).image
             ctxTemp.drawImage(imageForCanvas,
                              x * store.baseCellSize * store.scale.cacheFrom,
                              y * store.baseCellSize * store.scale.cacheFrom,
@@ -425,6 +457,7 @@ function MineartCanvas(canvasId) {
                 let xBlock = startPointX + (i % size)
                 let yBlock = startPointY + Math.floor(i / size)
                 if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { continue }
+                if (!thisRoot._checkIfInSelection(thisRoot._getIntFromPos(xBlock,yBlock))) { continue }
 
                 if (thisRoot.getTool() === 'eraser') {
                     thisRoot._fakeErase(xBlock, yBlock)
@@ -443,15 +476,15 @@ function MineartCanvas(canvasId) {
         canvasOverlay.addEventListener('mousemove', function(e) {
             store.controls.mouse.localX = Math.round(e.pageX - store.boundingRect.x - store.controls.mouse.startX)
             store.controls.mouse.localY = Math.round(e.pageY - store.boundingRect.y - store.controls.mouse.startY)
+            let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
+            let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+
             if (store.controls.mouse.grabbed) {
                 store.offset.translate(store.controls.mouse.localX + store.controls.mouse.oldOffsetX, store.controls.mouse.localY + store.controls.mouse.oldOffsetY)
                 thisRoot._renderMainCanvas()
                 thisRoot._renderOverlayCanvas()
             }
             if (store.controls.mouse.leftClick && (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser')) {
-                //get block coords
-                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
-                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
                 if (xBlock < 0 || xBlock >= store.imageWidth ) { return }
                 if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
 
@@ -461,6 +494,17 @@ function MineartCanvas(canvasId) {
 
                 store.controls.mouse.lastMouseX = xBlock
                 store.controls.mouse.lastMouseY = yBlock
+            }
+            if (store.controls.mouse.leftClick && thisRoot.getTool() === 'selection') {
+                let tempX = xBlock
+                let tempY = yBlock
+
+                if (xBlock < 0) { tempX = 0 }
+                if (yBlock < 0) { tempY = 0 }
+                if (xBlock >= store.imageWidth ) { tempX = store.imageWidth - 1 }
+                if (yBlock >= store.imageHeight ) { tempY = store.imageHeight - 1 }
+
+                store.interface.selection.end = thisRoot._getIntFromPos(tempX, tempY)
             }
             thisRoot._renderOverlayCanvas()
         })
@@ -480,6 +524,18 @@ function MineartCanvas(canvasId) {
 
                 if (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser') {
                     draw(xBlock, yBlock)
+                }
+
+                if (thisRoot.getTool() === 'selection') {
+                    let tempX = xBlock
+                    let tempY = yBlock
+
+                    if (xBlock < 0) { tempX = 0 }
+                    if (yBlock < 0) { tempY = 0 }
+                    if (xBlock >= store.imageWidth ) { tempX = store.imageWidth - 1 }
+                    if (yBlock >= store.imageHeight ) { tempY = store.imageHeight - 1 }
+                    store.interface.selection.start = thisRoot._getIntFromPos(tempX, tempY)
+                    store.interface.selection.end = thisRoot._getIntFromPos(tempX, tempY)
                 }
             }
             if (e.which === 2) {
@@ -511,6 +567,12 @@ function MineartCanvas(canvasId) {
                 thisRoot._addToHistory(thisRoot.getTool(), history)
                 tempFakePaintedPoints = {}
                 console.log(Object.keys(store.renderedPainted).length)
+            }
+
+            if (store.interface.selection.start === store.interface.selection.end) {
+                store.interface.selection.start = null
+                store.interface.selection.end = null
+                thisRoot._renderOverlayCanvas()
             }
         })
 
@@ -618,9 +680,36 @@ function MineartCanvas(canvasId) {
             ctxOverlay.stroke()
         }
 
+        function renderSelection() {
+            if (store.interface.selection.start === null || store.interface.selection.end === null) { return }
+            if (store.interface.selection.start === store.interface.selection.end) { return }
+
+            var startPos = thisRoot._getPosFromInt(store.interface.selection.start)
+            var endPos = thisRoot._getPosFromInt(store.interface.selection.end)
+
+            const tempStart = {
+                x: startPos.x <= endPos.x ? startPos.x : endPos.x,  
+                y: startPos.y <= endPos.y ? startPos.y : endPos.y
+            }
+
+            const tempEnd = {
+                x: startPos.x > endPos.x ? startPos.x : endPos.x,  
+                y: startPos.y > endPos.y ? startPos.y : endPos.y
+            }
+
+            ctxOverlay.rect(tempStart.x * store.baseCellSize * store.scale.current + store.offset.x, 
+                            tempStart.y * store.baseCellSize * store.scale.current + store.offset.y,
+                            (tempEnd.x - tempStart.x  + 1)  * store.baseCellSize * store.scale.current,
+                            (tempEnd.y - tempStart.y + 1) * store.baseCellSize * store.scale.current)
+            ctxOverlay.lineWidth = 1
+            ctxOverlay.setLineDash([10, 5])
+            ctxOverlay.stroke()
+        }
+
         const renderList = {
             'RENDER_BRUSH': renderBrush,
-            'RENDER_RULERS': renderRulers
+            'RENDER_RULERS': renderRulers,
+            'RENDER_SELECTION': renderSelection
         }
 
         function renderHelper(list) {
@@ -633,6 +722,7 @@ function MineartCanvas(canvasId) {
         }
 
         renderHelper([
+            'RENDER_SELECTION',
             'RENDER_BRUSH',
             'RENDER_RULERS'
         ])
@@ -790,7 +880,7 @@ function MineartCanvas(canvasId) {
                     for (let x = topLeftX; x <= bottomRightX; x++) {
                         if (x < store.imageWidth && y < store.imageHeight) {
                             let hexBlock = store.imageConvertedHex[y * store.imageWidth + x]
-                            let imageForCanvas = store.getBlockById(parseInt(hexBlock, 16)).image
+                            let imageForCanvas = store.getBlockById(hexBlock).image
                             ctxMain.drawImage(imageForCanvas, 
                                               x * store.baseCellSize * store.scale.current + store.offset.x,
                                               y * store.baseCellSize * store.scale.current + store.offset.y,
@@ -922,6 +1012,35 @@ function MineartCanvas(canvasId) {
 
     this.getCurrentHistoryPos = () => {
         return store.history.currentPos
+    }
+
+    this.replace = (target, replace) => {
+        let startBlock = store.interface.selection.start === null ? 0 : store.interface.selection.start
+        let endBlock = store.interface.selection.end === null ? store.imageConvertedHex.length - 1 : store.interface.selection.end
+
+        const history = {
+            current: {},
+            before: {}
+        }
+        for (let i = startBlock; i <= endBlock; i++) {
+            if (store.renderedPainted[i] !== undefined && store.renderedPainted[i] !== target) { continue }
+
+            if (store.interface.selection.start !== null && store.interface.selection.end !== null) {
+                if (!this._checkIfInSelection(i)) { continue }
+            }
+
+            if (store.renderedPainted[i] === target || store.imageConvertedHex[i] === target) {
+                let xBlock = i % store.imageWidth
+                let yBlock = Math.floor(i / store.imageWidth)
+                history.before[i] = store.renderedPainted[i]
+                history.current[i] = replace
+                store.renderedPainted[i] = replace
+                thisRoot._fakePaint(xBlock, yBlock, replace)
+            }
+        }
+
+        this._addToHistory('replace', history)
+        this.render()
     }
 
     this.render = () => {

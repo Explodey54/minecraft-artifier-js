@@ -67,12 +67,13 @@ onmessage = function(e) {
     console.log('Started converting in: ' + performance.now())
     
     const imageData = e.data
-    let output = []
 
     if (imageData.constructor.name != 'Uint8ClampedArray') {
         console.log('not uint8!!!')
         return
     }
+
+    let output = new Uint8ClampedArray(imageData.length / 4)
     
     for (let i = 0; i < imageData.length; i += 4) {
         let pixelHsl = rgbToHsl(imageData[i], imageData[i + 1], imageData[i + 2])
@@ -86,11 +87,7 @@ onmessage = function(e) {
             }
         })
 
-        if (temp.id < 16) {
-            output[i / 4] = '0' + temp.id.toString(16)
-        } else {
-            output[i / 4] = temp.id.toString(16)
-        }
+        output[i / 4] = temp.id
     }
 
     postMessage(output)
