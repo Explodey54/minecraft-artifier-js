@@ -457,8 +457,11 @@ function MineartCanvas(canvasId) {
                 let xBlock = startPointX + (i % size)
                 let yBlock = startPointY + Math.floor(i / size)
                 if (xBlock < 0 || xBlock >= store.imageWidth || yBlock < 0 || yBlock >= store.imageHeight) { continue }
-                if (!thisRoot._checkIfInSelection(thisRoot._getIntFromPos(xBlock,yBlock))) { continue }
 
+                if (store.interface.selection.start !== null) {
+                    if (!thisRoot._checkIfInSelection(thisRoot._getIntFromPos(xBlock,yBlock))) { continue }
+                }
+                
                 if (thisRoot.getTool() === 'eraser') {
                     thisRoot._fakeErase(xBlock, yBlock)
                     tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = 0
