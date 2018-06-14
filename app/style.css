@@ -11,6 +11,7 @@ header, section, body {
 header {
   background-color: #a3ffd2;
   height: 60px;
+  display: none;
 }
 
 header h1 {
@@ -26,7 +27,7 @@ header h1 {
 .container {
   margin-left: auto;
   margin-right: auto;
-  width: 1400px;
+  width: 1200px;
   height: 100%;
 }
 
@@ -45,7 +46,7 @@ header h1 {
 }
 
 section.workarea {
-  margin-top: 30px;
+  margin-top: 10px;
   min-height: 400px;
 }
 
@@ -132,7 +133,7 @@ section.workarea {
 }
 
 .canvas-area { 
-  width: 1010px;
+  width: 810px;
   height: 720px;
   display: inline-block;
   position: relative;

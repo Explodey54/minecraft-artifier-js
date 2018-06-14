@@ -23,7 +23,7 @@ function MineartCanvas(canvasId) {
         renderedPainted: {},
         imageWidth: null,
         imageHeight: null,
-        canvasWidth: 1000,
+        canvasWidth: 800,
         canvasHeight: 700,
         baseCellSize: 16,
         boundingRect: null,
@@ -34,19 +34,29 @@ function MineartCanvas(canvasId) {
         },
         offset: {
             bounds: {
-                x: 500,
+                x: 600,
                 y: 500
             },
             x: 0,
             y: 0,
             translate(x, y) {
+                let imageSizeX = store.imageWidth * store.baseCellSize * store.scale.current
+                let imageSizeY = store.imageHeight * store.baseCellSize * store.scale.current
+                if (x > this.bounds.x) { x = this.bounds.x }
+                if (y > this.bounds.y) { y = this.bounds.y }
+                if (x + imageSizeX - store.canvasWidth < -this.bounds.x) {
+                    x = -imageSizeX + store.canvasWidth - this.bounds.x
+                }
+                if (y + imageSizeY - store.canvasHeight < -this.bounds.y) {
+                    y = -imageSizeY + store.canvasHeight - this.bounds.y
+                }
                 this.x = Math.round(x)
                 this.y = Math.round(y)
             }
         },
         scale: {
-            current: 1,
-            options: [0.125, 0.25, 0.5, 1, 2, 4],
+            current: 0.0625,
+            options: [0.0625, 0.125, 0.25, 0.5, 1, 2, 4],
             cacheFrom: 1,
             scaleUp() {
                 let indexOfCurrent = this.options.indexOf(this.current)
@@ -78,7 +88,8 @@ function MineartCanvas(canvasId) {
             selection: {
                 start: null,
                 end: null
-            }
+            },
+            rulerSize: 25
         },
         events: {
             cached: new CustomEvent('cached'),
@@ -105,6 +116,7 @@ function MineartCanvas(canvasId) {
             showTempCanvas: false,
             renderAllPainted: false,
             renderTime: {
+                '0.0625': 0,
                 '0.125': 0,
                 '0.25': 0,
                 '0.5': 0,
@@ -490,6 +502,10 @@ function MineartCanvas(canvasId) {
             if (store.controls.mouse.leftClick && (thisRoot.getTool() === 'clicker' || thisRoot.getTool() === 'eraser')) {
                 if (xBlock < 0 || xBlock >= store.imageWidth ) { return }
                 if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
+                // if (store.interface.rulerSize > Math.floor(e.pageX - store.boundingRect.x) ||
+                //     store.canvasHeight - store.interface.rulerSize < Math.floor(e.pageY - store.boundingRect.y)) {
+                //         return
+                // }
 
                 //start the bresenham algorithm with the callback
                 const skipEveryN = Math.ceil(store.interface.brushSize / 4)
@@ -604,11 +620,8 @@ function MineartCanvas(canvasId) {
     this._renderOverlayCanvas = () => {
 
         function renderRulers() {
-            let rulerSizeHorizontal = 25,
-                rulerSizeVertical = 25,
-                rulerFillStyle = 'white',
+            let rulerFillStyle = 'white',
                 fontStyle = '12px Helvetica'
-
 
             let drawRulerEveryNBlocks
             switch (store.scale.current) {
@@ -630,17 +643,20 @@ function MineartCanvas(canvasId) {
                 case 0.125:
                     drawRulerEveryNBlocks = 100
                     break
+                case 0.0625:
+                    drawRulerEveryNBlocks = 100
+                    break
             }
 
             if (store.imageHeight >= 1000) {
-                rulerSizeVertical = 36
+                store.interface.rulerSize = 36
             }
 
             ctxOverlay.beginPath()
             ctxOverlay.fillStyle = rulerFillStyle
-            ctxOverlay.rect(0, store.canvasHeight - rulerSizeHorizontal, store.canvasWidth, rulerSizeHorizontal)
+            ctxOverlay.rect(0, store.canvasHeight - store.interface.rulerSize, store.canvasWidth, store.interface.rulerSize)
             ctxOverlay.fill()
-            ctxOverlay.rect(0, 0, rulerSizeVertical, store.canvasHeight)
+            ctxOverlay.rect(0, 0, store.interface.rulerSize, store.canvasHeight)
             ctxOverlay.fill()
 
             ctxOverlay.font = fontStyle;
@@ -654,7 +670,7 @@ function MineartCanvas(canvasId) {
                  i += drawRulerEveryNBlocks) {
                 ctxOverlay.beginPath()
                 ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x + 0.5, store.canvasHeight)
-                ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x + 0.5, store.canvasHeight - rulerSizeHorizontal)
+                ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x + 0.5, store.canvasHeight - store.interface.rulerSize)
                 ctxOverlay.stroke()
                 ctxOverlay.fillText(i, i * store.scale.current * 16 + store.offset.x + 2, store.boundingRect.height - 10)
             }
@@ -664,12 +680,12 @@ function MineartCanvas(canvasId) {
                  i -= drawRulerEveryNBlocks) {
                 ctxOverlay.beginPath()
                 ctxOverlay.moveTo(0, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y + 0.5) // + 0.5 for just the right thickness
-                ctxOverlay.lineTo(rulerSizeVertical, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y + 0.5)
+                ctxOverlay.lineTo(store.interface.rulerSize, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y + 0.5)
                 ctxOverlay.stroke()
                 ctxOverlay.fillText(i, 1, (store.imageHeight - i) * 16 * store.scale.current + store.offset.y - 3)
             }
 
-            ctxOverlay.rect(0, store.canvasHeight - rulerSizeHorizontal, rulerSizeVertical, rulerSizeHorizontal)
+            ctxOverlay.rect(0, store.canvasHeight - store.interface.rulerSize, store.interface.rulerSize, store.interface.rulerSize)
             ctxOverlay.fill()
         }
 
@@ -949,6 +965,10 @@ function MineartCanvas(canvasId) {
     this.getBlockInfoByMouseXY = (pageX, pageY) => {
         let xBlock = (Math.floor((pageX - store.boundingRect.x - store.offset.x) / (store.baseCellSize * store.scale.current)))
         let yBlock = (Math.floor((pageY - store.boundingRect.y - store.offset.y) / (store.baseCellSize * store.scale.current)))
+        if (store.interface.rulerSize > Math.floor(pageX - store.boundingRect.x) ||
+            store.canvasHeight - store.interface.rulerSize < Math.floor(pageY - store.boundingRect.y)) {
+            return null
+        }
         return {
             x: xBlock,
             y: store.imageHeight - yBlock - 1,
@@ -965,6 +985,11 @@ function MineartCanvas(canvasId) {
         canvasErased.height = store.imageHeight * 16
         store.layers.paintedCtx.clearRect(0, 0, canvasPainted.width, canvasPainted.height)
         store.layers.erasedCtx.clearRect(0, 0, canvasErased.width, canvasErased.height)
+        store.offset.x = store.canvasWidth / 2 - store.imageWidth > 0 ? store.canvasWidth / 2 - store.imageWidth / 2 : 0
+        store.offset.y = store.canvasHeight / 2 - store.imageHeight > 0 ? store.canvasHeight / 2 - store.imageHeight / 2 : 0
+        // if (store.imageWidth * store.imageHeight >= 250000) {
+        //     store.scale.cacheFrom = 0.5
+        // }
     }
 
     this.setBoundingRect = (obj) => {
