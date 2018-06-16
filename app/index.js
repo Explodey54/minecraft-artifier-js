@@ -25,18 +25,20 @@ const history = {}
 const $historyBlock = document.querySelector('.info-area-history-actions-block')
 
 const testImage = new Image()
-testImage.src = require('../static/pic_200.png')
+testImage.src = require('../static/lum_300.png')
 testImage.onload = () => {
-    mineartCanvas.setImageSizes(200, 200)
-    canvasTemp.width = 200
-    canvasTemp.height = 200
+    let w = 300
+    let h = 300
+    mineartCanvas.setImageSizes(w, h)
+    canvasTemp.width = w
+    canvasTemp.height = h
     ctxTemp.imageSmoothingEnabled = false
     ctxTemp.drawImage(testImage, 
                       0, 
                       0, 
                       testImage.width, 
                       testImage.height)
-    const imageData = ctxTemp.getImageData(0, 0, 200, 200).data
+    const imageData = ctxTemp.getImageData(0, 0, w, h).data
     convertWorker.postMessage(imageData)
 }
 
@@ -157,7 +159,7 @@ $canvasMain.addEventListener('history', (e) => {
 
 $canvasOverlay.addEventListener('mousemove', (e) => {
     const blockInfo = mineartCanvas.getBlockInfoByMouseXY(e.pageX, e.pageY)
-    if (blockInfo.info) {
+    if (blockInfo && blockInfo.info) {
         document.querySelector('.info-area-span-block-x').innerHTML = blockInfo.x + 1
         document.querySelector('.info-area-span-block-y').innerHTML = blockInfo.y + 1
         document.querySelector('.info-area-span-block-name').innerHTML = blockInfo.info.name

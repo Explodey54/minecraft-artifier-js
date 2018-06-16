@@ -28,6 +28,12 @@ function findSimilarBlocks(image) {
 }
 
 onmessage = function(e) {
+    for (let key in colors) {
+        if (colors[key].id <= 80 && colors[key].id >= 66) {
+            delete colors[key]
+        }
+    }
+
     console.log('Started converting in: ' + performance.now())
     
     const imageData = e.data
