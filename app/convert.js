@@ -29,7 +29,7 @@ function findSimilarBlocks(image) {
 
 onmessage = function(e) {
     for (let key in colors) {
-        if (colors[key].id <= 80 && colors[key].id >= 66) {
+        if (colors[key].id <= 81 && colors[key].id >= 65) {
             delete colors[key]
         }
     }

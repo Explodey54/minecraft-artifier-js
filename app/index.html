@@ -2,68 +2,80 @@
 <html>
     <head>
         <title>Minecraft Art To Block</title>
-        <link href="https://fonts.googleapis.com/css?family=Arimo" rel="stylesheet">
     </head>
     <body>
 
-        <header>
-            <div class="container">
-                <h1>Minecraft artifier</h1>
-            </div>
-        </header>
-
-        <section class="workarea">
-            <div class="container">
-                <div id="dropzone" class="hidden">Drag some picture!</div>
-                <div id="settings" class="hidden">
-                    <img id="settings-img" height="200">
-                    <form action="#" id="settings-form">
-                        <input type="text" name="width">
-                        <input type="text" name="height">
-                        <input type="submit" value="Submit!">
-                    </form>
-                </div>
-                <div id="paint-table" class="hidden">
-                    <div class="tools-area">
-                        <div class="tool clicker" onclick="mineartDOM.changeTool('clicker')">C</div>
-                        <div class="tool eye-dropper" onclick="mineartDOM.changeTool('eyedropper')">D</div>
-                        <div class="tool eraser" onclick="mineartDOM.changeTool('eraser')">E</div>
-                        <div class="tool selection" onclick="mineartDOM.changeTool('selection')">S</div>
-                    </div>
-                    <div class="canvas-area">
-                        <canvas id="canvasOverlay"></canvas>
-                        <canvas id="canvasMain"></canvas>
-                    </div>
-                    <div class="info-area">
-                        <div>
-                            <p>Width: <span class="info-area-span-width"></span></p>
-                            <p>Height: <span class="info-area-span-height"></span></p>
-                        </div>
-                        <div>
-                            Block
-                            <p><img class="info-area-span-block-img" src="null" height="60"></p>
-                            <p>X: <span class="info-area-span-block-x"></span> Y: <span class="info-area-span-block-y"></span></p>
-                            <p>Name: <span class="info-area-span-block-name"></span></p>
-                        </div>
-                        <div>
-                            <button class="info-area-btn-minus" onclick="mineartDOM.minusOneBrushSize()">Brush - </button>
-                            <button class="info-area-btn-plus" onclick="mineartDOM.plusOneBrushSize()">Brush + </button>
-                            <button class="info-area-btn-plus" onclick="mineartDOM.undo()">Undo</button>
-                        </div>
-                        <div class="info-area-history">
-                            History:
-                            <div class="info-area-history-actions-block">
-                                <div class="info-area-history-action info-area-history-action-start" data-action-pos="-1">Open</div>
+        <section class="section container workarea">
+            <div class="topbar">
+                <div class="topbar-btn" id="open-btn">Open</div>
+                <div class="topbar-btn"><a id="save-btn">Save</a></div>
+                <div class="topbar-btn">Replace
+                    <div class="topbar-menu topbar-menu-replace hidden">
+                        <div class="delete"></div>
+                        <div class="topbar-menu-replace-form">
+                            <div class="replace-group">
+                                <img class="img-thumbnail img-pixelated" id="replace-target-img">
+                                <span>...</span>
+                            </div>
+                            <div class="svg-arrow">
+                                <%=require('../static/img/arrow.svg')%>
+                            </div>
+                            <div class="replace-group">
+                                <img class="img-thumbnail img-pixelated" id="replace-replace-img">
+                                <span>...</span>
                             </div>
                         </div>
-                        <div>
-                            Debug info:
-                            <p id="render-time"></p>
+                        <button class="button" id="replace-btn">Replace</button>
+                        <div class="text-info hidden" id="replace-text-info">Error</div>
+                    </div>
+                </div>
+                <div class="topbar-btn"><a id="convert-btn">Convert</a></div>
+            </div>
+            <div class="columns">
+                <div class="column is-three-quarters editor">
+                    <div class="editor-tools">
+                        <label title="Pencil tool" onclick="mineartDOM.changeTool('pencil')">
+                            <input type="radio" name="tool" checked>
+                            <%=require('../static/img/pencil.svg')%>
+                        </label>
+                        <label title="Brush tool" onclick="mineartDOM.changeTool('brush')">
+                            <input type="radio" name="tool">
+                            <%=require('../static/img/brush.svg')%>
+                        </label>
+                        <label title="Selection tool" onclick="mineartDOM.changeTool('selection')">
+                            <input type="radio" name="tool">
+                            <%=require('../static/img/selection.svg')%>
+                        </label>
+                        <label title="Eraser tool" onclick="mineartDOM.changeTool('eraser')">
+                            <input type="radio" name="tool">
+                            <%=require('../static/img/eraser.svg')%>
+                        </label>
+                        <div class="editor-eyedrop">
+                            <img class="img-pixelated" src="">
+                        </div>
+                    </div>
+                    <div class="editor-canvas img-pixelated" id="canvasMain"></div>
+                </div>
+                <div class="column info-panels" style="background-color: grey">
+                    <div class="info-panels-position">
+                        X: 20<br>Y: 40
+                    </div>
+                    <div class="info-panels-blocks">
+                        <input class="input is-small" id="input-block-search">
+                        <div class="info-panels-blocks-img"></div>
+                    </div>
+                    <div class="info-panels-history">
+                        History:
+                        <div class="info-panels-history-container">
+                            <div class="info-panels-history-action info-panels-history-action-start" data-action-pos="-1">Open</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
+        <section class="section container" style="height: 500px; background-color: lime; margin-bottom: 20px">
+            
+        </section>
     </body>
 </html>

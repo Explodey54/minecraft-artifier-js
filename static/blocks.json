@@ -1,730 +1,1106 @@
 [
   {
     "name": "Stone",
-    "texture_image": "stone.png"
+    "texture_image": "stone.png",
+    "game_id": "minecraft:stone",
+    "game_id_1_13": "minecraft:stone"
   },
   {
     "name": "Granite",
-    "texture_image": "stone_granite.png"
+    "texture_image": "stone_granite.png",
+    "game_id": "minecraft:stone 1",
+    "game_id_1_13": "minecraft:granite"
   },
   {
     "name": "Polished Granite",
-    "texture_image": "stone_granite_smooth.png"
+    "texture_image": "stone_granite_smooth.png",
+    "game_id": "minecraft:stone 2",
+    "game_id_1_13": "minecraft:polished_granite"
   },
   {
     "name": "Diorite",
-    "texture_image": "stone_diorite.png"
+    "texture_image": "stone_diorite.png",
+    "game_id": "minecraft:stone 3",
+    "game_id_1_13": "minecraft:diorite"
   },
   {
     "name": "Polished Diorite",
-    "texture_image": "stone_diorite_smooth.png"
+    "texture_image": "stone_diorite_smooth.png",
+    "game_id": "minecraft:stone 4",
+    "game_id_1_13": "minecraft:polished_diorite"
   },
   {
     "name": "Andesite",
-    "texture_image": "stone_andesite.png"
+    "texture_image": "stone_andesite.png",
+    "game_id": "minecraft:stone 5",
+    "game_id_1_13": "minecraft:andesite"
   },
   {
     "name": "Polished Andesite",
-    "texture_image": "stone_andesite_smooth.png"
+    "texture_image": "stone_andesite_smooth.png",
+    "game_id": "minecraft:stone 6",
+    "game_id_1_13": "minecraft:polished_andesite"
   },
   {
     "name": "Grass",
-    "texture_image": "grass_side.png"
+    "texture_image": "grass_side.png",
+    "game_id": "minecraft:grass",
+    "game_id_1_13": "minecraft:grass_block"
   },
   {
     "name": "Dirt",
-    "texture_image": "dirt.png"
+    "texture_image": "dirt.png",
+    "game_id": "minecraft:dirt",
+    "game_id_1_13": "minecraft:dirt"
   },
   {
     "name": "Cobblestone",
-    "texture_image": "cobblestone.png"
+    "texture_image": "cobblestone.png",
+    "game_id": "minecraft:cobblestone",
+    "game_id_1_13": "minecraft:cobblestone"
   },
   {
     "name": "Oak Wood Plank",
-    "texture_image": "planks_oak.png"
+    "texture_image": "planks_oak.png",
+    "game_id": "minecraft:planks",
+    "game_id_1_13": "minecraft:oak_planks"
   },
   {
     "name": "Spruce Wood Plank",
-    "texture_image": "planks_spruce.png"
+    "texture_image": "planks_spruce.png",
+    "game_id": "minecraft:planks 1",
+    "game_id_1_13": "minecraft:spruce_planks"
   },
   {
     "name": "Birch Wood Plank",
-    "texture_image": "planks_birch.png"
+    "texture_image": "planks_birch.png",
+    "game_id": "minecraft:planks 2",
+    "game_id_1_13": "minecraft:birch_planks"
   },
   {
     "name": "Jungle Wood Plank",
-    "texture_image": "planks_jungle.png"
+    "texture_image": "planks_jungle.png",
+    "game_id": "minecraft:planks 3",
+    "game_id_1_13": "minecraft:jungle_planks"
   },
   {
     "name": "Acacia Wood Plank",
-    "texture_image": "planks_acacia.png"
+    "texture_image": "planks_acacia.png",
+    "game_id": "minecraft:planks 4",
+    "game_id_1_13": "minecraft:acacia_planks"
   },
   {
     "name": "Dark Oak Wood Plank",
-    "texture_image": "planks_big_oak.png"
+    "texture_image": "planks_big_oak.png",
+    "game_id": "minecraft:planks 5",
+    "game_id_1_13": "minecraft:dark_oak_planks"
   },
   {
     "name": "Bedrock",
-    "texture_image": "bedrock.png"
+    "texture_image": "bedrock.png",
+    "game_id": "minecraft:bedrock",
+    "game_id_1_13": "minecraft:bedrock"
   },
   {
     "name": "Sand",
-    "texture_image": "sand.png"
+    "texture_image": "sand.png",
+    "game_id": "minecraft:sand",
+    "game_id_1_13": "minecraft:sand"
   },
   {
     "name": "Red Sand",
-    "texture_image": "red_sand.png"
+    "texture_image": "red_sand.png",
+    "game_id": "minecraft:sand 1",
+    "game_id_1_13": "minecraft:red_sand"
   },
   {
     "name": "Gravel",
-    "texture_image": "gravel.png"
+    "texture_image": "gravel.png",
+    "game_id": "minecraft:gravel",
+    "game_id_1_13": "minecraft:gravel"
   },
   {
     "name": "Gold Ore",
-    "texture_image": "gold_ore.png"
+    "texture_image": "gold_ore.png",
+    "game_id": "minecraft:gold_ore",
+    "game_id_1_13": "minecraft:gold_ore"
   },
   {
     "name": "Iron Ore",
-    "texture_image": "iron_ore.png"
+    "texture_image": "iron_ore.png",
+    "game_id": "minecraft:iron_ore",
+    "game_id_1_13": "minecraft:iron_ore"
   },
   {
     "name": "Coal Ore",
-    "texture_image": "coal_ore.png"
+    "texture_image": "coal_ore.png",
+    "game_id": "minecraft:coal_ore",
+    "game_id_1_13": "minecraft:coal_ore"
   },
   {
     "name": "Oak Wood",
-    "texture_image": "log_oak.png"
+    "texture_image": "log_oak.png",
+    "game_id": "minecraft:log",
+    "game_id_1_13": "minecraft:oak_log"
   },
   {
     "name": "Spruce Wood",
-    "texture_image": "log_spruce.png"
+    "texture_image": "log_spruce.png",
+    "game_id": "minecraft:log 1",
+    "game_id_1_13": "minecraft:spruce_log"
   },
   {
     "name": "Birch Wood",
-    "texture_image": "log_birch.png"
+    "texture_image": "log_birch.png",
+    "game_id": "minecraft:log 2",
+    "game_id_1_13": "minecraft:birch_log"
   },
   {
     "name": "Jungle Wood",
-    "texture_image": "log_jungle.png"
+    "texture_image": "log_jungle.png",
+    "game_id": "minecraft:log 3",
+    "game_id_1_13": "minecraft:jungle_log"
   },
   {
     "name": "Leaves",
-    "texture_image": "leaves.png"
+    "texture_image": "leaves.png",
+    "game_id": "minecraft:leaves",
+    "game_id_1_13": "minecraft:oak_leaves"
   },
   {
     "name": "Sponge",
-    "texture_image": "sponge.png"
+    "texture_image": "sponge.png",
+    "game_id": "minecraft:sponge",
+    "game_id_1_13": "minecraft:sponge"
   },
   {
     "name": "Lapis Lazuli Ore",
-    "texture_image": "lapis_ore.png"
+    "texture_image": "lapis_ore.png",
+    "game_id": "minecraft:lapis_ore",
+    "game_id_1_13": "minecraft:lapis_ore"
   },
   {
     "name": "Lapis Lazuli Block",
-    "texture_image": "lapis_block.png"
+    "texture_image": "lapis_block.png",
+    "game_id": "minecraft:lapis_block",
+    "game_id_1_13": "minecraft:lapis_block"
   },
   {
     "name": "Note Block",
-    "texture_image": "noteblock.png"
+    "texture_image": "noteblock.png",
+    "game_id": "minecraft:noteblock",
+    "game_id_1_13": "minecraft:note_block"
   },
   {
     "name": "White Wool",
-    "texture_image": "wool_colored_white.png"
+    "texture_image": "wool_colored_white.png",
+    "game_id": "minecraft:wool",
+    "game_id_1_13": "minecraft:white_wool"
   },
   {
     "name": "Orange Wool",
-    "texture_image": "wool_colored_orange.png"
+    "texture_image": "wool_colored_orange.png",
+    "game_id": "minecraft:wool 1",
+    "game_id_1_13": "minecraft:orange_wool"
   },
   {
     "name": "Magenta Wool",
-    "texture_image": "wool_colored_magenta.png"
+    "texture_image": "wool_colored_magenta.png",
+    "game_id": "minecraft:wool 2",
+    "game_id_1_13": "minecraft:magenta_wool"
   },
   {
     "name": "Light Blue Wool",
-    "texture_image": "wool_colored_light_blue.png"
+    "texture_image": "wool_colored_light_blue.png",
+    "game_id": "minecraft:wool 3",
+    "game_id_1_13": "minecraft:light_blue_wool"
   },
   {
     "name": "Yellow Wool",
-    "texture_image": "wool_colored_yellow.png"
+    "texture_image": "wool_colored_yellow.png",
+    "game_id": "minecraft:wool 4",
+    "game_id_1_13": "minecraft:yellow_wool"
   },
   {
     "name": "Lime Wool",
-    "texture_image": "wool_colored_lime.png"
+    "texture_image": "wool_colored_lime.png",
+    "game_id": "minecraft:wool 5",
+    "game_id_1_13": "minecraft:lime_wool"
   },
   {
     "name": "Pink Wool",
-    "texture_image": "wool_colored_pink.png"
+    "texture_image": "wool_colored_pink.png",
+    "game_id": "minecraft:wool 6",
+    "game_id_1_13": "minecraft:pink_wool"
   },
   {
     "name": "Gray Wool",
-    "texture_image": "wool_colored_gray.png"
+    "texture_image": "wool_colored_gray.png",
+    "game_id": "minecraft:wool 7",
+    "game_id_1_13": "minecraft:gray_wool"
   },
   {
     "name": "Light Gray Wool",
-    "texture_image": "wool_colored_silver.png"
+    "texture_image": "wool_colored_silver.png",
+    "game_id": "minecraft:wool 8",
+    "game_id_1_13": "minecraft:light_gray_wool"
   },
   {
     "name": "Cyan Wool",
-    "texture_image": "wool_colored_cyan.png"
+    "texture_image": "wool_colored_cyan.png",
+    "game_id": "minecraft:wool 9",
+    "game_id_1_13": "minecraft:cyan_wool"
   },
   {
     "name": "Purple Wool",
-    "texture_image": "wool_colored_purple.png"
+    "texture_image": "wool_colored_purple.png",
+    "game_id": "minecraft:wool 10",
+    "game_id_1_13": "minecraft:purple_wool"
   },
   {
     "name": "Blue Wool",
-    "texture_image": "wool_colored_blue.png"
+    "texture_image": "wool_colored_blue.png",
+    "game_id": "minecraft:wool 11",
+    "game_id_1_13": "minecraft:blue_wool"
   },
   {
     "name": "Brown Wool",
-    "texture_image": "wool_colored_brown.png"
+    "texture_image": "wool_colored_brown.png",
+    "game_id": "minecraft:wool 12",
+    "game_id_1_13": "minecraft:brown_wool"
   },
   {
     "name": "Green Wool",
-    "texture_image": "wool_colored_green.png"
+    "texture_image": "wool_colored_green.png",
+    "game_id": "minecraft:wool 13",
+    "game_id_1_13": "minecraft:green_wool"
   },
   {
     "name": "Red Wool",
-    "texture_image": "wool_colored_red.png"
+    "texture_image": "wool_colored_red.png",
+    "game_id": "minecraft:wool 14",
+    "game_id_1_13": "minecraft:red_wool"
   },
   {
     "name": "Black Wool",
-    "texture_image": "wool_colored_black.png"
+    "texture_image": "wool_colored_black.png",
+    "game_id": "minecraft:wool 15",
+    "game_id_1_13": "minecraft:black_wool"
   },
   {
     "name": "Gold Block",
-    "texture_image": "gold_block.png"
+    "texture_image": "gold_block.png",
+    "game_id": "minecraft:gold_block",
+    "game_id_1_13": "minecraft:gold_block"
   },
   {
     "name": "Iron Block",
-    "texture_image": "iron_block.png"
+    "texture_image": "iron_block.png",
+    "game_id": "minecraft:iron_block",
+    "game_id_1_13": "minecraft:iron_block"
   },
   {
     "name": "Bricks",
-    "texture_image": "brick.png"
+    "texture_image": "brick.png",
+    "game_id": "minecraft:brick_block",
+    "game_id_1_13": "minecraft:bricks"
   },
   {
     "name": "TNT",
-    "texture_image": "tnt_side.png"
+    "texture_image": "tnt_side.png",
+    "game_id": "minecraft:tnt",
+    "game_id_1_13": "minecraft:tnt"
   },
   {
     "name": "Bookshelf",
-    "texture_image": "bookshelf.png"
+    "texture_image": "bookshelf.png",
+    "game_id": "minecraft:bookshelf",
+    "game_id_1_13": "minecraft:bookshelf"
   },
   {
     "name": "Moss Stone",
-    "texture_image": "cobblestone_mossy.png"
+    "texture_image": "cobblestone_mossy.png",
+    "game_id": "minecraft:mossy_cobblestone",
+    "game_id_1_13": "minecraft:mossy_cobblestone"
   },
   {
     "name": "Obsidian",
-    "texture_image": "obsidian.png"
+    "texture_image": "obsidian.png",
+    "game_id": "minecraft:obsidian",
+    "game_id_1_13": "minecraft:obsidian"
   },
   {
     "name": "Diamond Ore",
-    "texture_image": "diamond_ore.png"
+    "texture_image": "diamond_ore.png",
+    "game_id": "minecraft:diamond_ore",
+    "game_id_1_13": "minecraft:diamond_ore"
   },
   {
     "name": "Diamond Block",
-    "texture_image": "diamond_block.png"
+    "texture_image": "diamond_block.png",
+    "game_id": "minecraft:diamond_block",
+    "game_id_1_13": "minecraft:diamond_block"
   },
   {
     "name": "Crafting Table",
-    "texture_image": "crafting_table_side.png"
+    "texture_image": "crafting_table_side.png",
+    "game_id": "minecraft:crafting_table",
+    "game_id_1_13": "minecraft:crafting_table"
   },
   {
     "name": "Redstone Ore",
-    "texture_image": "redstone_ore.png"
+    "texture_image": "redstone_ore.png",
+    "game_id": "minecraft:redstone_ore",
+    "game_id_1_13": "minecraft:redstone_ore"
   },
   {
     "name": "Snow",
-    "texture_image": "snow.png"
+    "texture_image": "snow.png",
+    "game_id": "minecraft:snow",
+    "game_id_1_13": "minecraft:snow_block"
   },
   {
     "name": "Ice",
-    "texture_image": "ice.png"
+    "texture_image": "ice.png",
+    "game_id": "minecraft:ice",
+    "game_id_1_13": "minecraft:ice"
   },
   {
     "name": "Clay",
-    "texture_image": "clay.png"
+    "texture_image": "clay.png",
+    "game_id": "minecraft:clay",
+    "game_id_1_13": "minecraft:clay_ball"
   },
   {
     "name": "Netherrack",
-    "texture_image": "netherrack.png"
+    "texture_image": "netherrack.png",
+    "game_id": "minecraft:netherrack",
+    "game_id_1_13": "minecraft:netherrack"
   },
   {
     "name": "Soul Sand",
-    "texture_image": "soul_sand.png"
+    "texture_image": "soul_sand.png",
+    "game_id": "minecraft:soul_sand",
+    "game_id_1_13": "minecraft:soul_sand"
   },
   {
     "name": "Glow Stone",
-    "texture_image": "glowstone.png"
+    "texture_image": "glowstone.png",
+    "game_id": "minecraft:glowstone",
+    "game_id_1_13": "minecraft:glowstone"
   },
   {
     "name": "White Stained Glass",
-    "texture_image": "glass_white.png"
+    "texture_image": "glass_white.png",
+    "game_id": "minecraft:stained_glass",
+    "game_id_1_13": "minecraft:white_stained_glass"
   },
   {
     "name": "Orange Stained Glass",
-    "texture_image": "glass_orange.png"
+    "texture_image": "glass_orange.png",
+    "game_id": "minecraft:stained_glass 1",
+    "game_id_1_13": "minecraft:orange_stained_glass"
   },
   {
     "name": "Magenta Stained Glass",
-    "texture_image": "glass_magenta.png"
+    "texture_image": "glass_magenta.png",
+    "game_id": "minecraft:stained_glass 2",
+    "game_id_1_13": "minecraft:magenta_stained_glass"
   },
   {
     "name": "Light Blue Stained Glass",
-    "texture_image": "glass_light_blue.png"
+    "texture_image": "glass_light_blue.png",
+    "game_id": "minecraft:stained_glass 3",
+    "game_id_1_13": "minecraft:light_blue_stained_glass"
   },
   {
     "name": "Yellow Stained Glass",
-    "texture_image": "glass_yellow.png"
+    "texture_image": "glass_yellow.png",
+    "game_id": "minecraft:stained_glass 4",
+    "game_id_1_13": "minecraft:yellow_stained_glass"
   },
   {
     "name": "Lime Stained Glass",
-    "texture_image": "glass_lime.png"
+    "texture_image": "glass_lime.png",
+    "game_id": "minecraft:stained_glass 5",
+    "game_id_1_13": "minecraft:lime_stained_glass"
+  },
+  {
+    "name": "Pink Stained Glass",
+    "texture_image": "glass_pink.png",
+    "game_id": "minecraft:stained_glass 6",
+    "game_id_1_13": "minecraft:pink_stained_glass"
   },
   {
     "name": "Gray Stained Glass",
-    "texture_image": "glass_gray.png"
+    "texture_image": "glass_gray.png",
+    "game_id": "minecraft:stained_glass 7",
+    "game_id_1_13": "minecraft:gray_stained_glass"
   },
   {
     "name": "Light Gray Stained Glass",
-    "texture_image": "glass_silver.png"
+    "texture_image": "glass_silver.png",
+    "game_id": "minecraft:stained_glass 8",
+    "game_id_1_13": "minecraft:light_gray_stained_glass"
   },
   {
     "name": "Cyan Stained Glass",
-    "texture_image": "glass_cyan.png"
+    "texture_image": "glass_cyan.png",
+    "game_id": "minecraft:stained_glass 9",
+    "game_id_1_13": "minecraft:cyan_stained_glass"
   },
   {
     "name": "Purple Stained Glass",
-    "texture_image": "glass_purple.png"
+    "texture_image": "glass_purple.png",
+    "game_id": "minecraft:stained_glass 10",
+    "game_id_1_13": "minecraft:purple_stained_glass"
   },
   {
     "name": "Blue Stained Glass",
-    "texture_image": "glass_blue.png"
+    "texture_image": "glass_blue.png",
+    "game_id": "minecraft:stained_glass 11",
+    "game_id_1_13": "minecraft:blue_stained_glass"
   },
   {
     "name": "Brown Stained Glass",
-    "texture_image": "glass_brown.png"
+    "texture_image": "glass_brown.png",
+    "game_id": "minecraft:stained_glass 12",
+    "game_id_1_13": "minecraft:brown_stained_glass"
   },
   {
     "name": "Green Stained Glass",
-    "texture_image": "glass_green.png"
+    "texture_image": "glass_green.png",
+    "game_id": "minecraft:stained_glass 13",
+    "game_id_1_13": "minecraft:green_stained_glass"
   },
   {
     "name": "Red Stained Glass",
-    "texture_image": "glass_red.png"
+    "texture_image": "glass_red.png",
+    "game_id": "minecraft:stained_glass 14",
+    "game_id_1_13": "minecraft:red_stained_glass"
   },
   {
     "name": "Black Stained Glass",
-    "texture_image": "glass_black.png"
+    "texture_image": "glass_black.png",
+    "game_id": "minecraft:stained_glass 15",
+    "game_id_1_13": "minecraft:black_stained_glass"
   },
   {
     "name": "Stonebrick",
-    "texture_image": "stonebrick.png"
+    "texture_image": "stonebrick.png",
+    "game_id": "minecraft:stonebrick",
+    "game_id_1_13": "minecraft:stone_bricks"
   },
   {
     "name": "Mossy Stonebrick",
-    "texture_image": "stonebrick_mossy.png"
+    "texture_image": "stonebrick_mossy.png",
+    "game_id": "minecraft:stonebrick 1",
+    "game_id_1_13": "minecraft:mossy_stone_bricks"
   },
   {
     "name": "Cracked Stonebrick",
-    "texture_image": "stonebrick_cracked.png"
+    "texture_image": "stonebrick_cracked.png",
+    "game_id": "minecraft:stonebrick 2",
+    "game_id_1_13": "minecraft:cracked_stone_bricks"
   },
   {
     "name": "Chiseled Stonebrick",
-    "texture_image": "stonebrick_carved.png"
+    "texture_image": "stonebrick_carved.png",
+    "game_id": "minecraft:stonebrick 3",
+    "game_id_1_13": "minecraft:chiseled_stone_bricks"
   },
   {
     "name": "Brown Mushroom Block",
-    "texture_image": "mushroom_block_skin_brown.png"
+    "texture_image": "mushroom_block_skin_brown.png",
+    "game_id": "minecraft:brown_mushroom_block",
+    "game_id_1_13": "minecraft:brown_mushroom_block"
   },
   {
     "name": "Red Mushroom Block",
-    "texture_image": "mushroom_block_skin_red.png"
+    "texture_image": "mushroom_block_skin_red.png",
+    "game_id": "minecraft:red_mushroom_block",
+    "game_id_1_13": "minecraft:red_mushroom_block"
   },
   {
     "name": "Melon Block",
-    "texture_image": "melon_side.png"
+    "texture_image": "melon_side.png",
+    "game_id": "minecraft:melon_block",
+    "game_id_1_13": "minecraft:melon"
   },
   {
     "name": "Mycelium",
-    "texture_image": "mycelium_side.png"
+    "texture_image": "mycelium_side.png",
+    "game_id": "minecraft:mycelium",
+    "game_id_1_13": "minecraft:mycelium"
   },
   {
     "name": "Nether Brick",
-    "texture_image": "nether_brick.png"
+    "texture_image": "nether_brick.png",
+    "game_id": "minecraft:nether_brick",
+    "game_id_1_13": "minecraft:nether_bricks"
   },
   {
     "name": "End Stone",
-    "texture_image": "end_stone.png"
+    "texture_image": "end_stone.png",
+    "game_id": "minecraft:end_stone",
+    "game_id_1_13": "minecraft:end_stone"
   },
   {
     "name": "Redstone Lamp (inactive)",
-    "texture_image": "redstone_lamp_off.png"
-  },
-  {
-    "name": "Redstone Lamp (active)",
-    "texture_image": "redstone_lamp_on.png"
+    "texture_image": "redstone_lamp_off.png",
+    "game_id": "minecraft:redstone_lamp",
+    "game_id_1_13": "minecraft:redstone_lamp"
   },
   {
     "name": "Emerald Ore",
-    "texture_image": "emerald_ore.png"
+    "texture_image": "emerald_ore.png",
+    "game_id": "minecraft:emerald_ore",
+    "game_id_1_13": "minecraft:emerald_ore"
   },
   {
     "name": "Emerald Block",
-    "texture_image": "emerald_block.png"
+    "texture_image": "emerald_block.png",
+    "game_id": "minecraft:emerald_block",
+    "game_id_1_13": "minecraft:emerald_block"
   },
   {
     "name": "Redstone Block",
-    "texture_image": "redstone_block.png"
+    "texture_image": "redstone_block.png",
+    "game_id": "minecraft:redstone_block",
+    "game_id_1_13": "minecraft:redstone_block"
   },
   {
     "name": "Nether Quartz Ore",
-    "texture_image": "quartz_ore.png"
+    "texture_image": "quartz_ore.png",
+    "game_id": "minecraft:quartz_ore",
+    "game_id_1_13": "minecraft:nether_quartz_ore"
   },
   {
     "name": "Quartz Block",
-    "texture_image": "quartz_block_side.png"
+    "texture_image": "quartz_block_side.png",
+    "game_id": "minecraft:quartz_block",
+    "game_id_1_13": "minecraft:quartz_block"
   },
   {
     "name": "Chiseled Quartz Block",
-    "texture_image": "quartz_block_chiseled.png"
+    "texture_image": "quartz_block_chiseled.png",
+    "game_id": "minecraft:quartz_block 1",
+    "game_id_1_13": "minecraft:chiseled_quartz_block"
   },
   {
     "name": "Pillar Quartz Block",
-    "texture_image": "quartz_block_lines.png"
+    "texture_image": "quartz_block_lines.png",
+    "game_id": "minecraft:quartz_block 2",
+    "game_id_1_13": "minecraft:quartz_pillar"
   },
   {
     "name": "White Hardened Clay",
-    "texture_image": "hardened_clay_stained_white.png"
+    "texture_image": "hardened_clay_stained_white.png",
+    "game_id": "minecraft:stained_hardened_clay",
+    "game_id_1_13": "minecraft:white_terracotta"
   },
   {
     "name": "Orange Hardened Clay",
-    "texture_image": "hardened_clay_stained_orange.png"
+    "texture_image": "hardened_clay_stained_orange.png",
+    "game_id": "minecraft:stained_hardened_clay 1",
+    "game_id_1_13": "minecraft:orange_terracotta"
   },
   {
     "name": "Magenta Hardened Clay",
-    "texture_image": "hardened_clay_stained_magenta.png"
+    "texture_image": "hardened_clay_stained_magenta.png",
+    "game_id": "minecraft:stained_hardened_clay 2",
+    "game_id_1_13": "minecraft:magenta_terracotta"
   },
   {
     "name": "Light Blue Hardened Clay",
-    "texture_image": "hardened_clay_stained_light_blue.png"
+    "texture_image": "hardened_clay_stained_light_blue.png",
+    "game_id": "minecraft:stained_hardened_clay 3",
+    "game_id_1_13": "minecraft:light_blue_terracotta"
   },
   {
     "name": "Yellow Hardened Clay",
-    "texture_image": "hardened_clay_stained_yellow.png"
+    "texture_image": "hardened_clay_stained_yellow.png",
+    "game_id": "minecraft:stained_hardened_clay 4",
+    "game_id_1_13": "minecraft:yellow_terracotta"
+  },
+  {
+    "name": "Lime Hardened Clay",
+    "texture_image": "hardened_clay_stained_lime.png",
+    "game_id": "minecraft:stained_hardened_clay 5",
+    "game_id_1_13": "minecraft:lime_terracotta"
   },
   {
     "name": "Pink Hardened Clay",
-    "texture_image": "hardened_clay_stained_pink.png"
+    "texture_image": "hardened_clay_stained_pink.png",
+    "game_id": "minecraft:stained_hardened_clay 6",
+    "game_id_1_13": "minecraft:pink_terracotta"
   },
   {
     "name": "Gray Hardened Clay",
-    "texture_image": "hardened_clay_stained_gray.png"
+    "texture_image": "hardened_clay_stained_gray.png",
+    "game_id": "minecraft:stained_hardened_clay 7",
+    "game_id_1_13": "minecraft:gray_terracotta"
   },
   {
     "name": "Light Gray Hardened Clay",
-    "texture_image": "hardened_clay_stained_silver.png"
+    "texture_image": "hardened_clay_stained_silver.png",
+    "game_id": "minecraft:stained_hardened_clay 8",
+    "game_id_1_13": "minecraft:light_gray_terracotta"
   },
   {
     "name": "Cyan Hardened Clay",
-    "texture_image": "hardened_clay_stained_cyan.png"
+    "texture_image": "hardened_clay_stained_cyan.png",
+    "game_id": "minecraft:stained_hardened_clay 9",
+    "game_id_1_13": "minecraft:cyan_terracotta"
   },
   {
     "name": "Purple Hardened Clay",
-    "texture_image": "hardened_clay_stained_purple.png"
+    "texture_image": "hardened_clay_stained_purple.png",
+    "game_id": "minecraft:stained_hardened_clay 10",
+    "game_id_1_13": "minecraft:purple_terracotta"
   },
   {
     "name": "Blue Hardened Clay",
-    "texture_image": "hardened_clay_stained_blue.png"
+    "texture_image": "hardened_clay_stained_blue.png",
+    "game_id": "minecraft:stained_hardened_clay 11",
+    "game_id_1_13": "minecraft:blue_terracotta"
   },
   {
     "name": "Brown Hardened Clay",
-    "texture_image": "hardened_clay_stained_brown.png"
+    "texture_image": "hardened_clay_stained_brown.png",
+    "game_id": "minecraft:stained_hardened_clay 12",
+    "game_id_1_13": "minecraft:brown_terracotta"
   },
   {
     "name": "Green Hardened Clay",
-    "texture_image": "hardened_clay_stained_green.png"
+    "texture_image": "hardened_clay_stained_green.png",
+    "game_id": "minecraft:stained_hardened_clay 13",
+    "game_id_1_13": "minecraft:green_terracotta"
   },
   {
     "name": "Red Hardened Clay",
-    "texture_image": "hardened_clay_stained_red.png"
+    "texture_image": "hardened_clay_stained_red.png",
+    "game_id": "minecraft:stained_hardened_clay 14",
+    "game_id_1_13": "minecraft:red_terracotta"
   },
   {
     "name": "Black Hardened Clay",
-    "texture_image": "hardened_clay_stained_black.png"
+    "texture_image": "hardened_clay_stained_black.png",
+    "game_id": "minecraft:stained_hardened_clay 15",
+    "game_id_1_13": "minecraft:black_terracotta"
   },
   {
     "name": "Acacia Wood",
-    "texture_image": "log_acacia.png"
+    "texture_image": "log_acacia.png",
+    "game_id": "minecraft:log2",
+    "game_id_1_13": "minecraft:acacia_log"
   },
   {
     "name": "Dark Oak Wood",
-    "texture_image": "log_big_oak.png"
+    "texture_image": "log_big_oak.png",
+    "game_id": "minecraft:log2 1",
+    "game_id_1_13": "minecraft:dark_oak_log"
   },
   {
     "name": "Slime Block",
-    "texture_image": "slime.png"
+    "texture_image": "slime.png",
+    "game_id": "minecraft:slime",
+    "game_id_1_13": "minecraft:slime_block"
   },
   {
     "name": "Prismarine Bricks",
-    "texture_image": "prismarine_bricks.png"
+    "texture_image": "prismarine_bricks.png",
+    "game_id": "minecraft:prismarine 1",
+    "game_id_1_13": "minecraft:prismarine_bricks"
   },
   {
     "name": "Dark Prismarine",
-    "texture_image": "prismarine_dark.png"
+    "texture_image": "prismarine_dark.png",
+    "game_id": "minecraft:prismarine 2",
+    "game_id_1_13": "minecraft:dark_prismarine"
   },
   {
     "name": "Sea Lantern",
-    "texture_image": "sea_lantern.png"
+    "texture_image": "sea_lantern.png",
+    "game_id": "minecraft:sea_lantern",
+    "game_id_1_13": "minecraft:sea_lantern"
   },
   {
     "name": "Hay Bale",
-    "texture_image": "hay_block_side.png"
+    "texture_image": "hay_block_side.png",
+    "game_id": "minecraft:hay_bale",
+    "game_id_1_13": "minecraft:hay_block"
   },
   {
     "name": "Hardened Clay",
-    "texture_image": "hardened_clay.png"
+    "texture_image": "hardened_clay.png",
+    "game_id": "minecraft:hardened_clay",
+    "game_id_1_13": "minecraft:terracotta"
   },
   {
     "name": "Block of Coal",
-    "texture_image": "coal_block.png"
+    "texture_image": "coal_block.png",
+    "game_id": "minecraft:coal_block",
+    "game_id_1_13": "minecraft:coal_block"
   },
   {
     "name": "Red Sandstone",
-    "texture_image": "red_sandstone_normal.png"
+    "texture_image": "red_sandstone_normal.png",
+    "game_id": "minecraft:red_sandstone",
+    "game_id_1_13": "minecraft:red_sandstone"
   },
   {
     "name": "Chiseled Red Sandstone",
-    "texture_image": "red_sandstone_carved.png"
+    "texture_image": "red_sandstone_carved.png",
+    "game_id": "minecraft:red_sandstone 1",
+    "game_id_1_13": "minecraft:chiseled_red_sandstone"
   },
   {
     "name": "Smooth Red Sandstone",
-    "texture_image": "red_sandstone_smooth.png"
+    "texture_image": "red_sandstone_smooth.png",
+    "game_id": "minecraft:red_sandstone 2",
+    "game_id_1_13": "minecraft:cut_red_sandstone"
   },
   {
     "name": "Chorus Plant",
-    "texture_image": "chorus_plant.png"
+    "texture_image": "chorus_plant.png",
+    "game_id": "minecraft:chorus_plant",
+    "game_id_1_13": "minecraft:chorus_plant"
   },
   {
     "name": "Chorus Flower",
-    "texture_image": "chorus_flower.png"
+    "texture_image": "chorus_flower.png",
+    "game_id": "minecraft:chorus_flower",
+    "game_id_1_13": "minecraft:chorus_flower"
   },
   {
     "name": "Purpur Block",
-    "texture_image": "purpur_block.png"
+    "texture_image": "purpur_block.png",
+    "game_id": "minecraft:purpur_block",
+    "game_id_1_13": "minecraft:purpur_block"
   },
   {
     "name": "Purpur Pillar",
-    "texture_image": "purpur_pillar.png"
+    "texture_image": "purpur_pillar.png",
+    "game_id": "minecraft:purpur_pillar",
+    "game_id_1_13": "minecraft:purpur_pillar"
   },
   {
     "name": "End Stone Bricks",
-    "texture_image": "end_bricks.png"
+    "texture_image": "end_bricks.png",
+    "game_id": "minecraft:end_bricks",
+    "game_id_1_13": "minecraft:end_stone_bricks"
   },
   {
     "name": "Magma Block",
-    "texture_image": "magma.png"
+    "texture_image": "magma.png",
+    "game_id": "minecraft:magma",
+    "game_id_1_13": "minecraft:magma_block"
   },
   {
     "name": "Nether Wart Block",
-    "texture_image": "nether_wart_block.png"
+    "texture_image": "nether_wart_block.png",
+    "game_id": "minecraft:nether_wart_block",
+    "game_id_1_13": "minecraft:nether_wart_block"
   },
   {
     "name": "Red Nether Brick",
-    "texture_image": "red_nether_brick.png"
+    "texture_image": "red_nether_brick.png",
+    "game_id": "minecraft:red_nether_brick",
+    "game_id_1_13": "minecraft:red_nether_bricks"
   },
   {
     "name": "Bone Block",
-    "texture_image": "bone_block_side.png"
+    "texture_image": "bone_block_side.png",
+    "game_id": "minecraft:bone_block",
+    "game_id_1_13": "minecraft:bone_block"
   },
   {
     "name": "White Glazed Terracotta",
-    "texture_image": "glazed_terracotta_white.png"
+    "texture_image": "glazed_terracotta_white.png",
+    "game_id": "minecraft:white_glazed_terracotta",
+    "game_id_1_13": "minecraft:white_glazed_terracotta"
   },
   {
     "name": "Orange Glazed Terracotta",
-    "texture_image": "glazed_terracotta_orange.png"
+    "texture_image": "glazed_terracotta_orange.png",
+    "game_id": "minecraft:orange_glazed_terracotta",
+    "game_id_1_13": "minecraft:orange_glazed_terracotta"
   },
   {
     "name": "Magenta Glazed Terracotta",
-    "texture_image": "glazed_terracotta_magenta.png"
+    "texture_image": "glazed_terracotta_magenta.png",
+    "game_id": "minecraft:magenta_glazed_terracotta",
+    "game_id_1_13": "minecraft:magenta_glazed_terracotta"
   },
   {
     "name": "Light Blue Glazed Terracotta",
-    "texture_image": "glazed_terracotta_light_blue.png"
+    "texture_image": "glazed_terracotta_light_blue.png",
+    "game_id": "minecraft:light_blue_glazed_terracotta",
+    "game_id_1_13": "minecraft:light_blue_glazed_terracotta"
   },
   {
     "name": "Yellow Glazed Terracotta",
-    "texture_image": "glazed_terracotta_yellow.png"
+    "texture_image": "glazed_terracotta_yellow.png",
+    "game_id": "minecraft:yellow_glazed_terracotta",
+    "game_id_1_13": "minecraft:yellow_glazed_terracotta"
   },
   {
     "name": "Lime Glazed Terracotta",
-    "texture_image": "glazed_terracotta_lime.png"
+    "texture_image": "glazed_terracotta_lime.png",
+    "game_id": "minecraft:lime_glazed_terracotta",
+    "game_id_1_13": "minecraft:lime_glazed_terracotta"
+  },
+  {
+    "name": "Pink Glazed Terracotta",
+    "texture_image": "glazed_terracotta_pink.png",
+    "game_id": "minecraft:pink_glazed_terracotta",
+    "game_id_1_13": "minecraft:pink_glazed_terracotta"
   },
   {
     "name": "Gray Glazed Terracotta",
-    "texture_image": "glazed_terracotta_gray.png"
+    "texture_image": "glazed_terracotta_gray.png",
+    "game_id": "minecraft:gray_glazed_terracotta",
+    "game_id_1_13": "minecraft:gray_glazed_terracotta"
   },
   {
     "name": "Light Gray Glazed Terracotta",
-    "texture_image": "glazed_terracotta_silver.png"
+    "texture_image": "glazed_terracotta_silver.png",
+    "game_id": "minecraft:light_gray_glazed_terracotta",
+    "game_id_1_13": "minecraft:light_gray_glazed_terracotta"
   },
   {
     "name": "Cyan Glazed Terracotta",
-    "texture_image": "glazed_terracotta_cyan.png"
+    "texture_image": "glazed_terracotta_cyan.png",
+    "game_id": "minecraft:cyan_glazed_terracotta",
+    "game_id_1_13": "minecraft:cyan_glazed_terracotta"
   },
   {
     "name": "Purple Glazed Terracotta",
-    "texture_image": "glazed_terracotta_purple.png"
+    "texture_image": "glazed_terracotta_purple.png",
+    "game_id": "minecraft:purple_glazed_terracotta",
+    "game_id_1_13": "minecraft:purple_glazed_terracotta"
   },
   {
     "name": "Blue Glazed Terracotta",
-    "texture_image": "glazed_terracotta_blue.png"
+    "texture_image": "glazed_terracotta_blue.png",
+    "game_id": "minecraft:blue_glazed_terracotta",
+    "game_id_1_13": "minecraft:blue_glazed_terracotta"
   },
   {
     "name": "Brown Glazed Terracotta",
-    "texture_image": "glazed_terracotta_brown.png"
+    "texture_image": "glazed_terracotta_brown.png",
+    "game_id": "minecraft:brown_glazed_terracotta",
+    "game_id_1_13": "minecraft:brown_glazed_terracotta"
   },
   {
     "name": "Green Glazed Terracotta",
-    "texture_image": "glazed_terracotta_green.png"
+    "texture_image": "glazed_terracotta_green.png",
+    "game_id": "minecraft:green_glazed_terracotta",
+    "game_id_1_13": "minecraft:green_glazed_terracotta"
   },
   {
     "name": "Red Glazed Terracotta",
-    "texture_image": "glazed_terracotta_red.png"
+    "texture_image": "glazed_terracotta_red.png",
+    "game_id": "minecraft:red_glazed_terracotta",
+    "game_id_1_13": "minecraft:red_glazed_terracotta"
   },
   {
     "name": "Black Glazed Terracotta",
-    "texture_image": "glazed_terracotta_black.png"
+    "texture_image": "glazed_terracotta_black.png",
+    "game_id": "minecraft:black_glazed_terracotta",
+    "game_id_1_13": "minecraft:black_glazed_terracotta"
   },
   {
     "name": "White Concrete",
-    "texture_image": "concrete_white.png"
+    "texture_image": "concrete_white.png",
+    "game_id": "minecraft:concrete",
+    "game_id_1_13": "minecraft:white_concrete"
   },
   {
     "name": "Orange Concrete",
-    "texture_image": "concrete_orange.png"
+    "texture_image": "concrete_orange.png",
+    "game_id": "minecraft:concrete 1",
+    "game_id_1_13": "minecraft:orange_concrete"
   },
   {
     "name": "Magenta Concrete",
-    "texture_image": "concrete_magenta.png"
+    "texture_image": "concrete_magenta.png",
+    "game_id": "minecraft:concrete 2",
+    "game_id_1_13": "minecraft:magenta_concrete"
   },
   {
     "name": "Light Blue Concrete",
-    "texture_image": "concrete_light_blue.png"
+    "texture_image": "concrete_light_blue.png",
+    "game_id": "minecraft:concrete 3",
+    "game_id_1_13": "minecraft:light_blue_concrete"
   },
   {
     "name": "Yellow Concrete",
-    "texture_image": "concrete_yellow.png"
+    "texture_image": "concrete_yellow.png",
+    "game_id": "minecraft:concrete 4",
+    "game_id_1_13": "minecraft:yellow_concrete"
   },
   {
     "name": "Lime Concrete",
-    "texture_image": "concrete_lime.png"
+    "texture_image": "concrete_lime.png",
+    "game_id": "minecraft:concrete 5",
+    "game_id_1_13": "minecraft:lime_concrete"
   },
   {
     "name": "Pink Concrete",
-    "texture_image": "concrete_pink.png"
+    "texture_image": "concrete_pink.png",
+    "game_id": "minecraft:concrete 6",
+    "game_id_1_13": "minecraft:pink_concrete"
   },
   {
     "name": "Gray Concrete",
-    "texture_image": "concrete_gray.png"
+    "texture_image": "concrete_gray.png",
+    "game_id": "minecraft:concrete 7",
+    "game_id_1_13": "minecraft:gray_concrete"
   },
   {
     "name": "Light Gray Concrete",
-    "texture_image": "concrete_silver.png"
+    "texture_image": "concrete_silver.png",
+    "game_id": "minecraft:concrete 8",
+    "game_id_1_13": "minecraft:light_gray_concrete"
   },
   {
     "name": "Cyan Concrete",
-    "texture_image": "concrete_cyan.png"
+    "texture_image": "concrete_cyan.png",
+    "game_id": "minecraft:concrete 9",
+    "game_id_1_13": "minecraft:cyan_concrete"
   },
   {
     "name": "Purple Concrete",
-    "texture_image": "concrete_purple.png"
+    "texture_image": "concrete_purple.png",
+    "game_id": "minecraft:concrete 10",
+    "game_id_1_13": "minecraft:purple_concrete"
   },
   {
     "name": "Blue Concrete",
-    "texture_image": "concrete_blue.png"
+    "texture_image": "concrete_blue.png",
+    "game_id": "minecraft:concrete 11",
+    "game_id_1_13": "minecraft:blue_concrete"
   },
   {
     "name": "Brown Concrete",
-    "texture_image": "concrete_brown.png"
+    "texture_image": "concrete_brown.png",
+    "game_id": "minecraft:concrete 12",
+    "game_id_1_13": "minecraft:brown_concrete"
   },
   {
     "name": "Green Concrete",
-    "texture_image": "concrete_green.png"
+    "texture_image": "concrete_green.png",
+    "game_id": "minecraft:concrete 13",
+    "game_id_1_13": "minecraft:green_concrete"
   },
   {
     "name": "Red Concrete",
-    "texture_image": "concrete_red.png"
+    "texture_image": "concrete_red.png",
+    "game_id": "minecraft:concrete 14",
+    "game_id_1_13": "minecraft:red_concrete"
   },
   {
     "name": "Black Concrete",
-    "texture_image": "concrete_black.png"
+    "texture_image": "concrete_black.png",
+    "game_id": "minecraft:concrete 15",
+    "game_id_1_13": "minecraft:black_concrete"
   },
   {
     "name": "White Concrete Powder",
-    "texture_image": "concrete_powder_white.png"
+    "texture_image": "concrete_powder_white.png",
+    "game_id": "minecraft:concrete_powder",
+    "game_id_1_13": "minecraft:white_concrete_powder"
   },
   {
     "name": "Orange Concrete Powder",
-    "texture_image": "concrete_powder_orange.png"
+    "texture_image": "concrete_powder_orange.png",
+    "game_id": "minecraft:concrete_powder 1",
+    "game_id_1_13": "minecraft:orange_concrete_powder"
   },
   {
     "name": "Magenta Concrete Powder",
-    "texture_image": "concrete_powder_magenta.png"
+    "texture_image": "concrete_powder_magenta.png",
+    "game_id": "minecraft:concrete_powder 2",
+    "game_id_1_13": "minecraft:magenta_concrete_powder"
   },
   {
     "name": "Light Blue Concrete Powder",
-    "texture_image": "concrete_powder_light_blue.png"
+    "texture_image": "concrete_powder_light_blue.png",
+    "game_id": "minecraft:concrete_powder 3",
+    "game_id_1_13": "minecraft:light_blue_concrete_powder"
   },
   {
     "name": "Yellow Concrete Powder",
-    "texture_image": "concrete_powder_yellow.png"
+    "texture_image": "concrete_powder_yellow.png",
+    "game_id": "minecraft:concrete_powder 4",
+    "game_id_1_13": "minecraft:yellow_concrete_powder"
   },
   {
     "name": "Lime Concrete Powder",
-    "texture_image": "concrete_powder_lime.png"
+    "texture_image": "concrete_powder_lime.png",
+    "game_id": "minecraft:concrete_powder 5",
+    "game_id_1_13": "minecraft:lime_concrete_powder"
   },
   {
     "name": "Pink Concrete Powder",
-    "texture_image": "concrete_powder_pink.png"
+    "texture_image": "concrete_powder_pink.png",
+    "game_id": "minecraft:concrete_powder 6",
+    "game_id_1_13": "minecraft:pink_concrete_powder"
   },
   {
     "name": "Gray Concrete Powder",
-    "texture_image": "concrete_powder_gray.png"
+    "texture_image": "concrete_powder_gray.png",
+    "game_id": "minecraft:concrete_powder 7",
+    "game_id_1_13": "minecraft:gray_concrete_powder"
   },
   {
     "name": "Light Gray Concrete Powder",
-    "texture_image": "concrete_powder_silver.png"
+    "texture_image": "concrete_powder_silver.png",
+    "game_id": "minecraft:concrete_powder 8",
+    "game_id_1_13": "minecraft:light_gray_concrete_powder"
   },
   {
     "name": "Cyan Concrete Powder",
-    "texture_image": "concrete_powder_cyan.png"
+    "texture_image": "concrete_powder_cyan.png",
+    "game_id": "minecraft:concrete_powder 9",
+    "game_id_1_13": "minecraft:cyan_concrete_powder"
   },
   {
     "name": "Purple Concrete Powder",
-    "texture_image": "concrete_powder_purple.png"
+    "texture_image": "concrete_powder_purple.png",
+    "game_id": "minecraft:concrete_powder 10",
+    "game_id_1_13": "minecraft:purple_concrete_powder"
   },
   {
     "name": "Blue Concrete Powder",
-    "texture_image": "concrete_powder_blue.png"
+    "texture_image": "concrete_powder_blue.png",
+    "game_id": "minecraft:concrete_powder 11",
+    "game_id_1_13": "minecraft:blue_concrete_powder"
   },
   {
     "name": "Brown Concrete Powder",
-    "texture_image": "concrete_powder_brown.png"
+    "texture_image": "concrete_powder_brown.png",
+    "game_id": "minecraft:concrete_powder 12",
+    "game_id_1_13": "minecraft:brown_concrete_powder"
   },
   {
     "name": "Green Concrete Powder",
-    "texture_image": "concrete_powder_green.png"
+    "texture_image": "concrete_powder_green.png",
+    "game_id": "minecraft:concrete_powder 13",
+    "game_id_1_13": "minecraft:green_concrete_powder"
   },
   {
     "name": "Red Concrete Powder",
-    "texture_image": "concrete_powder_red.png"
+    "texture_image": "concrete_powder_red.png",
+    "game_id": "minecraft:concrete_powder 14",
+    "game_id_1_13": "minecraft:red_concrete_powder"
   },
   {
     "name": "Black Concrete Powder",
-    "texture_image": "concrete_powder_black.png"
+    "texture_image": "concrete_powder_black.png",
+    "game_id": "minecraft:concrete_powder 15",
+    "game_id_1_13": "minecraft:black_concrete_powder"
   }
 ]
