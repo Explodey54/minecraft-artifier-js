@@ -762,18 +762,6 @@
     "game_id_1_13": "minecraft:cut_red_sandstone"
   },
   {
-    "name": "Chorus Plant",
-    "texture_image": "chorus_plant.png",
-    "game_id": "minecraft:chorus_plant",
-    "game_id_1_13": "minecraft:chorus_plant"
-  },
-  {
-    "name": "Chorus Flower",
-    "texture_image": "chorus_flower.png",
-    "game_id": "minecraft:chorus_flower",
-    "game_id_1_13": "minecraft:chorus_flower"
-  },
-  {
     "name": "Purpur Block",
     "texture_image": "purpur_block.png",
     "game_id": "minecraft:purpur_block",
