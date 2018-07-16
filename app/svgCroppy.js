@@ -1,6 +1,6 @@
 import { setAttr } from 'redom'
 
-function SvgCroppy(rootSelector) {
+function SvgCroppy() {
     const store = {
         style: {
             cornerWidth: 20,
@@ -9,8 +9,8 @@ function SvgCroppy(rootSelector) {
         posData: {
             boundingRect: null,
             selectRect: {
-                width: 100,
-                height: 100,
+                width: 200,
+                height: 200,
                 offsetX: 0,
                 offsetY: 0,
                 minWidth: 10,
@@ -369,9 +369,25 @@ function SvgCroppy(rootSelector) {
         }
     }
 
-    this.init = () => {
+    this.hide = () => {
+        if (store.nodes.svg) {
+            store.nodes.svg.classList.add('croppy-hidden')
+        }
+    }
+
+    this.unhide = () => {
+        if (store.nodes.svg) {
+            store.nodes.svg.classList.remove('croppy-hidden')
+        }
+    }
+
+    this.init = (rootSelector) => {
         const svgTemplate = `
             <style>
+                .croppy-hidden {
+                    display: none;
+                }
+
                 .croppy-wrapper {
                     display: inline-block;
                     position: relative;

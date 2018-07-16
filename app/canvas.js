@@ -1,5 +1,5 @@
-function MineartCanvas(rootNode, width, height) {
-    const $root = rootNode
+function MineartCanvas() {
+    var $root
 
     const canvasMain = document.createElement('canvas')
     const ctxMain = canvasMain.getContext('2d')
@@ -20,8 +20,8 @@ function MineartCanvas(rootNode, width, height) {
         imageConvertedHex: null,
         imageWidth: null,
         imageHeight: null,
-        canvasWidth: width,
-        canvasHeight: height,
+        canvasWidth: null,
+        canvasHeight: null,
         baseCellSize: 16,
         boundingRect: null,
         blobImage: new Image(),
@@ -254,7 +254,7 @@ function MineartCanvas(rootNode, width, height) {
         })
 
         store.blobImage.onload = () => {
-            canvasOverlay.dispatchEvent(store.events.cached)
+            $root.dispatchEvent(store.events.cached)
         }
     }
 
@@ -317,7 +317,7 @@ function MineartCanvas(rootNode, width, height) {
             pos: store.history.currentPos,
             type: store.history.log[store.history.currentPos].type
         }
-        canvasOverlay.dispatchEvent(event)
+        $root.dispatchEvent(event)
     }
 
     this._undoBack = (pos) => {
@@ -1036,8 +1036,10 @@ function MineartCanvas(rootNode, width, height) {
         store.offset.y = store.canvasHeight / 2 - store.imageHeight > 0 ? store.canvasHeight / 2 - store.imageHeight / 2 : 0
     }
 
-    this.setBoundingRect = (obj) => {
-        store.boundingRect = obj
+    this.setBoundingRect = () => {
+        store.boundingRect = $root.getBoundingClientRect()
+        store.canvasWidth = store.boundingRect.width
+        store.canvasHeight = store.boundingRect.height
     }
 
     this.setTool = (str) => {
@@ -1092,7 +1094,11 @@ function MineartCanvas(rootNode, width, height) {
 
     this.setBlocks = (blocks) => {
         blocks.forEach((item) => {
-            store.blocksDb.push(Object.assign({}, item))
+            let temp = Object.assign({}, item)
+            temp.image = new Image()
+            temp.image.src = temp.src
+            delete temp.src
+            store.blocksDb.push(temp)
         })
     }
 
@@ -1139,20 +1145,20 @@ function MineartCanvas(rootNode, width, height) {
         store.interface.selection.end = null
     }
 
-    this.open = () => {
-        let tempFile = require('../static/pepe.json')
-        if (tempFile.data.length / 2 !== tempFile.width * tempFile.height) {
-            throw new Error('Data length in file is incorrect')
-        }
-        let imageConvertedHex = new Uint8ClampedArray(tempFile.data.length / 2)
-        for (let i = 0; i < tempFile.data.length; i+= 2) {
-            const int = parseInt(tempFile.data.charAt(i) + tempFile.data.charAt(i + 1), 16)
-            imageConvertedHex[i / 2] = int
-        }
+    this.open = (uint8Arr) => {
+        // let tempFile = require('../static/pepe.json')
+        // if (tempFile.data.length / 2 !== tempFile.width * tempFile.height) {
+        //     throw new Error('Data length in file is incorrect')
+        // }
+        // let imageConvertedHex = new Uint8ClampedArray(tempFile.data.length / 2)
+        // for (let i = 0; i < tempFile.data.length; i+= 2) {
+        //     const int = parseInt(tempFile.data.charAt(i) + tempFile.data.charAt(i + 1), 16)
+        //     imageConvertedHex[i / 2] = int
+        // }
 
         this.reset()
-        this.setImageSizes(tempFile.width, tempFile.height)
-        this.loadImageHex(imageConvertedHex)
+        // this.setImageSizes(tempFile.width, tempFile.height)
+        this.loadImageHex(uint8Arr)
         this.render()
     }
 
@@ -1226,10 +1232,12 @@ function MineartCanvas(rootNode, width, height) {
         this._renderOverlayCanvas()
     }
 
-    this.init = function() {
+    this.init = function(rootNode) {
+        $root = rootNode
         $root.style.position = 'relative'
         canvasMain.style.position = 'absolute'
         canvasOverlay.style.position = 'absolute'
+        this.setBoundingRect()
         canvasMain.width = store.canvasWidth
         canvasMain.height = store.canvasHeight
         canvasOverlay.width = store.canvasWidth
@@ -1240,8 +1248,6 @@ function MineartCanvas(rootNode, width, height) {
         ctxMain.imageSmoothingEnabled = false
         this._setEventListeners()
     }
-
-    this.init()
 }
 
 export default MineartCanvas

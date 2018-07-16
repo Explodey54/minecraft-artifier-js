@@ -3,13 +3,19 @@
 }
 
 .img-pixelated {
-	image-rendering: optimizeSpeed;      /* STOP SMOOTHING, GIVE ME SPEED  */
-	image-rendering: -moz-crisp-edges;      /* Firefox            */
-	image-rendering: -o-crisp-edges;      /* Opera              */
-	image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
-	image-rendering: pixelated; /* Chrome */
-	image-rendering: optimize-contrast;    /* CSS3 Proposed         */
-	-ms-interpolation-mode: nearest-neighbor;   /* IE8+              */
+	image-rendering: optimizeSpeed;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -o-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: pixelated;
+	image-rendering: optimize-contrast;
+	-ms-interpolation-mode: nearest-neighbor;
+}
+
+.clearfix::after {
+    content: "";
+    display: table;
+    clear: both;
 }
 
 .img-thumbnail {
@@ -21,6 +27,74 @@
 
 .img-thumbnail.active {
 	border-color: yellow;
+}
+
+.start-screen .dropzone {
+	padding: 200px 0px;
+	height: 500px;
+	border: 4px dashed black;
+	text-align: center;
+}
+
+.settings-screen .img-background {
+	background-color: gray;
+	height: 500px;
+	width: 500px;
+	display: flex;
+  	align-items: center;
+  	justify-content: center;
+}
+
+.settings-screen .img-background .img-presentation {
+
+}
+
+.settings-screen .size-settings .size-inputs {
+	float: left;
+}
+
+.settings-screen .size-settings .size-checkboxes {
+	margin-left: 20px;
+	float: left;
+}
+
+.settings-screen .size-settings .size-checkboxes label {
+	display: block;
+}
+
+.settings-screen .size-settings .size-inputs input {
+	display: inline-block;
+	width: 70px;
+}
+
+.settings-screen .blocks-column .block-groups .box {
+	vertical-align: top;
+	height: 200px;
+	width: 29%;
+	display: inline-block;
+	text-align: center;
+}
+
+.settings-screen .blocks-column .block-groups .box .title {
+	font-size: 22px;
+}
+
+.settings-screen .blocks-column .block-groups .box .subtext {
+	font-size: 12px;
+}
+
+.settings-screen .blocks-column .block-groups .box-selected {
+	box-shadow: 0 2px 3px rgba(0, 240, 0, 0.4), 0 0 0 3px rgba(0, 240, 0, 0.4);
+}
+
+.settings-screen .blocks-column .block-groups input {
+	display: none;
+}
+
+.settings-screen .blocks-column table {
+	display: block;
+	height: 300px;
+	overflow-y: scroll;
 }
 
 .workarea {

@@ -2,10 +2,115 @@
 <html>
     <head>
         <title>Minecraft Art To Block</title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
     </head>
     <body>
 
-        <section class="section container workarea">
+        <section class="section container start-screen">
+            <div class="dropzone" id="start-dropzone">
+                <div>Drag and drop your image/json here</div>
+                <div>
+                    <span style="vertical-align: top; line-height: 40px;">or</span>
+                    <label class="file-label" style="display: inline-block">
+                        <input class="file-input" type="file" name="main-image" id="start-file-input" accept="image/*">
+                        <span class="file-cta">
+                            <span class="file-icon">
+                                <i class="fas fa-upload"></i>
+                            </span>
+                            <span class="file-label">Choose a file</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <section class="section container settings-screen hidden">
+            <div class="columns">
+                <div class="column image-column">
+                    <div class="img-background">
+                        <img class="img-pixelated img-presentation" id="settings-img-presentation">
+                    </div>
+                    <div id="settings-img-sizes"></div>
+                    <div class="size-settings clearfix">
+                        <div class="size-inputs">
+                            <input class="input" id="settings-input-width"> X
+                            <input class="input" id="settings-input-height"> = 
+                            <span id="settings-equals-blocks"></span>
+                        </div>
+                        <div class="size-checkboxes">
+                            <label class="checkbox">
+                                <input type="checkbox" id="settings-check-crop">
+                                Crop image
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="settings-check-ignore-ratio">
+                                Ignore aspect ratio
+                            </label>
+                        </div>
+                    </div>
+                    <div style="color: red">
+                        Warning: by default blocks can't be built more than 256 coordinates Y (in height), so image may not be created correctly.
+                    </div>
+                </div>
+                <div class="column blocks-column">
+                    <div class="block-groups">
+                        <div class="box box-selected" id="settings-group-optimized">
+                            <div class="title">Optimized</div>
+                            <div class="subtext">
+                                No falling<br>
+                                No redstone activated<br>
+                                No luminance<br>
+                                No transparent
+                            </div>
+                            <input type="radio" name="block-groups" value="optimized" checked>
+                        </div>
+                        <div class="box" id="settings-group-all">
+                            <div class="title">All</div>
+                            <div class="subtext">
+                                All blocks
+                            </div>
+                            <input type="radio" name="block-groups" value="all">
+                        </div>
+                        <div class="box" id="settings-group-custom">
+                            <div class="title">Custom</div>
+                            <div class="subtext">
+                                Choose your own blocks
+                            </div>
+                            <input type="radio" name="block-groups" value="custom">
+                        </div>
+                    </div>
+                    <div class="table-blocks-wrapper hidden">
+                        <span>Filter by name: </span><input class="input" id="settings-input-filter">
+                        <table class="table" id="settings-table-blocks">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Image</th>
+                                    <th>Name</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    Minecraft version:
+                    <div class="select">
+                      <select>
+                        <option>1.12</option>
+                        <option>1.11</option>
+                        <option>1.10</option>
+                        <option>1.9</option>
+                        <option>1.8</option>
+                      </select>
+                    </div>
+                    <div>
+                        <button class="button is-success" id="settings-submit" style="font-size: 20px;">Convert!</button>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>
+
+        <section class="section container workarea editor-screen hidden">
             <div class="topbar">
                 <div class="topbar-btn" id="open-btn">Open</div>
                 <div class="topbar-btn"><a id="save-btn">Save</a></div>
@@ -14,19 +119,19 @@
                         <div class="delete"></div>
                         <div class="topbar-menu-replace-form">
                             <div class="replace-group">
-                                <img class="img-thumbnail img-pixelated" id="replace-target-img">
+                                <img class="img-thumbnail img-pixelated" id="editor-replace-target">
                                 <span>...</span>
                             </div>
                             <div class="svg-arrow">
                                 <%=require('../static/img/arrow.svg')%>
                             </div>
                             <div class="replace-group">
-                                <img class="img-thumbnail img-pixelated" id="replace-replace-img">
+                                <img class="img-thumbnail img-pixelated" id="editor-replace-replacement">
                                 <span>...</span>
                             </div>
                         </div>
-                        <button class="button" id="replace-btn">Replace</button>
-                        <div class="text-info hidden" id="replace-text-info">Error</div>
+                        <button class="button" id="editor-replace-btn">Replace</button>
+                        <div class="text-info hidden" id="editor-replace-info">Error</div>
                     </div>
                 </div>
                 <div class="topbar-btn"><a id="convert-btn">Convert</a></div>
@@ -54,7 +159,7 @@
                             <img class="img-pixelated" src="">
                         </div>
                     </div>
-                    <div class="editor-canvas img-pixelated" id="canvasMain"></div>
+                    <div class="editor-canvas img-pixelated" id="editor-canvas"></div>
                 </div>
                 <div class="column info-panels" style="background-color: grey">
                     <div class="info-panels-position">
@@ -66,7 +171,7 @@
                     </div>
                     <div class="info-panels-history">
                         History:
-                        <div class="info-panels-history-container">
+                        <div class="info-panels-history-container" id="editor-history">
                             <div class="info-panels-history-action info-panels-history-action-start" data-action-pos="-1">Open</div>
                         </div>
                     </div>
@@ -74,8 +179,8 @@
             </div>
         </section>
 
-        <section class="section container" style="height: 500px; background-color: lime; margin-bottom: 20px">
+<!--         <section class="section container" style="height: 500px; background-color: lime; margin-bottom: 20px">
             
-        </section>
+        </section> -->
     </body>
 </html>
