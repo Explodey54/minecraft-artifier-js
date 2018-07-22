@@ -25,6 +25,7 @@ function MineartCanvas() {
         baseCellSize: 16,
         boundingRect: null,
         blobImage: new Image(),
+        groups: null,
         offset: {
             bounds: {
                 x: 600,
@@ -377,8 +378,73 @@ function MineartCanvas() {
         const catchedBlocks = {}
         const groups = []
 
+        // for (let i = 0; i < store.imageConvertedHex.length; i++) {
+        //     let targetPos = i
+
+        //     if (catchedBlocks[targetPos]) { continue }
+        //     catchedBlocks[targetPos] = true
+
+        //     let targetBlock = store.imageConvertedHex[targetPos]
+        //     let targetWidth = 1
+        //     let targetHeight = 1
+
+        //     while (true) {
+        //         let tempPos = targetPos + targetWidth
+        //         if (store.imageConvertedHex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
+        //             catchedBlocks[targetPos + targetWidth] = true
+        //             targetWidth++
+        //         } else {
+        //             break
+        //         }
+        //         if ((targetPos + targetWidth) % store.imageWidth === 0) { break }
+        //     }
+
+        //     while (true) {
+        //         let tempPos = targetPos + targetHeight * store.imageWidth
+        //         if (store.imageConvertedHex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
+        //             catchedBlocks[targetPos + targetHeight * store.imageWidth] = true
+        //             targetHeight++
+        //         } else {
+        //             break
+        //         }
+        //         if (targetPos + targetWidth * store.imageWidth < store.imageWidth) { break }
+        //     }
+
+        //     if (targetWidth === 1 && targetHeight === 1) {
+        //         groups.push([targetPos])
+        //         continue
+        //     }
+
+        //     let tempHeight = targetHeight
+        //     let startBlockGroup = targetPos
+        //     for (let w = 0; w < targetWidth; w++) {
+        //         for (let h = 0; h < tempHeight; h++) {
+        //             let shiftPos = targetPos + h * store.imageWidth + w + 1
+        //             if (store.imageConvertedHex[shiftPos] === targetBlock) {
+        //                 catchedBlocks[shiftPos] = true
+        //                 if (w + 1 === targetWidth && h + 1 === tempHeight) {
+        //                     if (startBlockGroup === targetPos + targetWidth - 1 + (tempHeight - 1) * store.imageWidth) {
+        //                         groups.push([startBlockGroup])
+        //                     } else {
+        //                         groups.push([startBlockGroup, targetPos + targetWidth - 1 + (tempHeight - 1) * store.imageWidth])
+        //                     }
+        //                 }
+        //             } else {
+        //                 if (startBlockGroup === targetPos + w + (tempHeight - 1) * store.imageWidth) {
+        //                     groups.push([startBlockGroup])
+        //                 } else {
+        //                     groups.push([startBlockGroup, targetPos + w + (tempHeight - 1) * store.imageWidth])
+        //                 }
+        //                 startBlockGroup = targetPos + w + 1
+        //                 tempHeight = h
+        //                 break
+        //             }
+        //         }
+        //     }
+        // }
+
         for (let i = 0; i < store.imageConvertedHex.length; i++) {
-            let targetPos = i
+            let targetPos = Math.floor((store.imageConvertedHex.length - i - 1) / store.imageWidth) * store.imageWidth + (i % store.imageWidth)
 
             if (catchedBlocks[targetPos]) { continue }
             catchedBlocks[targetPos] = true
@@ -390,7 +456,7 @@ function MineartCanvas() {
             while (true) {
                 let tempPos = targetPos + targetWidth
                 if (store.imageConvertedHex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
-                    catchedBlocks[targetPos + targetWidth] = true
+                    catchedBlocks[tempPos] = true
                     targetWidth++
                 } else {
                     break
@@ -399,14 +465,14 @@ function MineartCanvas() {
             }
 
             while (true) {
-                let tempPos = targetPos + targetHeight * store.imageWidth
+                let tempPos = targetPos - targetHeight * store.imageWidth
                 if (store.imageConvertedHex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
-                    catchedBlocks[targetPos + targetHeight * store.imageWidth] = true
+                    catchedBlocks[tempPos] = true
                     targetHeight++
                 } else {
                     break
                 }
-                if (targetPos + targetWidth * store.imageWidth < store.imageWidth) { break }
+                // if (targetPos - targetHeight * store.imageWidth < 0) { break }
             }
 
             if (targetWidth === 1 && targetHeight === 1) {
@@ -418,21 +484,21 @@ function MineartCanvas() {
             let startBlockGroup = targetPos
             for (let w = 0; w < targetWidth; w++) {
                 for (let h = 0; h < tempHeight; h++) {
-                    let shiftPos = targetPos + h * store.imageWidth + w + 1
+                    let shiftPos = targetPos - h * store.imageWidth + w + 1
                     if (store.imageConvertedHex[shiftPos] === targetBlock) {
                         catchedBlocks[shiftPos] = true
                         if (w + 1 === targetWidth && h + 1 === tempHeight) {
                             if (startBlockGroup === targetPos + targetWidth - 1 + (tempHeight - 1) * store.imageWidth) {
                                 groups.push([startBlockGroup])
                             } else {
-                                groups.push([startBlockGroup, targetPos + targetWidth - 1 + (tempHeight - 1) * store.imageWidth])
+                                groups.push([startBlockGroup, targetPos + targetWidth - 1 - (tempHeight - 1) * store.imageWidth])
                             }
                         }
                     } else {
                         if (startBlockGroup === targetPos + w + (tempHeight - 1) * store.imageWidth) {
                             groups.push([startBlockGroup])
                         } else {
-                            groups.push([startBlockGroup, targetPos + w + (tempHeight - 1) * store.imageWidth])
+                            groups.push([startBlockGroup, targetPos + w - (tempHeight - 1) * store.imageWidth])
                         }
                         startBlockGroup = targetPos + w + 1
                         tempHeight = h
@@ -442,50 +508,29 @@ function MineartCanvas() {
             }
         }
 
+        store.groups = groups
+
         console.log(groups.length, Object.keys(catchedBlocks).length)
-        groups.forEach((item) => {
-            if (item.length === 1) {
-                const pos = this._getPosFromInt(item[0])
-                ctxMain.fillStyle = "red"
-                ctxMain.fillRect(
-                              pos.x * store.baseCellSize * store.scale.current + store.offset.x,
-                              pos.y * store.baseCellSize * store.scale.current + store.offset.y,
-                              store.scale.current * store.baseCellSize,
-                              store.scale.current * store.baseCellSize)
-            } else {
-                const startPos = this._getPosFromInt(item[0])
-                const endPos = this._getPosFromInt(item[1])
-                ctxMain.strokeRect(
-                              startPos.x * store.baseCellSize * store.scale.current + store.offset.x,
-                              startPos.y * store.baseCellSize * store.scale.current + store.offset.y,
-                              (endPos.x - startPos.x + 1) * store.scale.current * store.baseCellSize,
-                              (endPos.y - startPos.y + 1) * store.scale.current * store.baseCellSize)
-            }
-        })
-
-        return groups
-
-        // let facing = 'east'
-        // let output = ''
 
         // groups.forEach((item) => {
         //     if (item.length === 1) {
-        //         const pos = item[0]
-        //         const gameId = store.getBlockById(store.imageConvertedHex[pos]).game_id
-        //         const xyz = convertPosToInGameXYZ(pos, facing)
-        //         output += `setblock ${xyz} ${gameId}\n`
+        //         const pos = this._getPosFromInt(item[0])
+        //         ctxMain.fillStyle = "red"
+        //         ctxMain.fillRect(
+        //                       pos.x * store.baseCellSize * store.scale.current + store.offset.x,
+        //                       pos.y * store.baseCellSize * store.scale.current + store.offset.y,
+        //                       store.scale.current * store.baseCellSize,
+        //                       store.scale.current * store.baseCellSize)
         //     } else {
-        //         const pos1 = item[0]
-        //         const pos2 = item[1]
-        //         const gameId = store.getBlockById(store.imageConvertedHex[pos1]).game_id
-        //         const xyz1 = convertPosToInGameXYZ(pos1, facing)
-        //         const xyz2 = convertPosToInGameXYZ(pos2, facing)
-        //         output += `fill ${xyz1} ${xyz2} ${gameId}\n`
+        //         const startPos = this._getPosFromInt(item[0])
+        //         const endPos = this._getPosFromInt(item[1])
+        //         ctxMain.strokeRect(
+        //                       startPos.x * store.baseCellSize * store.scale.current + store.offset.x,
+        //                       endPos.y * store.baseCellSize * store.scale.current + store.offset.y,
+        //                       (endPos.x - startPos.x + 1) * store.scale.current * store.baseCellSize,
+        //                       (startPos.y - endPos.y + 1) * store.scale.current * store.baseCellSize)
         //     }
         // })
-
-        // const blob = new Blob([output], {type: 'text/plain'})
-        // return _URL.createObjectURL(blob)
     }
 
     this._convertGroupToCommand = (group, facing) => {
@@ -1002,6 +1047,7 @@ function MineartCanvas() {
             'RENDER_MAIN',
             // 'RENDER_GRID'
         ])
+        // console.log(performance.now() - t0)
     }
 
     /* PUBLIC METHODS */
@@ -1022,7 +1068,8 @@ function MineartCanvas() {
         return {
             x: xBlock + 1,
             y: store.imageHeight - yBlock,
-            info: store.getBlockById(this._getBlockIdByPosition(xBlock, yBlock))
+            info: store.getBlockById(this._getBlockIdByPosition(xBlock, yBlock)),
+            blockPos: xBlock + yBlock * store.imageWidth
         } 
     }
 
@@ -1180,17 +1227,44 @@ function MineartCanvas() {
         return _URL.createObjectURL(blob)
     }
 
+    this.resetGroups = () => {
+        store.groups = null
+    }
+
+    this.convertAsRaw = (facing) => {
+        if (store.groups === null) {
+            this._convertToGroups()
+        }
+
+        let output = []
+        store.groups.forEach((item) => {
+            output.push('/' + this._convertGroupToCommand(item, facing))
+        })
+
+        return output
+    }
+
     this.convertAsMcfunction = (facing) => {
-        const groups = this._convertToGroups()
+        if (store.groups === null) {
+            this._convertToGroups()
+        }
+
         let output = ""
-        groups.forEach((item) => {
+        store.groups.forEach((item) => {
             output += this._convertGroupToCommand(item, facing) + "\n"
         })
 
-        console.log(output)
+        return output
     }
 
     this.convertAsCommandBlock = (facing) => {
+        if (store.groups === null) {
+            this._convertToGroups()
+        }
+
+        const outputArr = []
+        let numOfCommands = 315
+
         const commandTemplate = 'summon falling_block ~ ~1 ~ %replace%'
 
         const outsideTemplate = `
@@ -1208,23 +1282,52 @@ function MineartCanvas() {
         }
         `
 
-        const groups = this._convertToGroups().slice(0, 325)
-        let output = passengerTemplate.replace(/\n|\s/g, '')
+        for (let i = 0; i < store.groups.length; i += numOfCommands) {
+            const slice = store.groups.slice(i, i + numOfCommands)
+            let output = passengerTemplate.replace(/\n|\s/g, '')
 
-        groups.forEach((item, i) => {
-            const command = this._convertGroupToCommand(item, facing)
-            output = output.replace('%command%', command)
-            if (i !== groups.length - 1) {
-                output = output.replace('%passenger%', passengerTemplate.replace(/\n|\s/g, ''))
+            slice.forEach((item, i) => {
+                const command = this._convertGroupToCommand(item, facing)
+                output = output.replace('%command%', command)
+                if (i !== slice.length - 1) {
+                    output = output.replace('%passenger%', passengerTemplate.replace(/\n|\s/g, ''))
+                } else {
+                    output = output.replace('%passenger%', '')
+                }
+            })
+
+            const temp = outsideTemplate.replace(/\n|\s/g, '').replace('%replace%', output)
+            const returnStr = commandTemplate.replace('%replace%', temp)
+            outputArr.push(returnStr)
+            // console.log(returnStr.length)
+        }
+
+        return outputArr
+    }
+
+    this.getQuantityOfBlocks = () => {
+        const output = []
+        const temp = {}
+        store.imageConvertedHex.forEach((item) => {
+            if (temp[item]) {
+                temp[item]++
             } else {
-                output = output.replace('%passenger%', '')
+                temp[item] = 1
             }
         })
 
-        const temp = outsideTemplate.replace(/\n|\s/g, '').replace('%replace%', output)
+        for (let key in temp) {
+            output.push({
+                id: key,
+                quant: temp[key]
+            })
+        }
 
-        console.log(commandTemplate.replace('%replace%', temp))
-        console.log(commandTemplate.replace('%replace%', temp).length)
+        output.sort((a,b) => {
+            return b.quant - a.quant
+        })
+
+        return output
     }
 
     this.render = () => {

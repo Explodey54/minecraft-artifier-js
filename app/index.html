@@ -134,7 +134,6 @@
                         <div class="text-info hidden" id="editor-replace-info">Error</div>
                     </div>
                 </div>
-                <div class="topbar-btn"><a id="convert-btn">Convert</a></div>
             </div>
             <div class="columns">
                 <div class="column is-three-quarters editor">
@@ -162,12 +161,9 @@
                     <div class="editor-canvas img-pixelated" id="editor-canvas"></div>
                 </div>
                 <div class="column info-panels" style="background-color: grey">
-                    <div class="info-panels-position">
-                        X: 20<br>Y: 40
-                    </div>
                     <div class="info-panels-blocks">
                         <input class="input is-small" id="input-block-search">
-                        <div class="info-panels-blocks-img"></div>
+                        <div class="info-panels-blocks-img" id="editor-block-list"></div>
                     </div>
                     <div class="info-panels-history">
                         History:
@@ -175,12 +171,88 @@
                             <div class="info-panels-history-action info-panels-history-action-start" data-action-pos="-1">Open</div>
                         </div>
                     </div>
+                    <button class="button" id="editor-btn-convert">Convert to commands</button>
+                </div>
+
+            </div>
+            <div class="footbar" id="editor-footbar">...</div>
+        </section>
+
+        <section class="section container convert-screen hidden">
+            <div class="columns">
+                <div class="column is-one-quarter form-options">
+                    <div class="form-option">
+                        <span>Convert method:</span>
+                        <div class="select">
+                            <select id="convert-select-method">
+                                <option disabled selected>-- select option --</option>
+                                <option value="commblock">Command block</option>
+                                <option value="mcfunction">.mcfunction file</option>
+                                <option value="raw">Raw commands</option>
+                                <option value="manual">Manual building</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-option">
+                        <span>Minecraft version:</span>
+                        <div class="select">
+                            <select id="convert-select-version">
+                                <option value="12">1.12</option>
+                                <option value="11">1.11</option>
+                                <option value="10">1.10</option>
+                                <option value="9">1.9</option>
+                                <option value="8">1.8</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-option">
+                        <span>Spawn towards:</span>
+                        <div class="select">
+                            <select id="convert-select-direction">
+                                <option checked value="north">North</option>
+                                <option value="east">East</option>
+                                <option value="south">South</option>
+                                <option value="west">West</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="info" id="convert-string-commands"></div>
+                </div>
+                <div class="column">
+                    <div id="convert-output-commblock" class="hidden">
+                        <div class="control">
+                            <textarea class="textarea" type="text" readonly id="convert-commblock-textarea"></textarea>
+                            <div class="box counter" id="convert-counter-commblock"></div>
+                        </div> 
+                    </div>
+                    <div id="convert-output-mcfunction" class="hidden">
+                        <div class="box">
+                            <a class="button is-success" id="convert-btn-mcfunction" download="123.mcfunction">Download as..</a>
+                            <input class="input" id="convert-input-mcfunction">
+                            <span>.mcfunction</span>
+                        </div>
+                    </div>
+                    <div id="convert-output-raw" class="hidden">
+                        <pre id="convert-pre-raw"></pre>
+                        <div class="box counter" id="convert-counter-raw"></div>
+                    </div>
+                    <div id="convert-output-manual" class="hidden">
+                        <table class="table" id="convert-table-manual">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Name</th>
+                                    <th>Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                            </tbody>
+                        </table>
+                        <div class="box counter" id="convert-counter-manual"></div>
+                    </div>
                 </div>
             </div>
         </section>
-
-<!--         <section class="section container" style="height: 500px; background-color: lime; margin-bottom: 20px">
-            
-        </section> -->
     </body>
 </html>

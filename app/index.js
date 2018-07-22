@@ -5,6 +5,7 @@ import 'bulma/css/bulma.css'
 import ConvertWorker from 'worker-loader!./convert.js'
 import MineartCanvas from './canvas.js'
 import SvgCroppy from './svgCroppy.js'
+import Counter from './counter.js'
 const _URL = window.URL || window.webkitURL
 
 const blocks = require('../static/baked_blocks.json')
@@ -19,6 +20,7 @@ const store = {
     blocksDefault: blocks,
     uploadedImage: new Image(),
     convertWorker: new ConvertWorker(),
+    mineartCanvas: new MineartCanvas(),
     startScreen: {
         $dropzone: document.getElementById('start-dropzone'),
         $inputFile: document.getElementById('start-file-input'),
@@ -130,7 +132,6 @@ const store = {
         }
     },
     editorScreen: {
-        mineartCanvas: new MineartCanvas(),
         eyedropListener: null,
         currentHistoryPos: -1,
         $divCanvas: document.getElementById('editor-canvas'),
@@ -140,6 +141,9 @@ const store = {
         $replaceMenuBtn: document.getElementById('editor-replace-btn'),
         $replaceMenuInfo: document.getElementById('editor-replace-info'),
         $historyContainer: document.getElementById('editor-history'),
+        $blocksList: document.getElementById('editor-block-list'),
+        $btnConvert: document.getElementById('editor-btn-convert'),
+        $footbar: document.getElementById('editor-footbar'),
         setEyedropListener(node) {
             this.eyedropListener = node
             node.classList.add('active')
@@ -147,6 +151,100 @@ const store = {
         removeEyedropListener() {
             this.eyedropListener.classList.remove('active')
             this.eyedropListener = null
+        },
+        fillBlockList() {
+            store.blocksDefault.forEach((item) => {
+                const node = new Image()
+                node.src = item.src
+                node.classList.add('img-pixelated')
+                node.setAttribute('data-block-id', item.id)
+                store.editorScreen.$blocksList.appendChild(node)
+            })
+        }
+    },
+    convertScreen: {
+        wasChanged: true,
+        commBlockStrings: null,
+        mcfunctionBlob: null,
+        rawCommands: null,
+        quantityOfBlocks: null,
+        counterCommblock: new Counter(),
+        counterRaw: new Counter(),
+        counterManual: new Counter(),
+        $commBlockTextarea: document.getElementById('convert-commblock-textarea'),
+        $selectMethod: document.getElementById('convert-select-method'),
+        $selectVersion: document.getElementById('convert-select-version'),
+        $selectDirection: document.getElementById('convert-select-direction'),
+        $outputCommblock: document.getElementById('convert-output-commblock'),
+        $outputMcfunction: document.getElementById('convert-output-mcfunction'),
+        $outputRaw: document.getElementById('convert-output-raw'),
+        $outputManual: document.getElementById('convert-output-manual'),
+        $counterCommblock: document.getElementById('convert-counter-commblock'),
+        $counterRaw: document.getElementById('convert-counter-raw'),
+        $counterManual: document.getElementById('convert-counter-manual'),
+        $btnMcfunction: document.getElementById('convert-btn-mcfunction'),
+        $inputMcfunction: document.getElementById('convert-input-mcfunction'),
+        $preRaw: document.getElementById('convert-pre-raw'),
+        $tableManual: document.getElementById('convert-table-manual'),
+        $stringTotalComms: document.getElementById('convert-string-commands'),
+        convert () {
+            if (this.wasChanged) {
+                store.mineartCanvas.resetGroups()
+                this.wasChanged = false
+            }
+            this.commBlockStrings = store.mineartCanvas.convertAsCommandBlock(this.$selectDirection.value)
+            this.mcfunctionBlob = new Blob([store.mineartCanvas.convertAsMcfunction(this.$selectDirection.value)], {type : 'text/plain'})
+            this.rawCommands = store.mineartCanvas.convertAsRaw(this.$selectDirection.value)
+            this.$btnMcfunction.href = _URL.createObjectURL(this.mcfunctionBlob)
+            this.quantityOfBlocks = store.mineartCanvas.getQuantityOfBlocks()
+
+            this.$stringTotalComms.innerHTML = `Total commands: ${this.rawCommands.length}`
+
+            this.counterCommblock.init(this.$counterCommblock)
+            this.counterCommblock.setMax(this.commBlockStrings.length)
+            this.counterCommblock.setCallback((int) => {
+                this.$commBlockTextarea.value = this.commBlockStrings[int - 1]
+            })
+            this.counterCommblock.setValue(1)
+
+            this.counterRaw.init(this.$counterRaw)
+            const commandsOnPage = 1000
+            this.counterRaw.setMax(Math.ceil(this.rawCommands.length / commandsOnPage))
+            this.counterRaw.setCallback((int) => {
+                const slice = this.rawCommands.slice((int - 1) * commandsOnPage, commandsOnPage * int)
+                let output = ''
+                slice.forEach((item) => {
+                    output += `<span>${item}</span>\n`
+                })
+                this.$preRaw.style.counterIncrement = 'line ' + (int - 1) * commandsOnPage
+                this.$preRaw.innerHTML = output
+            })
+            this.counterRaw.setValue(1)
+
+            const rowsOnPage = 10
+            const $tbody = this.$tableManual.querySelector('tbody')
+            this.counterManual.init(this.$counterManual)
+            this.counterManual.setMax(Math.ceil(this.quantityOfBlocks.length / rowsOnPage))
+            this.counterManual.setCallback((int) => {
+                $tbody.innerHTML = ''
+                const slice = this.quantityOfBlocks.slice((int - 1) * rowsOnPage, rowsOnPage * int)
+                slice.forEach((item) => {
+                    const $row = document.createElement('tr')
+                    const block = store.blocksDefault[item.id - 1]
+                    let quantityStr = ''
+                    if (item.quant > 63) {
+                        quantityStr += `${Math.floor(item.quant / 64)} stacks`
+                        if (item.quant % 64 !== 0) {
+                            quantityStr += ` + ${item.quant % 64} blocks`
+                        }
+                    } else {
+                        quantityStr += `${item.quant} blocks`
+                    }
+                    $row.innerHTML = `<td><img class="img-pixelated" src="${block.src}"></td><td>${block.name}</td><td>${quantityStr}</td>`
+                    $tbody.appendChild($row)
+                })
+            })
+            this.counterManual.setValue(1)
         }
     },
     setEventListeners() {
@@ -208,9 +306,10 @@ const store = {
 
         this.convertWorker.onmessage = (e) => {
             this.settingsScreen.changeToEditorScreen()
-            this.editorScreen.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
-            this.editorScreen.mineartCanvas.init(this.editorScreen.$divCanvas)
-            this.editorScreen.mineartCanvas.open(e.data)
+            this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
+            this.mineartCanvas.init(this.editorScreen.$divCanvas)
+            this.mineartCanvas.open(e.data)
+            // store.convertScreen.convert()
         }
 
         //Editor screen
@@ -235,14 +334,14 @@ const store = {
             const id1 = parseInt(this.editorScreen.$replaceMenuTarget.dataset.blockId)
             const id2 = parseInt(this.editorScreen.$replaceMenuReplace.dataset.blockId)
 
-            const replacedNum = this.editorScreen.mineartCanvas.replace(id1, id2)
+            const replacedNum = this.mineartCanvas.replace(id1, id2)
             this.editorScreen.$replaceMenuInfo.classList.remove('hidden')
             this.editorScreen.$replaceMenuInfo.innerHTML = `${replacedNum} block(s) replaced.`
         }
 
         this.editorScreen.$divCanvas.onclick = (e) => {
             if (this.editorScreen.eyedropListener) {
-                const info = this.editorScreen.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y).info
+                const info = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y).info
                 this.editorScreen.eyedropListener.setAttribute('data-block-id', info.id)
                 this.editorScreen.eyedropListener.src = info.image.src
                 const $title = this.editorScreen.eyedropListener.parentNode.querySelector('span')
@@ -250,6 +349,15 @@ const store = {
                     $title.innerHTML = info.name
                 }
                 this.editorScreen.removeEyedropListener()
+            }
+        }
+
+        this.editorScreen.$divCanvas.onmousemove = (e) => {
+            const data = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y)
+            if (data && data.info) {
+                this.editorScreen.$footbar.innerHTML = `
+                    X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>${data.info.name}</b>, Game ID: <b>${data.info.game_id}</b> Pos: ${data.blockPos}
+                `
             }
         }
 
@@ -267,28 +375,63 @@ const store = {
                         item.classList.remove('info-panels-history-action-returned')
                     }
                 })
-                this.editorScreen.mineartCanvas.undoTo(parseInt(node.dataset.actionPos))
+                this.mineartCanvas.undoTo(parseInt(node.dataset.actionPos))
                 this.editorScreen.currentHistoryPos = node.dataset.actionPos
             }
             this.editorScreen.currentHistoryPos = e.details.pos
             const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
             actions.forEach((item) => {
-                if (item.dataset.actionPos >= this.editorScreen.currentHistoryPos) {
+                if (parseInt(item.dataset.actionPos) >= parseInt(this.editorScreen.currentHistoryPos)) {
                     item.remove()
                 }
             })
             this.editorScreen.$historyContainer.appendChild(node)
         })
 
+        this.editorScreen.$btnConvert.onclick = () => {
+            document.querySelector('section.convert-screen').classList.remove('hidden')
+            this.convertScreen.convert()
+        }
 
+        //Convert screen
+        ////////////////////////////////////
+        this.convertScreen.$selectMethod.onchange = (e) => {
+            this.convertScreen.$outputCommblock.classList.add('hidden')
+            this.convertScreen.$outputMcfunction.classList.add('hidden')
+            this.convertScreen.$outputRaw.classList.add('hidden')
+            this.convertScreen.$outputManual.classList.add('hidden')
+            switch (e.target.value) {
+                case 'commblock':
+                    this.convertScreen.$outputCommblock.classList.remove('hidden')
+                    break
+                case 'mcfunction':
+                    this.convertScreen.$outputMcfunction.classList.remove('hidden')
+                    break
+                case 'raw':
+                    this.convertScreen.$outputRaw.classList.remove('hidden')
+                    break
+                case 'manual':
+                    this.convertScreen.$outputManual.classList.remove('hidden')
+                    break
+            }
+        }
 
+        this.convertScreen.$selectDirection.onchange = () => {
+            this.convertScreen.convert()
+        }
+
+        this.convertScreen.$inputMcfunction.oninput = (e) => {
+            this.convertScreen.$btnMcfunction.download = e.target.value + '.mcfunction'
+        }
     }
 }
 
-store.editorScreen.mineartCanvas.setBlocks(blocks)
+store.mineartCanvas.setBlocks(blocks)
 store.setEventListeners()
+store.editorScreen.fillBlockList()
+
 // const tempImage = new Image()
-// tempImage.src = require('../static/lum_300.png')
+// tempImage.src = require('../static/pic_184.jpg')
 // tempImage.onload = (e) => {
 //     canvasTemp.width = tempImage.width
 //     canvasTemp.height = tempImage.height
@@ -297,44 +440,44 @@ store.setEventListeners()
 //     store.startScreen.changeToEditorScreen()
 // }
 
-// window.mineartDOM = {
-//     changeTool(tool) {
-//         mineartCanvas.setTool(tool)
-//     },
-//     testShowPainted() {
-//         return mineartCanvas.debugRenderAllPainted()
-//     },
-//     plusOneBrushSize() {
-//         mineartCanvas.addToBrushSize(1)
-//     },
-//     minusOneBrushSize() {
-//         mineartCanvas.addToBrushSize(-1)
-//     },
-//     undo() {
-//         mineartCanvas.undoOnce()
-//     },
-//     logStore() {
-//         return mineartCanvas._debugReturnStore()
-//     },
-//     debugSaveHistory() {
-//         mineartCanvas._debugSaveHistory()
-//     },
-//     debugCompareHistory() {
-//         return mineartCanvas._debugCompareHistory()
-//     },
-//     replace(target, replace) {
-//         return mineartCanvas.replace(target, replace)
-//     },
-//     setEyedrop(id) {
-//         mineartCanvas.setEyedrop(id)
-//     },
-//     save() {
-//         return mineartCanvas.save()
-//     },
-//     open() {
-//         mineartCanvas.open()
-//     },
-//     convert() {
-//         mineartCanvas.convertAsCommandBlock('east')
-//     }
-// }
+window.mineartDOM = {
+    changeTool(tool) {
+        store.mineartCanvas.setTool(tool)
+    },
+    testShowPainted() {
+        return store.mineartCanvas.debugRenderAllPainted()
+    },
+    plusOneBrushSize() {
+        store.mineartCanvas.addToBrushSize(1)
+    },
+    minusOneBrushSize() {
+        store.mineartCanvas.addToBrushSize(-1)
+    },
+    undo() {
+        store.mineartCanvas.undoOnce()
+    },
+    logStore() {
+        return store.mineartCanvas._debugReturnStore()
+    },
+    debugSaveHistory() {
+        store.mineartCanvas._debugSaveHistory()
+    },
+    debugCompareHistory() {
+        return store.mineartCanvas._debugCompareHistory()
+    },
+    replace(target, replace) {
+        return store.mineartCanvas.replace(target, replace)
+    },
+    setEyedrop(id) {
+        store.mineartCanvas.setEyedrop(id)
+    },
+    save() {
+        return store.mineartCanvas.save()
+    },
+    open() {
+        store.mineartCanvas.open()
+    },
+    convert() {
+        store.mineartCanvas._convertToGroups()
+    }
+}

@@ -102,7 +102,19 @@
 }
 
 .workarea .columns {
-	height: 100%;
+	height: 95%;
+	margin-bottom: 0;
+}
+
+.workarea .footbar {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    margin-top: -0.75rem;
+    background-color: #4a4a4a;
+    color: white;
+    padding: 5px;
+    font-size: 12px;
+    padding-left: 15px;
 }
 
 .editor {
@@ -242,7 +254,8 @@
 .info-panels-history {
 	padding: 10px;
 	background-color: white; 
-	height: 50%;
+	height: 63%;
+	margin-bottom: 10px;
 }
 
 .info-panels-history-container {
@@ -263,7 +276,9 @@
 .info-panels-position {
 	background-color: #adcde2;
 	height: 100px;
-	margin-bottom: 10px; 
+	margin-bottom: 10px;
+	padding: 10px;
+	font-size: 14px;
 }
 
 .editor-eyedrop {
@@ -277,6 +292,103 @@
 	width: 32px;
 	height: 32px;
 }
+
+section.convert-screen {
+	height: 500px;
+	background-color: #c5caea;
+	margin-bottom: 20px;
+}
+
+.convert-screen .form-option span {
+	display: block;
+}
+
+.convert-screen .form-options .info {
+	font-size: 12px;
+}
+
+.convert-screen textarea {
+	resize: none;
+	height: 371px;
+}
+
+.convert-screen .counter {
+	padding: 0.5rem;
+	width: 270px;
+	background-color: rgba(0,0,0,0.2);
+	margin-top: 10px;
+	user-select: none;
+	text-align: center;
+}
+
+.convert-screen .counter input {
+	display: inline-block;
+	width: 50px;
+}
+
+.convert-screen .counter i {
+	padding: 2px;
+}
+
+.convert-screen .counter span {
+	vertical-align: super;
+	padding: 7px;
+}
+
+.convert-screen #convert-output-mcfunction .box {
+	width: 80%;
+}
+
+.convert-screen #convert-output-mcfunction input {
+	display: inline-block;
+	width: 50%;
+	min-width: 250px;
+}
+
+.convert-screen #convert-output-mcfunction span {
+	line-height: 38px;
+}
+
+.convert-screen #convert-output-raw pre {
+	white-space: pre-line;
+	counter-reset: line;
+	overflow-y: scroll;
+	height: 371px;
+}
+
+.convert-screen #convert-output-raw pre span:before {
+	counter-increment: line;
+	content: counter(line);
+	display: inline-block;
+	border-right: 1px solid #ddd;
+	padding: 0 .5em;
+	margin-right: .5em;
+	color: #888;
+}
+
+.convert-screen #convert-output-manual table {
+	margin-bottom: 0;
+	width: 550px;
+}
+
+.convert-screen #convert-output-manual table td {
+	padding: 0.15em 0.75em;
+}
+
+.convert-screen #convert-output-manual table td:first-child {
+	width: 30px;
+}
+
+.convert-screen #convert-output-manual table td:nth-child(2) {
+	width: 250px;
+}
+
+.convert-screen #convert-output-manual table img {
+	width: 16px;
+	height: 16px;
+	margin-top: 6px;
+}
+
 
 /*canvas {
 	background-color: rgba(5, 5, 5, 0.2)
