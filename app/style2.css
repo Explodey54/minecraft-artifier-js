@@ -93,8 +93,12 @@
 
 .settings-screen .blocks-column table {
 	display: block;
-	height: 300px;
-	overflow-y: scroll;
+}
+
+.settings-screen .blocks-column table tbody {
+	display: block;
+    height: 250px;
+    overflow-y: scroll;
 }
 
 .workarea {
@@ -174,8 +178,15 @@
 	background-color: lightblue;
 	z-index: 1;
 	left: 0;
-	text-align: center;
-	
+	text-align: center;	
+}
+
+.topbar-menu-open {
+	width: 170px;
+}
+
+.topbar-menu-open .file-cta {
+	width: 100%;
 }
 
 .topbar-menu-replace .delete {
@@ -264,7 +275,7 @@
 	overflow-y: scroll;
 }
 
-.info-panels-history-action {
+.info-panels-history-action, .info-panels-history-action-start {
 	padding: 10px;
 	background-color: #a3ffff;
 }

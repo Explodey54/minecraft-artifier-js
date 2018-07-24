@@ -1,42 +1,40 @@
-const colors = require('../static/baked_colors.json')
+const blocks = require('../static/baked_blocks.json')
 
-function findSimilarBlocks(image) {
-    let output = ''
+// function findSimilarBlocks(image) {
+//     let output = ''
 
-    for (let x in image) {
-        for (let y in image[x]) {
-            let pixel = image[x][y]
-            let pixelHsl = rgbToHsl(pixel.red, pixel.green, pixel.blue)
-            let colorName = getColorGroupHSL(pixelHsl[0], pixelHsl[1], pixelHsl[2])
-            let temp = false
+//     for (let x in image) {
+//         for (let y in image[x]) {
+//             let pixel = image[x][y]
+//             let pixelHsl = rgbToHsl(pixel.red, pixel.green, pixel.blue)
+//             let colorName = getColorGroupHSL(pixelHsl[0], pixelHsl[1], pixelHsl[2])
+//             let temp = false
             
-            store.colorGroups[colorName].forEach((item) => {
-                let dev = Math.abs(pixelHsl[0] - item.hsl[0] + pixelHsl[1] - item.hsl[1] + pixelHsl[2] - item.hsl[2])
-                if (!temp || temp.deviation > dev) {
-                    temp = item
-                    temp.deviation = dev
-                }
-            })
-            if (temp.id < 16) {
-                output += '0' + temp.id.toString(16)
-            } else {
-                output += temp.id.toString(16)
-            }
-        }
-    }
-    return output
-}
+//             store.colorGroups[colorName].forEach((item) => {
+//                 let dev = Math.abs(pixelHsl[0] - item.hsl[0] + pixelHsl[1] - item.hsl[1] + pixelHsl[2] - item.hsl[2])
+//                 if (!temp || temp.deviation > dev) {
+//                     temp = item
+//                     temp.deviation = dev
+//                 }
+//             })
+//             if (temp.id < 16) {
+//                 output += '0' + temp.id.toString(16)
+//             } else {
+//                 output += temp.id.toString(16)
+//             }
+//         }
+//     }
+//     return output
+// }
 
 onmessage = function(e) {
-    for (let key in colors) {
-        if (colors[key].id <= 81 && colors[key].id >= 65) {
-            delete colors[key]
-        }
-    }
+    e.data.exclude.forEach((item) => {
+        delete blocks[item - 1]
+    })
 
     console.log('Started converting in: ' + performance.now())
     
-    const imageData = e.data
+    const imageData = e.data.imgData
 
     if (imageData.constructor.name != 'Uint8ClampedArray') {
         console.log('not uint8!!!')
@@ -52,7 +50,7 @@ onmessage = function(e) {
             blue: imageData[i + 2]
         }
         let temp = false
-        colors.forEach((item) => {
+        blocks.forEach((item) => {
             let dev = Math.abs(pixelRgb.red - item.red) + Math.abs(pixelRgb.green - item.green) + Math.abs(pixelRgb.blue - item.blue)
             if (!temp || dev < temp.deviation) {
                 temp = item

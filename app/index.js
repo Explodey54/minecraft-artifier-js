@@ -46,12 +46,34 @@ const store = {
                 store.settingsScreen.svgCroppy.init(store.settingsScreen.$imgPres)
                 store.settingsScreen.svgCroppy.hide()
             }
+        },
+        uploadDataFile(file) {
+            const reader = new FileReader()
+            reader.readAsArrayBuffer(file)
+            reader.onloadend = (e) => {
+                const data = new DataView(reader.result),
+                      version = data.getUint8(0),
+                      blocksType = data.getUint8(1),
+                      width = data.getUint16(2),
+                      height = data.getUint16(4)
+                const uint8Array = new Uint8Array(width * height)
+
+                for (let i = 6; i < data.byteLength; i++) {
+                    uint8Array[i - 6] = data.getUint8(i)
+                }
+
+                this.changeToEditorScreen()
+                store.mineartCanvas.setImageSizes(width, height)
+                store.mineartCanvas.init(store.editorScreen.$divCanvas)
+                store.mineartCanvas.open(uint8Array)
+            }
         }
     },
     settingsScreen: {
         aspectRatio: null,
         svgCroppy: new SvgCroppy(),
         ctxTemp: canvasTemp.getContext('2d'),
+        tableCounter: blocks.length,
         $imgPres: document.getElementById('settings-img-presentation'),
         $imgSizes: document.getElementById('settings-img-sizes'),
         $spanEquals: document.getElementById('settings-equals-blocks'),
@@ -64,17 +86,39 @@ const store = {
         $boxGroupCustom: document.getElementById('settings-group-custom'),
         $tableBlocks: document.getElementById('settings-table-blocks'),
         $tableInput: document.getElementById('settings-input-filter'),
+        $tableCheckbox: document.getElementById('settings-table-checkbox'),
         $btnSubmit: document.getElementById('settings-submit'),
         fillTable() {
             const tbody = this.$tableBlocks.querySelector('tbody')
             store.blocksDefault.forEach((item) => {
                 let row = document.createElement('tr')
-                row.setAttribute('data-id', item.id)
                 row.innerHTML = `
-                    <td><input type="checkbox" checked></td>
+                    <td><input type="checkbox" data-block-id="${item.id}" checked></td>
                     <td><img src="${item.src}"></td>
                     <td>${item.name}</td>
                 `
+                row.querySelector('input').oninput = (e) => {
+                    if (e.target.checked) {
+                        this.tableCounter += 1
+                    } else {
+                        this.tableCounter -= 1
+                    }
+
+                    if (this.tableCounter === 0) {
+                        this.$tableCheckbox.checked = false
+                    } else if (this.tableCounter === blocks.length) {
+                        this.$tableCheckbox.indeterminate = false
+                        this.$tableCheckbox.checked = true
+                    } else {
+                        this.$tableCheckbox.indeterminate = true
+                        this.$tableCheckbox.checked = true
+                    }
+                    console.log(this.tableCounter)
+                }
+                row.onclick = (e) => {
+                    if (e.target.localName === 'input') { return }
+                    row.querySelector('input').click()
+                }
                 tbody.appendChild(row)
             })
         },
@@ -123,7 +167,6 @@ const store = {
         drawToCanvas() {
             canvasTemp.width = parseInt(this.$inputWidth.value)
             canvasTemp.height = parseInt(this.$inputHeight.value)
-            console.log(canvasTemp)
             this.ctxTemp.drawImage(store.uploadedImage, 0, 0, canvasTemp.width, canvasTemp.height)
         },
         changeToEditorScreen() {
@@ -136,6 +179,7 @@ const store = {
         currentHistoryPos: -1,
         $divCanvas: document.getElementById('editor-canvas'),
         $topbarBtns: document.querySelectorAll('.topbar-btn'),
+        $saveBtn: document.getElementById('editor-save-btn'),
         $replaceMenuTarget: document.getElementById('editor-replace-target'),
         $replaceMenuReplace: document.getElementById('editor-replace-replacement'),
         $replaceMenuBtn: document.getElementById('editor-replace-btn'),
@@ -143,6 +187,8 @@ const store = {
         $historyContainer: document.getElementById('editor-history'),
         $blocksList: document.getElementById('editor-block-list'),
         $btnConvert: document.getElementById('editor-btn-convert'),
+        $inputImage: document.getElementById('editor-file-input-image'),
+        $inputData: document.getElementById('editor-file-input-data'),
         $footbar: document.getElementById('editor-footbar'),
         setEyedropListener(node) {
             this.eyedropListener = node
@@ -159,6 +205,16 @@ const store = {
                 node.classList.add('img-pixelated')
                 node.setAttribute('data-block-id', item.id)
                 store.editorScreen.$blocksList.appendChild(node)
+            })
+        },
+        changeToSettingsScreen() {
+            document.querySelector('section.editor-screen').classList.add('hidden')
+            document.querySelector('section.convert-screen').classList.add('hidden')
+            document.querySelector('section.settings-screen').classList.remove('hidden')
+        },
+        removeHistory() {
+            document.querySelectorAll('.info-panels-history-action').forEach((item) => {
+                item.remove()
             })
         }
     },
@@ -256,11 +312,23 @@ const store = {
 
         this.startScreen.$dropzone.ondrop = (e) => {
             e.preventDefault()
-            this.startScreen.uploadImage(_URL.createObjectURL(e.dataTransfer.files[0]))
+            const regexp = /(.*)\.([^.]*)/
+            const ext = e.dataTransfer.files[0].name.match(regexp)[2]
+            if (ext == 'jpeg' || ext == 'jpg' || ext == 'png') {
+                this.startScreen.uploadImage(_URL.createObjectURL(e.dataTransfer.files[0]))
+            } else if (ext == 'data') {
+                this.startScreen.uploadDataFile(e.dataTransfer.files[0])
+            }
         }
 
         this.startScreen.$inputFile.onchange = (e) => {
-            this.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
+            const regexp = /(.*)\.([^.]*)/
+            const ext = e.target.files[0].name.match(regexp)[2]
+            if (ext == 'jpeg' || ext == 'jpg' || ext == 'png') {
+                this.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
+            } else if (ext == 'data') {
+                this.startScreen.uploadDataFile(e.target.files[0])
+            }
         }
 
         //Settings screen
@@ -299,9 +367,47 @@ const store = {
             this.settingsScreen.filterTable(this.settingsScreen.$tableInput.value)
         }
 
+        this.settingsScreen.$tableCheckbox.oninput = (e) => {
+            const checkboxes = this.settingsScreen.$tableBlocks.querySelectorAll('tbody input')
+            if (e.target.checked) {
+                checkboxes.forEach((item) => {
+                    item.checked = true
+                })
+                this.settingsScreen.tableCounter = blocks.length
+            } else {
+                checkboxes.forEach((item) => {
+                    item.checked = false
+                })
+                this.settingsScreen.tableCounter = 0
+            }
+        }
+
         this.settingsScreen.$btnSubmit.onclick = (e) => {
+            const excludeArr = []
+            const blockGroup = document.querySelector('input[name=block-groups]:checked').value
+            switch (blockGroup) {
+                case 'all':
+                    break
+                case 'optimized':
+                    blocks.forEach((item) => {
+                        if (item.luminance === true || item.transparency === true || item.redstone === true) {
+                            excludeArr.push(item.id)
+                        }
+                    })
+                    break
+                case 'custom':
+                    this.settingsScreen.$tableBlocks.querySelectorAll('input').forEach((item) => {
+                        if (item.checked === false) {
+                            excludeArr.push(parseInt(item.dataset.blockId))
+                        }
+                    })
+                    break
+            }
             this.settingsScreen.drawToCanvas()
-            this.convertWorker.postMessage(this.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data)
+            this.convertWorker.postMessage({
+                imgData: this.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
+                exclude: excludeArr
+            })
         }
 
         this.convertWorker.onmessage = (e) => {
@@ -393,6 +499,27 @@ const store = {
             this.convertScreen.convert()
         }
 
+        this.editorScreen.$saveBtn.onclick = () => {
+            const link = this.mineartCanvas.save()
+            this.editorScreen.$saveBtn.href = link
+            this.editorScreen.$saveBtn.download = 'data.data'
+        }
+
+        this.editorScreen.$inputImage.oninput = (e) => {
+            this.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
+            this.editorScreen.changeToSettingsScreen()
+            this.editorScreen.removeHistory()
+        }
+
+        this.editorScreen.$inputData.onclick = (e) => {
+            e.target.value = null
+        }
+
+        this.editorScreen.$inputData.oninput = (e) => {
+            this.startScreen.uploadDataFile(e.target.files[0])
+            this.editorScreen.removeHistory()
+        }
+
         //Convert screen
         ////////////////////////////////////
         this.convertScreen.$selectMethod.onchange = (e) => {
@@ -430,15 +557,30 @@ store.mineartCanvas.setBlocks(blocks)
 store.setEventListeners()
 store.editorScreen.fillBlockList()
 
-// const tempImage = new Image()
-// tempImage.src = require('../static/pic_184.jpg')
-// tempImage.onload = (e) => {
-//     canvasTemp.width = tempImage.width
-//     canvasTemp.height = tempImage.height
-//     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
-//     store.convertWorker.postMessage(store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data)
-//     store.startScreen.changeToEditorScreen()
-// }
+const tempImage = new Image()
+tempImage.src = require('../static/pic_184.jpg')
+store.startScreen.changeToSettingsScreen()
+store.startScreen.uploadImage(tempImage.src)
+tempImage.onload = (e) => {
+
+    return
+    canvasTemp.width = tempImage.width
+    canvasTemp.height = tempImage.height
+    store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
+
+    const exclude = []
+    blocks.forEach((item) => {
+        if (item.luminance === true || item.transparency === true || item.redstone === true) {
+            exclude.push(item.id)
+        }
+    })
+
+    store.convertWorker.postMessage({
+        imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
+        exclude: exclude
+    })
+    store.startScreen.changeToEditorScreen()
+}
 
 window.mineartDOM = {
     changeTool(tool) {

@@ -17,6 +17,7 @@ function MineartCanvas() {
     const store = {
         blocksDb: [],
         getBlockById(id) { return this.blocksDb[id - 1] },
+        initFlag: false,
         imageConvertedHex: null,
         imageWidth: null,
         imageHeight: null,
@@ -28,7 +29,7 @@ function MineartCanvas() {
         groups: null,
         offset: {
             bounds: {
-                x: 600,
+                x: 798,
                 y: 500
             },
             x: 0,
@@ -1089,6 +1090,11 @@ function MineartCanvas() {
         store.canvasHeight = store.boundingRect.height
     }
 
+    this.setBounds = () => {
+        store.offset.bounds.x = store.canvasWidth - store.imageWidth / 1.75
+        store.offset.bounds.y = store.canvasHeight - store.imageHeight / 1.75
+    }
+
     this.setTool = (str) => {
         store.interface.toolCurrent = str
     }
@@ -1193,37 +1199,30 @@ function MineartCanvas() {
     }
 
     this.open = (uint8Arr) => {
-        // let tempFile = require('../static/pepe.json')
-        // if (tempFile.data.length / 2 !== tempFile.width * tempFile.height) {
-        //     throw new Error('Data length in file is incorrect')
-        // }
-        // let imageConvertedHex = new Uint8ClampedArray(tempFile.data.length / 2)
-        // for (let i = 0; i < tempFile.data.length; i+= 2) {
-        //     const int = parseInt(tempFile.data.charAt(i) + tempFile.data.charAt(i + 1), 16)
-        //     imageConvertedHex[i / 2] = int
-        // }
-
         this.reset()
-        // this.setImageSizes(tempFile.width, tempFile.height)
         this.loadImageHex(uint8Arr)
         this.render()
     }
 
     this.save = () => {
-        const output = {
-            version: '1.0',
-            compression: 'none',
-            width: store.imageWidth,
-            height: store.imageHeight,
-            data: ''
-        }
+        //version 1 save: 
+        //8-byte version, 8-byte blockstype, 16-byte width, 16-byte height, rest 8-byte ids
+        const version = 1,
+              blocksType = 1
+
+        const buffer = new ArrayBuffer(store.imageConvertedHex.length + 6)
+        const data = new DataView(buffer)
+
+        data.setUint8(0, version)
+        data.setUint8(1, blocksType)
+        data.setUint16(2, store.imageWidth)
+        data.setUint16(4, store.imageHeight)
 
         store.imageConvertedHex.forEach((item, i) => {
-            output.data += this._intToDoubleHex(item)
+            data.setUint8(i + 6, item)
         })
 
-
-        const blob = new Blob([JSON.stringify(output)], {type: 'text/json'})
+        const blob = new Blob([data], {type : 'text/plain'})
         return _URL.createObjectURL(blob)
     }
 
@@ -1336,11 +1335,17 @@ function MineartCanvas() {
     }
 
     this.init = function(rootNode) {
+        if (store.initFlag) {
+            this.reset()
+            return
+        }
+        store.initFlag = true
         $root = rootNode
         $root.style.position = 'relative'
         canvasMain.style.position = 'absolute'
         canvasOverlay.style.position = 'absolute'
         this.setBoundingRect()
+        this.setBounds()
         canvasMain.width = store.canvasWidth
         canvasMain.height = store.canvasHeight
         canvasOverlay.width = store.canvasWidth

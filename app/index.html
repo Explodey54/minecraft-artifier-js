@@ -8,11 +8,11 @@
 
         <section class="section container start-screen">
             <div class="dropzone" id="start-dropzone">
-                <div>Drag and drop your image/json here</div>
+                <div>Drag and drop your image/.dat file here</div>
                 <div>
                     <span style="vertical-align: top; line-height: 40px;">or</span>
                     <label class="file-label" style="display: inline-block">
-                        <input class="file-input" type="file" name="main-image" id="start-file-input" accept="image/*">
+                        <input class="file-input" type="file" name="main-image" id="start-file-input">
                         <span class="file-cta">
                             <span class="file-icon">
                                 <i class="fas fa-upload"></i>
@@ -80,11 +80,11 @@
                         </div>
                     </div>
                     <div class="table-blocks-wrapper hidden">
-                        <span>Filter by name: </span><input class="input" id="settings-input-filter">
+                        <span></span><input class="input" id="settings-input-filter" placeholder="Filter by name">
                         <table class="table" id="settings-table-blocks">
                             <thead>
                                 <tr>
-                                    <th></th>
+                                    <th><input type="checkbox" id="settings-table-checkbox" checked></th>
                                     <th>Image</th>
                                     <th>Name</th>
                                 </tr>
@@ -112,8 +112,23 @@
 
         <section class="section container workarea editor-screen hidden">
             <div class="topbar">
-                <div class="topbar-btn" id="open-btn">Open</div>
-                <div class="topbar-btn"><a id="save-btn">Save</a></div>
+                <div class="topbar-btn" id="editor-open-btn">Open
+                    <div class="topbar-menu topbar-menu-open hidden">
+                        <label class="file-label">
+                            <input class="file-input" type="file" id="editor-file-input-image">
+                            <span class="file-cta">
+                                <span class="file-label">Open image..</span>
+                            </span>
+                        </label>
+                        <label class="file-label">
+                            <input class="file-input" type="file" id="editor-file-input-data">
+                            <span class="file-cta">
+                                <span class="file-label">Open .data file..</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="topbar-btn"><a id="editor-save-btn">Save</a></div>
                 <div class="topbar-btn">Replace
                     <div class="topbar-menu topbar-menu-replace hidden">
                         <div class="delete"></div>
@@ -168,7 +183,7 @@
                     <div class="info-panels-history">
                         History:
                         <div class="info-panels-history-container" id="editor-history">
-                            <div class="info-panels-history-action info-panels-history-action-start" data-action-pos="-1">Open</div>
+                            <div class="info-panels-history-action-start" data-action-pos="-1">Open</div>
                         </div>
                     </div>
                     <button class="button" id="editor-btn-convert">Convert to commands</button>
