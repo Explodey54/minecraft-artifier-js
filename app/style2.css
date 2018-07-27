@@ -1,3 +1,8 @@
+html {
+	min-width: 1000px !important;
+	overflow-x: auto !important;
+}
+
 .hidden {
 	display: none;
 }
@@ -46,10 +51,11 @@
 }
 
 .settings-screen .img-background .img-presentation {
-
+	user-select: none;
 }
 
 .settings-screen .size-settings .size-inputs {
+	width: 320px;
 	float: left;
 }
 
@@ -70,9 +76,10 @@
 .settings-screen .blocks-column .block-groups .box {
 	vertical-align: top;
 	height: 200px;
-	width: 29%;
+	width: 23%;
 	display: inline-block;
 	text-align: center;
+	min-width: 120px;
 }
 
 .settings-screen .blocks-column .block-groups .box .title {
@@ -91,6 +98,16 @@
 	display: none;
 }
 
+.settings-screen .blocks-column .table-blocks-wrapper {
+	position: relative;
+}
+
+.settings-screen .blocks-column .table-blocks-wrapper #settings-table-counter {
+	position: absolute;
+	top: 7px;
+	right: 22px;
+}
+
 .settings-screen .blocks-column table {
 	display: block;
 }
@@ -99,6 +116,47 @@
 	display: block;
     height: 250px;
     overflow-y: scroll;
+}
+
+.settings-screen .blocks-column table tr td {
+	border: none;
+}
+
+.settings-screen .blocks-column table tbody tr {
+	display: block;
+	width: 100%;
+	border-bottom: 1px solid #d4d4d4;
+}
+
+.settings-screen .blocks-column table tbody tr td:nth-child(2) {
+	padding-left: 25px;
+	padding-right: 26px;
+}
+
+.settings-screen .blocks-column table thead {
+	display: block;
+}
+
+.settings-screen .blocks-column table thead tr {
+	display: block;
+	width: calc(100% - 17px);
+	border-bottom: 3px solid #d4d4d4;
+}
+
+.settings-screen .blocks-column table img {
+	vertical-align: sub;
+	width: 20px;
+	height: 20px;
+}
+
+.settings-screen .blocks-column table thead th {
+	border: none;
+}
+
+.settings-screen .size-inputs i.fa-link {
+	line-height: 36px;
+	margin-left: 5px;
+	margin-right: 3px;
 }
 
 .workarea {

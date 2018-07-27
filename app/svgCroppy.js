@@ -9,8 +9,8 @@ function SvgCroppy() {
         posData: {
             boundingRect: null,
             selectRect: {
-                width: 200,
-                height: 200,
+                width: 50,
+                height: 50,
                 offsetX: 0,
                 offsetY: 0,
                 minWidth: 10,
@@ -379,6 +379,7 @@ function SvgCroppy() {
         if (store.nodes.svg) {
             store.nodes.svg.classList.remove('croppy-hidden')
         }
+        this._storeGetNode('root').dispatchEvent(store.events.transformed)
     }
 
     this.init = (rootSelector) => {
@@ -399,6 +400,14 @@ function SvgCroppy() {
                     position: absolute;
                     width: 100%;
                     height: 100%;
+                }
+
+                .croppy-svg-select {
+                    fill-opacity: 0;
+                    stroke: white;
+                    stroke-dasharray: 5 5;
+                    stroke-width: 2px;
+                    cursor: move;
                 }
 
                 .croppy-svg-background {
@@ -439,7 +448,7 @@ function SvgCroppy() {
                     <mask/>
                 </defs>
                 <rect class="croppy-svg-background" width="100%" height="100%" style="mask: url('#mymask');"/>
-                <rect class="croppy-svg-select" opacity="0"/>
+                <rect class="croppy-svg-select"/>
 
                 <rect class="croppy-svg-corner croppy-svg-corner-left-top" width="${store.style.cornerWidth}px" height="${store.style.cornerHeight}px"/>
                 <rect class="croppy-svg-corner croppy-svg-corner-right-top" width="${store.style.cornerWidth}px" height="${store.style.cornerHeight}px"/>
@@ -465,6 +474,13 @@ function SvgCroppy() {
 
         const $wrapper = document.createElement('div')
         $wrapper.className = 'croppy-wrapper'
+        $wrapper.style.width = $root.width + 'px'
+        $wrapper.style.height = $root.height + 'px'
+
+        store.posData.selectRect.width = $root.width - 40
+        store.posData.selectRect.height = $root.height - 40
+        store.posData.selectRect.offsetX = 20
+        store.posData.selectRect.offsetY = 20
 
         this._storeSetNode('wrapper', $wrapper)
         this._storeSetNode('root', $root)

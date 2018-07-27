@@ -40,9 +40,10 @@ const store = {
                 store.settingsScreen.$inputHeight.value = store.uploadedImage.height
                 store.settingsScreen.aspectRatio = store.uploadedImage.width / store.uploadedImage.height
                 store.settingsScreen.setImageSizesString(store.uploadedImage.width, store.uploadedImage.height)
-                store.settingsScreen.setEqualsString(store.uploadedImage.width, store.uploadedImage.height)
+                store.settingsScreen.setEqualsString()
                 store.settingsScreen.fillTable()
-                this.changeToSettingsScreen()
+                // this.changeToSettingsScreen()
+                store.settingsScreen.svgCroppy = new SvgCroppy()
                 store.settingsScreen.svgCroppy.init(store.settingsScreen.$imgPres)
                 store.settingsScreen.svgCroppy.hide()
             }
@@ -71,9 +72,10 @@ const store = {
     },
     settingsScreen: {
         aspectRatio: null,
-        svgCroppy: new SvgCroppy(),
+        svgCroppy: null,
         ctxTemp: canvasTemp.getContext('2d'),
         tableCounter: blocks.length,
+        ignoreRatio: false,
         $imgPres: document.getElementById('settings-img-presentation'),
         $imgSizes: document.getElementById('settings-img-sizes'),
         $spanEquals: document.getElementById('settings-equals-blocks'),
@@ -87,6 +89,7 @@ const store = {
         $tableBlocks: document.getElementById('settings-table-blocks'),
         $tableInput: document.getElementById('settings-input-filter'),
         $tableCheckbox: document.getElementById('settings-table-checkbox'),
+        $strTableCounter: document.getElementById('settings-table-counter'),
         $btnSubmit: document.getElementById('settings-submit'),
         fillTable() {
             const tbody = this.$tableBlocks.querySelector('tbody')
@@ -94,7 +97,7 @@ const store = {
                 let row = document.createElement('tr')
                 row.innerHTML = `
                     <td><input type="checkbox" data-block-id="${item.id}" checked></td>
-                    <td><img src="${item.src}"></td>
+                    <td><img src="${item.src}" class="img-pixelated"></td>
                     <td>${item.name}</td>
                 `
                 row.querySelector('input').oninput = (e) => {
@@ -113,7 +116,7 @@ const store = {
                         this.$tableCheckbox.indeterminate = true
                         this.$tableCheckbox.checked = true
                     }
-                    console.log(this.tableCounter)
+                    this.setTableCounter()
                 }
                 row.onclick = (e) => {
                     if (e.target.localName === 'input') { return }
@@ -121,6 +124,7 @@ const store = {
                 }
                 tbody.appendChild(row)
             })
+            this.setTableCounter()
         },
         filterTable(name) {
             const regex = new RegExp(name, 'i') 
@@ -134,20 +138,36 @@ const store = {
             })
         },
         setImageSizesString(w, h, crop) {
-            this.$imgSizes.innerHTML = `Image size: ${w}x${h}`
+            this.$imgSizes.innerHTML = `Image size${crop ? ' (cropped)' : ''}: ${w}x${h}`
         },
-        setEqualsString(w, h) {
-            if (parseInt(w) * parseInt(h) > 0) {
-                this.$spanEquals.innerHTML = `${w*h} blocks`
+        setEqualsString() {
+            const w = parseInt(this.$inputWidth.value)
+            const h = parseInt(this.$inputHeight.value)
+            if (w * h > 0) {
+                const int = w * h
+                let output = ''
+                const arr = int.toString().split('')
+                arr.forEach((item, i) => {
+                    output += item
+                    if ((arr.length - i - 1) % 3 === 0 && arr.length - i !== 1) {
+                        output += ','
+                    }
+                })
+                this.$spanEquals.innerHTML = `${output} blocks`
             } else {
                 this.$spanEquals.innerHTML = '??? blocks'
             }
+        },
+        setTableCounter() {
+            const int = this.tableCounter
+            const max = blocks.length 
+            this.$strTableCounter.innerHTML = `${int}/${max} selected`
         },
         selectBoxGroup(group) {
             this.$boxGroupOptimized.classList.remove('box-selected')
             this.$boxGroupAll.classList.remove('box-selected')
             this.$boxGroupCustom.classList.remove('box-selected')
-            this.$tableBlocks.parentNode.classList.add('hidden')
+            document.querySelector('.table-blocks-container').classList.add('hidden')
             switch (group) {
                 case 'optimized':
                     this.$boxGroupOptimized.classList.add('box-selected')
@@ -160,14 +180,27 @@ const store = {
                 case 'custom':
                     this.$boxGroupCustom.classList.add('box-selected')
                     this.$boxGroupCustom.querySelector('input[type=radio]').checked = true
-                    this.$tableBlocks.parentNode.classList.remove('hidden')
+                    document.querySelector('.table-blocks-container').classList.remove('hidden')
                     break
             }
         },
         drawToCanvas() {
-            canvasTemp.width = parseInt(this.$inputWidth.value)
-            canvasTemp.height = parseInt(this.$inputHeight.value)
-            this.ctxTemp.drawImage(store.uploadedImage, 0, 0, canvasTemp.width, canvasTemp.height)
+            const inputWidth = parseInt(this.$inputWidth.value)
+            const inputHeight = parseInt(this.$inputHeight.value)
+            canvasTemp.width = inputWidth
+            canvasTemp.height = inputHeight
+            if (this.$checkboxCrop.checked) {
+                const cropInfo = this.svgCroppy.getCropInfo()
+                const widthCropRatio = inputWidth / cropInfo.width 
+                const heightCropRatio = inputHeight / cropInfo.height
+                this.ctxTemp.drawImage(store.uploadedImage, 
+                                       -cropInfo.offsetX * widthCropRatio, 
+                                       -cropInfo.offsetY * heightCropRatio,
+                                       store.uploadedImage.width * widthCropRatio, 
+                                       store.uploadedImage.height * heightCropRatio)
+            } else {
+                this.ctxTemp.drawImage(store.uploadedImage, 0, 0, canvasTemp.width, canvasTemp.height)
+            }
         },
         changeToEditorScreen() {
             document.querySelector('section.settings-screen').classList.add('hidden')
@@ -334,20 +367,45 @@ const store = {
         //Settings screen
         ////////////////////////////////////
         this.settingsScreen.$inputWidth.oninput = (e) => {
-            this.settingsScreen.$inputHeight.value = Math.round(this.settingsScreen.$inputWidth.value / this.settingsScreen.aspectRatio)
-            this.settingsScreen.setEqualsString(this.settingsScreen.$inputWidth.value, this.settingsScreen.$inputHeight.value)
+            if (!this.settingsScreen.ignoreRatio) {
+                this.settingsScreen.$inputHeight.value = Math.round(this.settingsScreen.$inputWidth.value / this.settingsScreen.aspectRatio)
+            }
+            this.settingsScreen.setEqualsString()
         }
 
         this.settingsScreen.$inputHeight.oninput = (e) => {
-            this.settingsScreen.$inputWidth.value = Math.round(this.settingsScreen.$inputHeight.value * this.settingsScreen.aspectRatio)
-            this.settingsScreen.setEqualsString(this.settingsScreen.$inputWidth.value, this.settingsScreen.$inputHeight.value)
+            if (!this.settingsScreen.ignoreRatio) {
+                this.settingsScreen.$inputWidth.value = Math.round(this.settingsScreen.$inputHeight.value * this.settingsScreen.aspectRatio)
+            }
+            this.settingsScreen.setEqualsString()
         }
 
         this.settingsScreen.$checkboxCrop.onchange = (e) => {
             if (e.target.checked) {
                 this.settingsScreen.svgCroppy.unhide()
+                const cropInfo = this.settingsScreen.svgCroppy.getCropInfo()
+                this.settingsScreen.setImageSizesString(cropInfo.width, cropInfo.height, true)
+                this.settingsScreen.aspectRatio = cropInfo.width / cropInfo.height
             } else {
                 this.settingsScreen.svgCroppy.hide()
+                this.settingsScreen.setImageSizesString(store.uploadedImage.width, store.uploadedImage.height)
+                this.settingsScreen.aspectRatio = this.uploadedImage.width / this.uploadedImage.height
+                this.settingsScreen.$inputWidth.value = this.uploadedImage.width
+                this.settingsScreen.$inputHeight.value = this.uploadedImage.height
+            }
+            this.settingsScreen.setEqualsString()
+        }
+
+        this.settingsScreen.$checkboxIgnoreRatio.onchange = (e) => {
+            this.settingsScreen.ignoreRatio = e.target.checked
+            const icon = document.querySelector('.size-inputs i')
+            if (e.target.checked === false) {
+                this.settingsScreen.$inputHeight.value = Math.round(this.settingsScreen.$inputWidth.value / this.settingsScreen.aspectRatio)
+                this.settingsScreen.$inputWidth.value = Math.round(this.settingsScreen.$inputHeight.value * this.settingsScreen.aspectRatio)
+                this.settingsScreen.setEqualsString()
+                icon.style.opacity = 1
+            } else {
+                icon.style.opacity = 0.3
             }
         }
 
@@ -380,6 +438,7 @@ const store = {
                 })
                 this.settingsScreen.tableCounter = 0
             }
+            this.settingsScreen.setTableCounter()
         }
 
         this.settingsScreen.$btnSubmit.onclick = (e) => {
@@ -415,8 +474,18 @@ const store = {
             this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
             this.mineartCanvas.init(this.editorScreen.$divCanvas)
             this.mineartCanvas.open(e.data)
-            // store.convertScreen.convert()
         }
+
+        this.settingsScreen.$imgPres.addEventListener('croppytransformed', (e) => {
+            const cropInfo = this.settingsScreen.svgCroppy.getCropInfo()
+            this.settingsScreen.setImageSizesString(cropInfo.width, cropInfo.height, true)
+            this.settingsScreen.aspectRatio = cropInfo.width / cropInfo.height
+            if (!this.settingsScreen.ignoreRatio) {
+                this.settingsScreen.$inputHeight.value = Math.round(this.settingsScreen.$inputWidth.value / this.settingsScreen.aspectRatio)
+                this.settingsScreen.$inputWidth.value = Math.round(this.settingsScreen.$inputHeight.value * this.settingsScreen.aspectRatio)
+            }
+            this.settingsScreen.setEqualsString()
+        })
 
         //Editor screen
         ////////////////////////////////////
@@ -554,16 +623,62 @@ const store = {
 }
 
 store.mineartCanvas.setBlocks(blocks)
+blocks.sort((a, b) => {
+    function rgb2hsv () {
+        var rr, gg, bb,
+            r = arguments[0] / 255,
+            g = arguments[1] / 255,
+            b = arguments[2] / 255,
+            h, s,
+            v = Math.max(r, g, b),
+            diff = v - Math.min(r, g, b),
+            diffc = function(c){
+                return (v - c) / 6 / diff + 1 / 2;
+            };
+
+        if (diff == 0) {
+            h = s = 0;
+        } else {
+            s = diff / v;
+            rr = diffc(r);
+            gg = diffc(g);
+            bb = diffc(b);
+
+            if (r === v) {
+                h = bb - gg;
+            }else if (g === v) {
+                h = (1 / 3) + rr - bb;
+            }else if (b === v) {
+                h = (2 / 3) + gg - rr;
+            }
+            if (h < 0) {
+                h += 1;
+            }else if (h > 1) {
+                h -= 1;
+            }
+        }
+        return {
+            h: Math.round(h * 360),
+            s: Math.round(s * 100),
+            v: Math.round(v * 100)
+        };
+    }
+
+    const aHsv = rgb2hsv(a.red, a.green, a.blue)
+    const bHsv = rgb2hsv(b.red, b.green, b.blue)
+
+    return aHsv.h - bHsv.h + aHsv.s - bHsv.s + bHsv.v - aHsv.v;
+})
 store.setEventListeners()
 store.editorScreen.fillBlockList()
 
 const tempImage = new Image()
 tempImage.src = require('../static/pic_184.jpg')
-store.startScreen.changeToSettingsScreen()
+// store.startScreen.changeToSettingsScreen()
 store.startScreen.uploadImage(tempImage.src)
 tempImage.onload = (e) => {
 
-    return
+    // return
     canvasTemp.width = tempImage.width
     canvasTemp.height = tempImage.height
     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)

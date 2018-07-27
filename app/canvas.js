@@ -628,8 +628,8 @@ function MineartCanvas() {
 
         canvasOverlay.addEventListener('mousemove', function(e) {
             if (!thisRoot._checkIfReady()) { return }
-            store.controls.mouse.localX = Math.round(e.pageX - store.boundingRect.x - store.controls.mouse.startX)
-            store.controls.mouse.localY = Math.round(e.pageY - store.boundingRect.y - store.controls.mouse.startY)
+            store.controls.mouse.localX = Math.round(e.clientX - store.boundingRect.x - store.controls.mouse.startX)
+            store.controls.mouse.localY = Math.round(e.clientY - store.boundingRect.y - store.controls.mouse.startY)
             let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
             let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
 
@@ -755,6 +755,14 @@ function MineartCanvas() {
             }
             thisRoot._renderMainCanvas()
             thisRoot._renderOverlayCanvas()
+        })
+
+        window.addEventListener('resize', (e) => {
+            thisRoot.setBoundingRect()
+        })
+
+        window.addEventListener('scroll', (e) => {
+            thisRoot.setBoundingRect()
         })
     }
 
@@ -1088,6 +1096,11 @@ function MineartCanvas() {
         store.boundingRect = $root.getBoundingClientRect()
         store.canvasWidth = store.boundingRect.width
         store.canvasHeight = store.boundingRect.height
+        canvasMain.width = store.canvasWidth
+        canvasMain.height = store.canvasHeight
+        canvasOverlay.width = store.canvasWidth
+        canvasOverlay.height = store.canvasHeight
+        this.render()
     }
 
     this.setBounds = () => {
@@ -1346,10 +1359,10 @@ function MineartCanvas() {
         canvasOverlay.style.position = 'absolute'
         this.setBoundingRect()
         this.setBounds()
-        canvasMain.width = store.canvasWidth
-        canvasMain.height = store.canvasHeight
-        canvasOverlay.width = store.canvasWidth
-        canvasOverlay.height = store.canvasHeight
+        // canvasMain.width = store.canvasWidth
+        // canvasMain.height = store.canvasHeight
+        // canvasOverlay.width = store.canvasWidth
+        // canvasOverlay.height = store.canvasHeight
         $root.appendChild(canvasMain)
         $root.appendChild(canvasOverlay)
 
