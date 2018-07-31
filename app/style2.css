@@ -362,6 +362,41 @@ html {
 	height: 32px;
 }
 
+.editor-screen .brush-size-container {
+	text-align: center;
+	padding: 2px;
+	width: 36px;
+	background-color: #f0f0f0;
+}
+
+.editor-screen .brush-size-thumbnail {
+    margin-left: auto;
+    margin-right: auto;
+    width: 25px;
+    height: 25px;
+    text-align: center;
+}
+
+.editor-screen .brush-size-thumbnail .brush-size-shape {
+    width: 25px;
+    height: 25px;
+    background-color: black;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.editor-screen .brush-size-thumbnail .brush-size-shape.circle {
+    border-radius: 25px;
+}
+
+.editor-screen .brush-size-string {
+	font-size: 12px;
+}
+
+.editor-screen .brush-size-buttons {
+	font-size: 14px;
+}
+
 section.convert-screen {
 	height: 500px;
 	background-color: #c5caea;

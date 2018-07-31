@@ -21,6 +21,13 @@ const store = {
     uploadedImage: new Image(),
     convertWorker: new ConvertWorker(),
     mineartCanvas: new MineartCanvas(),
+    findBlockById(id) {
+        return this.blocksDefault.find((item) => {
+            if (item.id === id) {
+                return true
+            }
+        })
+    },
     startScreen: {
         $dropzone: document.getElementById('start-dropzone'),
         $inputFile: document.getElementById('start-file-input'),
@@ -42,7 +49,7 @@ const store = {
                 store.settingsScreen.setImageSizesString(store.uploadedImage.width, store.uploadedImage.height)
                 store.settingsScreen.setEqualsString()
                 store.settingsScreen.fillTable()
-                // this.changeToSettingsScreen()
+                this.changeToSettingsScreen()
                 store.settingsScreen.svgCroppy = new SvgCroppy()
                 store.settingsScreen.svgCroppy.init(store.settingsScreen.$imgPres)
                 store.settingsScreen.svgCroppy.hide()
@@ -209,7 +216,11 @@ const store = {
     },
     editorScreen: {
         eyedropListener: null,
+        mainEyedrop: null,
         currentHistoryPos: -1,
+        noBlockImg: new Image(),
+        currentTool: 'pencil',
+        brushSize: null,
         $divCanvas: document.getElementById('editor-canvas'),
         $topbarBtns: document.querySelectorAll('.topbar-btn'),
         $saveBtn: document.getElementById('editor-save-btn'),
@@ -218,10 +229,18 @@ const store = {
         $replaceMenuBtn: document.getElementById('editor-replace-btn'),
         $replaceMenuInfo: document.getElementById('editor-replace-info'),
         $historyContainer: document.getElementById('editor-history'),
+        $historyFirstAction: document.getElementById('editor-first-action'),        
         $blocksList: document.getElementById('editor-block-list'),
         $btnConvert: document.getElementById('editor-btn-convert'),
         $inputImage: document.getElementById('editor-file-input-image'),
         $inputData: document.getElementById('editor-file-input-data'),
+        $inputFilter: document.getElementById('editor-input-filter'),
+        $brushContainer: document.getElementById('editor-brush-container'),
+        $brushShape: document.getElementById('editor-brush-shape'),
+        $brushString: document.getElementById('editor-brush-string'),
+        $brushMinus: document.getElementById('editor-brush-minus'),
+        $brushPlus: document.getElementById('editor-brush-plus'),
+        $mainEyedrop: document.getElementById('editor-main-eyedrop'),
         $footbar: document.getElementById('editor-footbar'),
         setEyedropListener(node) {
             this.eyedropListener = node
@@ -232,11 +251,19 @@ const store = {
             this.eyedropListener = null
         },
         fillBlockList() {
+            this.noBlockImg.src = require('../static/textures/no_block.png')
+            this.noBlockImg.onclick = () => {
+                this.setEyedrop(0)
+            }
+            store.editorScreen.$blocksList.appendChild(this.noBlockImg)
             store.blocksDefault.forEach((item) => {
                 const node = new Image()
                 node.src = item.src
                 node.classList.add('img-pixelated')
                 node.setAttribute('data-block-id', item.id)
+                node.onclick = () => {
+                    this.setEyedrop(item.id)
+                }
                 store.editorScreen.$blocksList.appendChild(node)
             })
         },
@@ -249,6 +276,42 @@ const store = {
             document.querySelectorAll('.info-panels-history-action').forEach((item) => {
                 item.remove()
             })
+        },
+        setEyedrop(int) {
+            if (int != 0) {
+                const block = store.findBlockById(int)
+                this.$mainEyedrop.src = block.src
+            } else {
+                this.$mainEyedrop.src = this.noBlockImg.src
+            }
+            this.mainEyedrop = int
+            store.mineartCanvas.setEyedrop(int)
+        },
+        filterBlockList(str) {
+            store.blocksDefault.forEach((item) => {
+                const regex = new RegExp(str, 'i')
+                if (item.name.match(regex)) {
+                    this.$blocksList.querySelector(`img[data-block-id="${item.id}"]`).classList.remove('hidden')
+                } else {
+                    this.$blocksList.querySelector(`img[data-block-id="${item.id}"]`).classList.add('hidden')
+                }
+            })
+        },
+        setBrushSize(int) {
+            let temp 
+            if (int > 25) {
+                temp = 25
+            } else if (int < 1) {
+                temp = 1
+            } else {
+                temp = int
+            }
+            const size = temp < 3 ? 3 : temp
+            this.$brushShape.style.width = (size % 2 ? size : size - 1) + 'px'
+            this.$brushShape.style.height = (size % 2 ? size : size - 1) + 'px'
+            this.$brushString.innerHTML = `${temp} bl.`
+            this.brushSize = temp
+            store.mineartCanvas.setBrushSize(temp)
         }
     },
     convertScreen: {
@@ -474,6 +537,8 @@ const store = {
             this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
             this.mineartCanvas.init(this.editorScreen.$divCanvas)
             this.mineartCanvas.open(e.data)
+            store.editorScreen.setEyedrop(1)
+            store.editorScreen.setBrushSize(2)
         }
 
         this.settingsScreen.$imgPres.addEventListener('croppytransformed', (e) => {
@@ -515,8 +580,8 @@ const store = {
         }
 
         this.editorScreen.$divCanvas.onclick = (e) => {
+            const info = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y).info
             if (this.editorScreen.eyedropListener) {
-                const info = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y).info
                 this.editorScreen.eyedropListener.setAttribute('data-block-id', info.id)
                 this.editorScreen.eyedropListener.src = info.image.src
                 const $title = this.editorScreen.eyedropListener.parentNode.querySelector('span')
@@ -524,6 +589,9 @@ const store = {
                     $title.innerHTML = info.name
                 }
                 this.editorScreen.removeEyedropListener()
+            }
+            if (this.editorScreen.currentTool === 'eyedropper') {
+                this.editorScreen.setEyedrop(info.id)
             }
         }
 
@@ -544,14 +612,14 @@ const store = {
             node.onclick = () => {
                 const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
                 actions.forEach((item) => {
-                    if (item.dataset.actionPos > node.dataset.actionPos) {
+                    if (parseInt(item.dataset.actionPos) > parseInt(node.dataset.actionPos)) {
                         item.classList.add('info-panels-history-action-returned')
                     } else {
                         item.classList.remove('info-panels-history-action-returned')
                     }
                 })
                 this.mineartCanvas.undoTo(parseInt(node.dataset.actionPos))
-                this.editorScreen.currentHistoryPos = node.dataset.actionPos
+                this.editorScreen.currentHistoryPos = parseInt(node.dataset.actionPos)
             }
             this.editorScreen.currentHistoryPos = e.details.pos
             const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
@@ -562,6 +630,15 @@ const store = {
             })
             this.editorScreen.$historyContainer.appendChild(node)
         })
+
+        this.editorScreen.$historyFirstAction.onclick = () => {
+            const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
+            actions.forEach((item) => {
+                item.classList.add('info-panels-history-action-returned')
+            })
+            this.mineartCanvas.undoTo(-1)
+            this.editorScreen.currentHistoryPos = -1
+        }
 
         this.editorScreen.$btnConvert.onclick = () => {
             document.querySelector('section.convert-screen').classList.remove('hidden')
@@ -587,6 +664,33 @@ const store = {
         this.editorScreen.$inputData.oninput = (e) => {
             this.startScreen.uploadDataFile(e.target.files[0])
             this.editorScreen.removeHistory()
+        }
+
+        this.editorScreen.$inputFilter.oninput = (e) => {
+            this.editorScreen.filterBlockList(e.target.value)
+        }
+
+        document.querySelectorAll('input[name="tool"]').forEach((item) => {
+            item.addEventListener('click', (e) => {
+                this.editorScreen.currentTool = e.target.value
+                if (e.target.value === 'pencil') {
+                    this.editorScreen.$brushShape.classList.remove('circle')
+                    this.editorScreen.$brushContainer.classList.remove('hidden')
+                } else if (e.target.value === 'brush') {
+                    this.editorScreen.$brushShape.classList.add('circle')
+                    this.editorScreen.$brushContainer.classList.remove('hidden')
+                } else {
+                    this.editorScreen.$brushContainer.classList.add('hidden')
+                }
+            })
+        })
+
+        this.editorScreen.$brushMinus.onclick = () => {
+            this.editorScreen.setBrushSize(this.editorScreen.brushSize - 1)
+        }
+
+        this.editorScreen.$brushPlus.onclick = () => {
+            this.editorScreen.setBrushSize(this.editorScreen.brushSize + 1)
         }
 
         //Convert screen
@@ -704,12 +808,6 @@ window.mineartDOM = {
     testShowPainted() {
         return store.mineartCanvas.debugRenderAllPainted()
     },
-    plusOneBrushSize() {
-        store.mineartCanvas.addToBrushSize(1)
-    },
-    minusOneBrushSize() {
-        store.mineartCanvas.addToBrushSize(-1)
-    },
     undo() {
         store.mineartCanvas.undoOnce()
     },
@@ -736,5 +834,8 @@ window.mineartDOM = {
     },
     convert() {
         store.mineartCanvas._convertToGroups()
+    },
+    bucket(x, y, id) {
+        store.mineartCanvas._bucket(x, y, id)
     }
 }

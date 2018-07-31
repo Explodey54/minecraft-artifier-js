@@ -165,36 +165,58 @@
                 <div class="column is-three-quarters editor">
                     <div class="editor-tools">
                         <label title="Pencil tool" onclick="mineartDOM.changeTool('pencil')">
-                            <input type="radio" name="tool" checked>
+                            <input type="radio" name="tool" value="pencil" checked>
                             <%=require('../static/img/pencil.svg')%>
                         </label>
                         <label title="Brush tool" onclick="mineartDOM.changeTool('brush')">
-                            <input type="radio" name="tool">
+                            <input type="radio" name="tool" value="brush">
                             <%=require('../static/img/brush.svg')%>
                         </label>
+                        <label title="Bucket tool" onclick="mineartDOM.changeTool('bucket')">
+                            <input type="radio" name="tool" value="bucket">
+                            <%=require('../static/img/bucket.svg')%>
+                        </label>
                         <label title="Selection tool" onclick="mineartDOM.changeTool('selection')">
-                            <input type="radio" name="tool">
+                            <input type="radio" name="tool" value="selection">
                             <%=require('../static/img/selection.svg')%>
                         </label>
-                        <label title="Eraser tool" onclick="mineartDOM.changeTool('eraser')">
-                            <input type="radio" name="tool">
-                            <%=require('../static/img/eraser.svg')%>
+                        <label title="Eyedropper tool" onclick="mineartDOM.changeTool('eyedropper')">
+                            <input type="radio" name="tool" value="eyedropper">
+                            <%=require('../static/img/eyedropper.svg')%>
                         </label>
+                        <label title="Zoom tool" onclick="mineartDOM.changeTool('zoom')">
+                            <input type="radio" name="tool" value="zoom">
+                            <%=require('../static/img/zoom.svg')%>
+                        </label>
+                        <label title="Grab tool" onclick="mineartDOM.changeTool('grab')">
+                            <input type="radio" name="tool" value="grab">
+                            <%=require('../static/img/hold.svg')%>
+                        </label>
+                        <div class="brush-size-container" id="editor-brush-container">
+                            <div class="brush-size-thumbnail">
+                                <span class="brush-size-shape" id="editor-brush-shape"></span>
+                            </div>
+                            <span class="brush-size-string" id="editor-brush-string">25 bl.</span><br>
+                            <div class="brush-size-buttons">
+                                <i class="fas fa-minus" id="editor-brush-minus"></i>
+                                <i class="fas fa-plus" id="editor-brush-plus"></i>
+                            </div>
+                        </div>
                         <div class="editor-eyedrop">
-                            <img class="img-pixelated" src="">
+                            <img class="img-pixelated" id="editor-main-eyedrop">
                         </div>
                     </div>
                     <div class="editor-canvas img-pixelated" id="editor-canvas"></div>
                 </div>
                 <div class="column info-panels" style="background-color: grey">
                     <div class="info-panels-blocks">
-                        <input class="input is-small" id="input-block-search">
+                        <input class="input is-small" id="editor-input-filter" placeholder="Filter by name">
                         <div class="info-panels-blocks-img" id="editor-block-list"></div>
                     </div>
                     <div class="info-panels-history">
                         History:
                         <div class="info-panels-history-container" id="editor-history">
-                            <div class="info-panels-history-action-start" data-action-pos="-1">Open</div>
+                            <div class="info-panels-history-action-start" id="editor-first-action">Open</div>
                         </div>
                     </div>
                     <button class="button" id="editor-btn-convert">Convert to commands</button>
