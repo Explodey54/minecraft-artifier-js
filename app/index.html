@@ -160,6 +160,21 @@
                         <div class="text-info hidden" id="editor-replace-info">Error</div>
                     </div>
                 </div>
+                <div class="topbar-btn">Settings
+                    <div class="topbar-menu topbar-menu-settings hidden">
+                        <div class="delete"></div>
+                        <div class="settings-panel">
+                            <label class="checkbox">
+                                <input type="checkbox" id="editor-settings-grid">
+                                Show grid
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="editor-settings-rulers" checked>
+                                Show rulers
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="columns is-mobile">
                 <div class="column is-three-quarters editor">
@@ -219,7 +234,7 @@
                             <div class="info-panels-history-action-start" id="editor-first-action">Open</div>
                         </div>
                     </div>
-                    <button class="button" id="editor-btn-convert">Convert to commands</button>
+                    <button class="button" id="editor-btn-convert">Convert</button>
                 </div>
 
             </div>
@@ -237,7 +252,7 @@
                                 <option value="commblock">Command block</option>
                                 <option value="mcfunction">.mcfunction file</option>
                                 <option value="raw">Raw commands</option>
-                                <option value="manual">Manual building</option>
+                                <option value="manual">Amounnts of blocks</option>
                             </select>
                         </div>
                     </div>

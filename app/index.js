@@ -242,6 +242,8 @@ const store = {
         $brushPlus: document.getElementById('editor-brush-plus'),
         $mainEyedrop: document.getElementById('editor-main-eyedrop'),
         $footbar: document.getElementById('editor-footbar'),
+        $settingsGrid: document.getElementById('editor-settings-grid'),
+        $settingsRulers: document.getElementById('editor-settings-rulers'),
         setEyedropListener(node) {
             this.eyedropListener = node
             node.classList.add('active')
@@ -382,7 +384,7 @@ const store = {
                 const slice = this.quantityOfBlocks.slice((int - 1) * rowsOnPage, rowsOnPage * int)
                 slice.forEach((item) => {
                     const $row = document.createElement('tr')
-                    const block = store.blocksDefault[item.id - 1]
+                    const block = store.findBlockById(parseInt(item.id))
                     let quantityStr = ''
                     if (item.quant > 63) {
                         quantityStr += `${Math.floor(item.quant / 64)} stacks`
@@ -538,7 +540,7 @@ const store = {
             this.mineartCanvas.init(this.editorScreen.$divCanvas)
             this.mineartCanvas.open(e.data)
             store.editorScreen.setEyedrop(1)
-            store.editorScreen.setBrushSize(2)
+            store.editorScreen.setBrushSize(25)
         }
 
         this.settingsScreen.$imgPres.addEventListener('croppytransformed', (e) => {
@@ -691,6 +693,14 @@ const store = {
 
         this.editorScreen.$brushPlus.onclick = () => {
             this.editorScreen.setBrushSize(this.editorScreen.brushSize + 1)
+        }
+
+        this.editorScreen.$settingsGrid.onchange = (e) => {
+            this.mineartCanvas.setSettingsValue('showGrid', e.target.checked)
+        }
+
+        this.editorScreen.$settingsRulers.onchange = (e) => {
+            this.mineartCanvas.setSettingsValue('showRulers', e.target.checked)
         }
 
         //Convert screen
