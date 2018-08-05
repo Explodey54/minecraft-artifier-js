@@ -54,24 +54,14 @@
                 </div>
                 <div class="column blocks-column">
                     <div class="block-groups">
-                        <div class="box box-selected" id="settings-group-optimized">
-                            <div class="title">Optimized</div>
-                            <div class="subtext">
-                                No falling<br>
-                                No redstone activated<br>
-                                No luminance<br>
-                                No transparent
-                            </div>
-                            <input type="radio" name="block-groups" value="optimized" checked>
-                        </div>
-                        <div class="box" id="settings-group-all">
+                        <div class="box box-selected" id="settings-group-all">
                             <div class="title">All</div>
                             <div class="subtext">
                                 All blocks
                             </div>
-                            <input type="radio" name="block-groups" value="all">
+                            <input type="radio" name="block-groups" value="all" checked>
                         </div>
-                        <div class="box" id="">
+                        <div class="box" id="settings-group-survival">
                             <div class="title">Survival</div>
                             <div class="subtext">
                                 Only blocks from survival mode<br>
@@ -103,16 +93,37 @@
                             <div id="settings-table-counter"></div>
                         </div>
                     </div>
-                    Minecraft version:
-                    <div class="select">
-                      <select>
-                        <option>1.12</option>
-                        <option>1.11</option>
-                        <option>1.10</option>
-                        <option>1.9</option>
-                        <option>1.8</option>
-                      </select>
+                    <div class="checkboxes-include" id="settings-checkboxes-include">
+                        <label class="checkbox">
+                            <input type="checkbox" name="include-falling" checked>
+                            Include falling
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" name="include-transparent">
+                            Include transparent
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" name="include-redstone">
+                            Include redstone activated
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" name="include-luminance">
+                            Include luminance
+                        </label>
                     </div>
+                    <div>
+                        <span>Minecraft version:</span>
+                        <div class="select">
+                          <select>
+                            <option>1.12</option>
+                            <option>1.11</option>
+                            <option>1.10</option>
+                            <option>1.9</option>
+                            <option>1.8</option>
+                          </select>
+                        </div>
+                    </div>
+
                     <div>
                         <button class="button is-success" id="settings-submit" style="font-size: 20px;">Convert!</button>
                     </div>
@@ -171,6 +182,10 @@
                             <label class="checkbox">
                                 <input type="checkbox" id="editor-settings-rulers" checked>
                                 Show rulers
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" id="editor-settings-original">
+                                Show original
                             </label>
                         </div>
                     </div>

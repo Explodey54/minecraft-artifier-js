@@ -26,6 +26,7 @@ function MineartCanvas() {
         baseCellSize: 16,
         boundingRect: null,
         blobImage: new Image(),
+        originalImage: new Image(),
         groups: null,
         offset: {
             bounds: {
@@ -106,7 +107,8 @@ function MineartCanvas() {
         settings: {
             maxBrushSize: 25,
             showGrid: false,
-            showRulers: true
+            showRulers: true,
+            showOriginal: false,
         },
         debug: { //delete in prod!!!
             showTempCanvas: false,
@@ -245,12 +247,14 @@ function MineartCanvas() {
         for (let i = 0; i < store.imageConvertedHex.length; i++) {
             let x = i % store.imageWidth
             let y = Math.floor(i / store.imageWidth)
-            let imageForCanvas = store.getBlockById(store.imageConvertedHex[i]).image
-            ctxTemp.drawImage(imageForCanvas,
-                             x * store.baseCellSize,
-                             y * store.baseCellSize,
-                             store.baseCellSize,
-                             store.baseCellSize)
+            if (store.imageConvertedHex[i] > 0) {
+                let imageForCanvas = store.getBlockById(store.imageConvertedHex[i]).image
+                ctxTemp.drawImage(imageForCanvas,
+                                 x * store.baseCellSize,
+                                 y * store.baseCellSize,
+                                 store.baseCellSize,
+                                 store.baseCellSize)
+            }
         }
 
         canvasTemp.toBlob((blob) => {
@@ -492,6 +496,11 @@ function MineartCanvas() {
             catchedBlocks[targetPos] = true
 
             let targetBlock = store.imageConvertedHex[targetPos]
+            if (targetBlock === 0) {
+                catchedBlocks[targetPos] = true
+                continue
+            }
+
             let targetWidth = 1
             let targetHeight = 1
 
@@ -554,25 +563,25 @@ function MineartCanvas() {
 
         console.log(groups.length, Object.keys(catchedBlocks).length)
 
-        // groups.forEach((item) => {
-        //     if (item.length === 1) {
-        //         const pos = this._getPosFromInt(item[0])
-        //         ctxMain.fillStyle = "red"
-        //         ctxMain.fillRect(
-        //                       pos.x * store.baseCellSize * store.scale.current + store.offset.x,
-        //                       pos.y * store.baseCellSize * store.scale.current + store.offset.y,
-        //                       store.scale.current * store.baseCellSize,
-        //                       store.scale.current * store.baseCellSize)
-        //     } else {
-        //         const startPos = this._getPosFromInt(item[0])
-        //         const endPos = this._getPosFromInt(item[1])
-        //         ctxMain.strokeRect(
-        //                       startPos.x * store.baseCellSize * store.scale.current + store.offset.x,
-        //                       endPos.y * store.baseCellSize * store.scale.current + store.offset.y,
-        //                       (endPos.x - startPos.x + 1) * store.scale.current * store.baseCellSize,
-        //                       (startPos.y - endPos.y + 1) * store.scale.current * store.baseCellSize)
-        //     }
-        // })
+        groups.forEach((item) => {
+            if (item.length === 1) {
+                const pos = this._getPosFromInt(item[0])
+                ctxMain.fillStyle = "red"
+                ctxMain.fillRect(
+                              pos.x * store.baseCellSize * store.scale.current + store.offset.x,
+                              pos.y * store.baseCellSize * store.scale.current + store.offset.y,
+                              store.scale.current * store.baseCellSize,
+                              store.scale.current * store.baseCellSize)
+            } else {
+                const startPos = this._getPosFromInt(item[0])
+                const endPos = this._getPosFromInt(item[1])
+                ctxMain.strokeRect(
+                              startPos.x * store.baseCellSize * store.scale.current + store.offset.x,
+                              endPos.y * store.baseCellSize * store.scale.current + store.offset.y,
+                              (endPos.x - startPos.x + 1) * store.scale.current * store.baseCellSize,
+                              (startPos.y - endPos.y + 1) * store.scale.current * store.baseCellSize)
+            }
+        })
     }
 
     this._convertGroupToCommand = (group, facing) => {
@@ -1134,10 +1143,19 @@ function MineartCanvas() {
                 renderByCache()
             }
         }
+
+        function renderOriginal() {
+            ctxMain.drawImage(store.originalImage,
+                  store.offset.x, 
+                  store.offset.y, 
+                  store.imageWidth * store.baseCellSize * store.scale.current, 
+                  store.imageHeight * store.baseCellSize * store.scale.current)
+        }
         
         const renderList = {
             'RENDER_MAIN': renderMain,
-            'RENDER_GRID': renderGrid
+            'RENDER_GRID': renderGrid,
+            'RENDER_ORIGINAL': renderOriginal
         }
 
         function renderHelper(list) {
@@ -1154,8 +1172,9 @@ function MineartCanvas() {
         ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
 
         renderHelper([
-            'RENDER_MAIN',
-            store.settings.showGrid ? 'RENDER_GRID' : false
+            store.settings.showOriginal ? 'RENDER_ORIGINAL' : 'RENDER_MAIN',
+            store.settings.showGrid ? 'RENDER_GRID' : false,
+            // 'RENDER_ORIGINAL'
         ])
         // console.log(performance.now() - t0)
     }
@@ -1347,6 +1366,10 @@ function MineartCanvas() {
         store.groups = null
     }
 
+    this.setOriginalImageSrc = (str) => {
+        store.originalImage.src = str
+    }
+
     this.convertAsRaw = (facing) => {
         if (store.groups === null) {
             this._convertToGroups()
@@ -1425,10 +1448,12 @@ function MineartCanvas() {
         const output = []
         const temp = {}
         store.imageConvertedHex.forEach((item) => {
-            if (temp[item]) {
-                temp[item]++
-            } else {
-                temp[item] = 1
+            if (item > 0) {
+                if (temp[item]) {
+                    temp[item]++
+                } else {
+                    temp[item] = 1
+                }
             }
         })
 

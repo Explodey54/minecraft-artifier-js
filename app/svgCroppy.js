@@ -40,6 +40,8 @@ function SvgCroppy() {
         }
     }
 
+    var initFlag = false
+
     this._storeSetNode = (key, node) => {
         if (store.nodes[key] === undefined) {
             throw new Error('[SvgCroppy] Unknown key in store.nodes')
@@ -382,7 +384,43 @@ function SvgCroppy() {
         this._storeGetNode('root').dispatchEvent(store.events.transformed)
     }
 
+    this.setSizes = () => {
+        const $svg = this._storeGetNode('svg') 
+        const $svgSelectRect = this._storeGetSvgNode('selectRect')
+        const $wrapper = this._storeGetNode('wrapper')
+        const $root = this._storeGetNode('root')
+
+        $wrapper.style.height = $root.clientHeight + 'px'
+
+        store.posData.selectRect.width = $root.width - 40
+        store.posData.selectRect.height = $root.height - 40
+        store.posData.selectRect.offsetX = 20
+        store.posData.selectRect.offsetY = 20
+        
+        store.posData.boundingRect = $wrapper.getBoundingClientRect()
+
+        this.render()
+    }
+
     this.init = (rootSelector) => {
+        let $root = null
+
+        if (rootSelector.constructor.name === 'String') {
+            $root = document.querySelector(rootSelector)
+        } else {
+            $root = rootSelector
+        }
+
+        if ($root === null) { throw new Error('[SvgCroppy] rootNode is null') }
+
+        this._storeSetNode('root', $root)
+
+        if (initFlag) {
+            this.setSizes()
+            return
+        }
+        initFlag = true
+
         const svgTemplate = `
             <style>
                 .croppy-hidden {
@@ -394,6 +432,12 @@ function SvgCroppy() {
                     position: relative;
                     margin: 0;
                     padding: 0;
+                    user-drag: none; 
+                    user-select: none;
+                    -moz-user-select: none;
+                    -webkit-user-drag: none;
+                    -webkit-user-select: none;
+                    -ms-user-select: none;
                 }
 
                 .croppy-svg {
@@ -462,28 +506,17 @@ function SvgCroppy() {
 
             </svg>
         `
-        let $root = null
-
-        if (rootSelector.constructor.name === 'String') {
-            $root = document.querySelector(rootSelector)
-        } else {
-            $root = rootSelector
-        }
-
-        if ($root === null) { throw new Error('[SvgCroppy] rootNode is null') }
-
         const $wrapper = document.createElement('div')
         $wrapper.className = 'croppy-wrapper'
-        $wrapper.style.width = $root.width + 'px'
-        $wrapper.style.height = $root.height + 'px'
+        // $wrapper.style.width = $root.width + 'px'
+        // $wrapper.style.height = $root.height + 'px'
 
-        store.posData.selectRect.width = $root.width - 40
-        store.posData.selectRect.height = $root.height - 40
-        store.posData.selectRect.offsetX = 20
-        store.posData.selectRect.offsetY = 20
+        // store.posData.selectRect.width = $root.width - 40
+        // store.posData.selectRect.height = $root.height - 40
+        // store.posData.selectRect.offsetX = 20
+        // store.posData.selectRect.offsetY = 20
 
         this._storeSetNode('wrapper', $wrapper)
-        this._storeSetNode('root', $root)
 
         $root.parentNode.insertBefore($wrapper, $root)
         $wrapper.innerHTML = svgTemplate
@@ -505,15 +538,16 @@ function SvgCroppy() {
         this._storeSetSvgNode('barRight', $svg.querySelector('.croppy-svg-bar-right')),
         this._storeSetSvgNode('barBottom', $svg.querySelector('.croppy-svg-bar-bottom')),
 
-        setAttr($svgSelectRect, {
-            width: store.posData.selectRect.width,
-            height: store.posData.selectRect.height,
-            x: store.posData.selectRect.offsetX,
-            y: store.posData.selectRect.offsetY
-        })
+        // setAttr($svgSelectRect, {
+        //     width: store.posData.selectRect.width,
+        //     height: store.posData.selectRect.height,
+        //     x: store.posData.selectRect.offsetX,
+        //     y: store.posData.selectRect.offsetY
+        // })
 
-        this.render()
-        store.posData.boundingRect = $svg.getBoundingClientRect()
+        // store.posData.boundingRect = $svg.getBoundingClientRect()
+        // this.render()
+        this.setSizes()
         this._setEventListeners()
     }
 }

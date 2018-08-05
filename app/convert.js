@@ -47,18 +47,23 @@ onmessage = function(e) {
         let pixelRgb = {
             red: imageData[i],
             green: imageData[i + 1],
-            blue: imageData[i + 2]
+            blue: imageData[i + 2],
+            alpha: imageData[i + 3]
         }
-        let temp = false
-        blocks.forEach((item) => {
-            let dev = Math.abs(pixelRgb.red - item.red) + Math.abs(pixelRgb.green - item.green) + Math.abs(pixelRgb.blue - item.blue)
-            if (!temp || dev < temp.deviation) {
-                temp = item
-                temp.deviation = dev
-            }
-        })
+        if (pixelRgb.alpha > 10) {
+            let temp = false
+            blocks.forEach((item) => {
+                let dev = Math.abs(pixelRgb.red - item.red) + Math.abs(pixelRgb.green - item.green) + Math.abs(pixelRgb.blue - item.blue)
+                if (!temp || dev < temp.deviation) {
+                    temp = item
+                    temp.deviation = dev
+                }
+            })
+            output[i / 4] = temp.id
+        } else {
+            output[i / 4] = 0
+        }
 
-        output[i / 4] = temp.id
     }
 
     postMessage(output)

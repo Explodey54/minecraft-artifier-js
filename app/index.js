@@ -41,16 +41,16 @@ const store = {
         },
         uploadImage(src) {
             store.uploadedImage.src = src
+            store.mineartCanvas.setOriginalImageSrc(src)
             store.uploadedImage.onload = () => {
                 store.settingsScreen.$imgPres.src = src
                 store.settingsScreen.$inputWidth.value = store.uploadedImage.width
                 store.settingsScreen.$inputHeight.value = store.uploadedImage.height
                 store.settingsScreen.aspectRatio = store.uploadedImage.width / store.uploadedImage.height
-                store.settingsScreen.setImageSizesString(store.uploadedImage.width, store.uploadedImage.height)
+                store.settingsScreen.setImageSizesString(store.uploadedImage.naturalWidth, store.uploadedImage.naturalHeight)
                 store.settingsScreen.setEqualsString()
                 store.settingsScreen.fillTable()
                 this.changeToSettingsScreen()
-                store.settingsScreen.svgCroppy = new SvgCroppy()
                 store.settingsScreen.svgCroppy.init(store.settingsScreen.$imgPres)
                 store.settingsScreen.svgCroppy.hide()
             }
@@ -79,7 +79,7 @@ const store = {
     },
     settingsScreen: {
         aspectRatio: null,
-        svgCroppy: null,
+        svgCroppy: new SvgCroppy(),
         ctxTemp: canvasTemp.getContext('2d'),
         tableCounter: blocks.length,
         ignoreRatio: false,
@@ -90,7 +90,7 @@ const store = {
         $inputHeight: document.getElementById('settings-input-height'),
         $checkboxCrop: document.getElementById('settings-check-crop'),
         $checkboxIgnoreRatio: document.getElementById('settings-check-ignore-ratio'),
-        $boxGroupOptimized: document.getElementById('settings-group-optimized'),
+        $boxGroupSurvival: document.getElementById('settings-group-survival'),
         $boxGroupAll: document.getElementById('settings-group-all'),
         $boxGroupCustom: document.getElementById('settings-group-custom'),
         $tableBlocks: document.getElementById('settings-table-blocks'),
@@ -171,14 +171,15 @@ const store = {
             this.$strTableCounter.innerHTML = `${int}/${max} selected`
         },
         selectBoxGroup(group) {
-            this.$boxGroupOptimized.classList.remove('box-selected')
+            this.$boxGroupSurvival.classList.remove('box-selected')
             this.$boxGroupAll.classList.remove('box-selected')
             this.$boxGroupCustom.classList.remove('box-selected')
             document.querySelector('.table-blocks-container').classList.add('hidden')
+            document.getElementById('settings-checkboxes-include').classList.remove('hidden')
             switch (group) {
-                case 'optimized':
-                    this.$boxGroupOptimized.classList.add('box-selected')
-                    this.$boxGroupOptimized.querySelector('input[type=radio]').checked = true
+                case 'survival':
+                    this.$boxGroupSurvival.classList.add('box-selected')
+                    this.$boxGroupSurvival.querySelector('input[type=radio]').checked = true
                     break
                 case 'all':
                     this.$boxGroupAll.classList.add('box-selected')
@@ -188,6 +189,7 @@ const store = {
                     this.$boxGroupCustom.classList.add('box-selected')
                     this.$boxGroupCustom.querySelector('input[type=radio]').checked = true
                     document.querySelector('.table-blocks-container').classList.remove('hidden')
+                    document.getElementById('settings-checkboxes-include').classList.add('hidden')
                     break
             }
         },
@@ -198,13 +200,19 @@ const store = {
             canvasTemp.height = inputHeight
             if (this.$checkboxCrop.checked) {
                 const cropInfo = this.svgCroppy.getCropInfo()
-                const widthCropRatio = inputWidth / cropInfo.width 
-                const heightCropRatio = inputHeight / cropInfo.height
+                if (store.uploadedImage.naturalHeight > 500) {
+                    cropInfo.height = store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.height
+                    cropInfo.width = store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.width
+                    cropInfo.offsetY = store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.offsetY
+                    cropInfo.offsetX = store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.offsetX
+                }
+                const widthCropRatio = inputWidth / cropInfo.width
+                const heightCropRatio = inputHeight / cropInfo.height 
                 this.ctxTemp.drawImage(store.uploadedImage, 
                                        -cropInfo.offsetX * widthCropRatio, 
                                        -cropInfo.offsetY * heightCropRatio,
-                                       store.uploadedImage.width * widthCropRatio, 
-                                       store.uploadedImage.height * heightCropRatio)
+                                       store.uploadedImage.naturalWidth * widthCropRatio, 
+                                       store.uploadedImage.naturalHeight * heightCropRatio)
             } else {
                 this.ctxTemp.drawImage(store.uploadedImage, 0, 0, canvasTemp.width, canvasTemp.height)
             }
@@ -212,6 +220,7 @@ const store = {
         changeToEditorScreen() {
             document.querySelector('section.settings-screen').classList.add('hidden')
             document.querySelector('section.editor-screen').classList.remove('hidden')
+            this.$checkboxCrop.checked = false
         }
     },
     editorScreen: {
@@ -244,6 +253,7 @@ const store = {
         $footbar: document.getElementById('editor-footbar'),
         $settingsGrid: document.getElementById('editor-settings-grid'),
         $settingsRulers: document.getElementById('editor-settings-rulers'),
+        $settingsOriginal: document.getElementById('editor-settings-original'),
         setEyedropListener(node) {
             this.eyedropListener = node
             node.classList.add('active')
@@ -317,7 +327,7 @@ const store = {
         }
     },
     convertScreen: {
-        wasChanged: true,
+        wasChanged: false,
         commBlockStrings: null,
         mcfunctionBlob: null,
         rawCommands: null,
@@ -345,6 +355,7 @@ const store = {
             if (this.wasChanged) {
                 store.mineartCanvas.resetGroups()
                 this.wasChanged = false
+                console.log('change')
             }
             this.commBlockStrings = store.mineartCanvas.convertAsCommandBlock(this.$selectDirection.value)
             this.mcfunctionBlob = new Blob([store.mineartCanvas.convertAsMcfunction(this.$selectDirection.value)], {type : 'text/plain'})
@@ -449,11 +460,15 @@ const store = {
             if (e.target.checked) {
                 this.settingsScreen.svgCroppy.unhide()
                 const cropInfo = this.settingsScreen.svgCroppy.getCropInfo()
+                if (store.uploadedImage.naturalHeight > 500) {
+                    cropInfo.width = Math.round(store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.width)
+                    cropInfo.height = Math.round(store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.height)
+                }
                 this.settingsScreen.setImageSizesString(cropInfo.width, cropInfo.height, true)
                 this.settingsScreen.aspectRatio = cropInfo.width / cropInfo.height
             } else {
                 this.settingsScreen.svgCroppy.hide()
-                this.settingsScreen.setImageSizesString(store.uploadedImage.width, store.uploadedImage.height)
+                this.settingsScreen.setImageSizesString(store.uploadedImage.naturalWidth, store.uploadedImage.naturalHeight)
                 this.settingsScreen.aspectRatio = this.uploadedImage.width / this.uploadedImage.height
                 this.settingsScreen.$inputWidth.value = this.uploadedImage.width
                 this.settingsScreen.$inputHeight.value = this.uploadedImage.height
@@ -474,8 +489,8 @@ const store = {
             }
         }
 
-        this.settingsScreen.$boxGroupOptimized.onclick = (e) => {
-            this.settingsScreen.selectBoxGroup('optimized')
+        this.settingsScreen.$boxGroupSurvival.onclick = (e) => {
+            this.settingsScreen.selectBoxGroup('survival')
         }
 
         this.settingsScreen.$boxGroupAll.onclick = (e) => {
@@ -512,9 +527,9 @@ const store = {
             switch (blockGroup) {
                 case 'all':
                     break
-                case 'optimized':
+                case 'survival':
                     blocks.forEach((item) => {
-                        if (item.luminance === true || item.transparency === true || item.redstone === true) {
+                        if (item.survival !== true) {
                             excludeArr.push(item.id)
                         }
                     })
@@ -527,6 +542,37 @@ const store = {
                     })
                     break
             }
+            if (blockGroup === 'all' || blockGroup === 'survival') {
+                if (document.querySelector('input[name=include-transparent]').checked === false) {
+                    blocks.forEach((item) => {
+                        if (item.transparency === true) {
+                            excludeArr.push(item.id)
+                        }
+                    })
+                }
+                if (document.querySelector('input[name=include-falling]').checked === false) {
+                    blocks.forEach((item) => {
+                        if (item.falling === true) {
+                            excludeArr.push(item.id)
+                        }
+                    })
+                }
+                if (document.querySelector('input[name=include-redstone]').checked === false) {
+                    blocks.forEach((item) => {
+                        if (item.redstone === true) {
+                            excludeArr.push(item.id)
+                        }
+                    })
+                }
+                if (document.querySelector('input[name=include-luminance]').checked === false) {
+                    blocks.forEach((item) => {
+                        if (item.luminance === true) {
+                            excludeArr.push(item.id)
+                        }
+                    })
+                }
+            }
+
             this.settingsScreen.drawToCanvas()
             this.convertWorker.postMessage({
                 imgData: this.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
@@ -540,11 +586,15 @@ const store = {
             this.mineartCanvas.init(this.editorScreen.$divCanvas)
             this.mineartCanvas.open(e.data)
             store.editorScreen.setEyedrop(1)
-            store.editorScreen.setBrushSize(25)
+            store.editorScreen.setBrushSize(9)
         }
 
         this.settingsScreen.$imgPres.addEventListener('croppytransformed', (e) => {
             const cropInfo = this.settingsScreen.svgCroppy.getCropInfo()
+            if (store.uploadedImage.naturalWidth > 500) {
+                cropInfo.width = Math.round(store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.width)
+                cropInfo.height = Math.round(store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.height)
+            }
             this.settingsScreen.setImageSizesString(cropInfo.width, cropInfo.height, true)
             this.settingsScreen.aspectRatio = cropInfo.width / cropInfo.height
             if (!this.settingsScreen.ignoreRatio) {
@@ -581,6 +631,13 @@ const store = {
             this.editorScreen.$replaceMenuInfo.innerHTML = `${replacedNum} block(s) replaced.`
         }
 
+        this.editorScreen.$divCanvas.onmousedown = (e) => {
+            if (e.which === 1) {
+                this.mineartCanvas.setSettingsValue('showOriginal', false)
+                this.editorScreen.$settingsOriginal.checked = false
+            }
+        }
+
         this.editorScreen.$divCanvas.onclick = (e) => {
             const info = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y).info
             if (this.editorScreen.eyedropListener) {
@@ -607,6 +664,7 @@ const store = {
         }
 
         this.editorScreen.$divCanvas.addEventListener('history', (e) => {
+            this.convertScreen.wasChanged = true
             const node = document.createElement('div')
             node.classList.add('info-panels-history-action')
             node.setAttribute('data-action-pos', e.details.pos)
@@ -703,6 +761,10 @@ const store = {
             this.mineartCanvas.setSettingsValue('showRulers', e.target.checked)
         }
 
+        this.editorScreen.$settingsOriginal.onchange = (e) => {
+            this.mineartCanvas.setSettingsValue('showOriginal', e.target.checked)
+        }
+
         //Convert screen
         ////////////////////////////////////
         this.convertScreen.$selectMethod.onchange = (e) => {
@@ -787,29 +849,29 @@ store.setEventListeners()
 store.editorScreen.fillBlockList()
 
 const tempImage = new Image()
-tempImage.src = require('../static/pic_184.jpg')
+tempImage.src = require('../static/pic_1000.png')
 // store.startScreen.changeToSettingsScreen()
-store.startScreen.uploadImage(tempImage.src)
-tempImage.onload = (e) => {
+// store.startScreen.uploadImage(tempImage.src)
+// tempImage.onload = (e) => {
 
-    // return
-    canvasTemp.width = tempImage.width
-    canvasTemp.height = tempImage.height
-    store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
+//     return
+//     canvasTemp.width = tempImage.width
+//     canvasTemp.height = tempImage.height
+//     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
 
-    const exclude = []
-    blocks.forEach((item) => {
-        if (item.luminance === true || item.transparency === true || item.redstone === true) {
-            exclude.push(item.id)
-        }
-    })
+//     const exclude = []
+//     blocks.forEach((item) => {
+//         if (item.luminance === true || item.transparency === true || item.redstone === true) {
+//             exclude.push(item.id)
+//         }
+//     })
 
-    store.convertWorker.postMessage({
-        imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
-        exclude: exclude
-    })
-    store.startScreen.changeToEditorScreen()
-}
+//     store.convertWorker.postMessage({
+//         imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
+//         exclude: exclude
+//     })
+//     store.startScreen.changeToEditorScreen()
+// }
 
 window.mineartDOM = {
     changeTool(tool) {

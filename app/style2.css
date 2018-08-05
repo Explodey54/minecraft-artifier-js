@@ -51,7 +51,13 @@ html {
 }
 
 .settings-screen .img-background .img-presentation {
+	max-height: 500px;
+	user-drag: none; 
 	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
 }
 
 .settings-screen .size-settings .size-inputs {
@@ -76,7 +82,7 @@ html {
 .settings-screen .blocks-column .block-groups .box {
 	vertical-align: top;
 	height: 200px;
-	width: 23%;
+	width: 30%;
 	display: inline-block;
 	text-align: center;
 	min-width: 120px;
@@ -151,6 +157,11 @@ html {
 
 .settings-screen .blocks-column table thead th {
 	border: none;
+}
+
+.settings-screen .blocks-column .checkboxes-include label {
+	display: block;
+	margin-bottom: 5px;
 }
 
 .settings-screen .size-inputs i.fa-link {
