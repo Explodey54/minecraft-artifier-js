@@ -355,7 +355,7 @@ html {
 
 .info-panels-history-container {
 	height: 90%;
-	background-color: #42a3c5;
+	background-color: #8c8c8c;
 	overflow-y: scroll;
 }
 
@@ -368,13 +368,43 @@ html {
 	background-color: lightgray;
 }
 
-.info-panels-position {
+.info-panels-history-action-current {
+	background-color: #759cff;
+}
+
+.info-panels-history-action:before {
+	content: '';
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	margin-right: 8px;
+}
+
+.info-panels-history-action-pencil:before {
+	background-image: url('data:image/svg+xml;utf8,<svg version="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 459 459"><path d="M0 362v97h97l280-283-97-97L1 362zm451-260c11-10 11-25 0-36L393 8a25 25 0 0 0-36 0l-46 46 97 96 43-48z"/></svg>');
+}
+
+.info-panels-history-action-brush:before {
+	background-image: url('data:image/svg+xml;utf8,<svg version="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M499 46a43 43 0 0 0-60 0L199 275c26 7 48 24 62 48 4 7 8 15 10 23l229-239a43 43 0 0 0-1-61zM177 302h-4c-20 0-40 7-57 19-20 14-27 35-42 53-18 24-46 35-74 43 16 43 76 60 116 61h4c45 0 97-16 119-60 23-49-6-113-62-116z"/></svg>');
+}
+
+.info-panels-history-action-bucket:before {
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M439 223.4A143.1 143.1 0 0 1 248.2 252a30 30 0 1 1 19-23.4c18.4 11.8 39.8 18 62.1 17.7a112 112 0 0 0 88.3-44.4L315.4 99.8 362.1 53a31.6 31.6 0 0 1 44.6 0 114.4 114.4 0 0 1 10.9 149l21.4 21.5a144.3 144.3 0 0 0-11-191.7c-24-24-63.1-24-87.1 0l-47 46.7-26.1-26.2-108.6 108.6A115.3 115.3 0 0 0 0 267.2v90h30v-90a30 30 0 0 1 47.4-24.6l-11.5 11.5L310 498.3 512 296.4l-73-73zm-340.2-2.2a60 60 0 0 0-44.1-13.9 84.8 84.8 0 0 1 80.8-22.8l-36.7 36.7z"/></svg>')
+}
+
+.info-panels-history-action-replace:before {
+	background-image: url('data:image/svg+xml;utf8,<svg version="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M496 80H128V32a16 16 0 0 0-27-11L5 117c-7 6-7 16 0 22l96 96a16 16 0 0 0 27-11v-48h368c9 0 16-7 16-16V96c0-9-7-16-16-16zM507 373l-96-96a16 16 0 0 0-27 11v48H16c-9 0-16 7-16 16v64c0 9 7 16 16 16h368v48a16 16 0 0 0 27 11l96-96c7-6 7-16 0-22z"/></svg>')
+}
+
+
+
+/*.info-panels-position {
 	background-color: #adcde2;
 	height: 100px;
 	margin-bottom: 10px;
 	padding: 10px;
 	font-size: 14px;
-}
+}*/
 
 .editor-eyedrop {
 	width: 32px;

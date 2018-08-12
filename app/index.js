@@ -71,8 +71,8 @@ const store = {
                 }
 
                 this.changeToEditorScreen()
-                store.mineartCanvas.setImageSizes(width, height)
                 store.mineartCanvas.init(store.editorScreen.$divCanvas)
+                store.mineartCanvas.setImageSizes(width, height)
                 store.mineartCanvas.open(uint8Array)
             }
         }
@@ -230,6 +230,7 @@ const store = {
         noBlockImg: new Image(),
         currentTool: 'pencil',
         brushSize: null,
+        maxHistory: 50,
         $divCanvas: document.getElementById('editor-canvas'),
         $topbarBtns: document.querySelectorAll('.topbar-btn'),
         $saveBtn: document.getElementById('editor-save-btn'),
@@ -582,8 +583,8 @@ const store = {
 
         this.convertWorker.onmessage = (e) => {
             this.settingsScreen.changeToEditorScreen()
-            this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
             this.mineartCanvas.init(this.editorScreen.$divCanvas)
+            this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
             this.mineartCanvas.open(e.data)
             store.editorScreen.setEyedrop(1)
             store.editorScreen.setBrushSize(9)
@@ -632,7 +633,7 @@ const store = {
         }
 
         this.editorScreen.$divCanvas.onmousedown = (e) => {
-            if (e.which === 1) {
+            if (e.which === 1 && this.editorScreen.$settingsOriginal.checked === true) {
                 this.mineartCanvas.setSettingsValue('showOriginal', false)
                 this.editorScreen.$settingsOriginal.checked = false
             }
@@ -665,35 +666,57 @@ const store = {
 
         this.editorScreen.$divCanvas.addEventListener('history', (e) => {
             this.convertScreen.wasChanged = true
+            this.editorScreen.currentHistoryPos = e.details.pos
+
+            let historyCounter = 0
+            const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
+            actions.forEach((item) => {
+                item.classList.remove('info-panels-history-action-current')
+                if (parseInt(item.dataset.actionPos) >= parseInt(this.editorScreen.currentHistoryPos)) {
+                    item.remove()
+                    historyCounter--
+                } else {
+                    historyCounter++
+                }
+            })
+            
+            if (historyCounter === this.editorScreen.maxHistory) {
+                const lastAction = this.editorScreen.$historyContainer.querySelector('.info-panels-history-action')
+                lastAction.remove()
+            }
+
             const node = document.createElement('div')
             node.classList.add('info-panels-history-action')
+            node.classList.add('info-panels-history-action-current')
+            node.classList.add('info-panels-history-action-' + e.details.type)
             node.setAttribute('data-action-pos', e.details.pos)
-            node.innerHTML = e.details.type
+            node.innerHTML = e.details.type + ' ' + e.details.pos
             node.onclick = () => {
+                this.editorScreen.$historyFirstAction.classList.remove('info-panels-history-action-current')
                 const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
                 actions.forEach((item) => {
+                    item.classList.remove('info-panels-history-action-current')
                     if (parseInt(item.dataset.actionPos) > parseInt(node.dataset.actionPos)) {
                         item.classList.add('info-panels-history-action-returned')
                     } else {
                         item.classList.remove('info-panels-history-action-returned')
                     }
                 })
+                node.classList.add('info-panels-history-action-current')
                 this.mineartCanvas.undoTo(parseInt(node.dataset.actionPos))
                 this.editorScreen.currentHistoryPos = parseInt(node.dataset.actionPos)
             }
-            this.editorScreen.currentHistoryPos = e.details.pos
-            const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
-            actions.forEach((item) => {
-                if (parseInt(item.dataset.actionPos) >= parseInt(this.editorScreen.currentHistoryPos)) {
-                    item.remove()
-                }
-            })
+            
+            this.editorScreen.$historyFirstAction.classList.remove('info-panels-history-action-current')
             this.editorScreen.$historyContainer.appendChild(node)
+            this.editorScreen.$historyContainer.scrollTop = this.editorScreen.$historyContainer.scrollHeight
         })
 
-        this.editorScreen.$historyFirstAction.onclick = () => {
+        this.editorScreen.$historyFirstAction.onclick = (e) => {
+            e.target.classList.add('info-panels-history-action-current')
             const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
             actions.forEach((item) => {
+                item.classList.remove('info-panels-history-action-current')
                 item.classList.add('info-panels-history-action-returned')
             })
             this.mineartCanvas.undoTo(-1)
@@ -849,29 +872,29 @@ store.setEventListeners()
 store.editorScreen.fillBlockList()
 
 const tempImage = new Image()
-tempImage.src = require('../static/pic_1000.png')
-// store.startScreen.changeToSettingsScreen()
-// store.startScreen.uploadImage(tempImage.src)
-// tempImage.onload = (e) => {
+tempImage.src = require('../static/lum_150_350.png')
+store.startScreen.changeToSettingsScreen()
+store.startScreen.uploadImage(tempImage.src)
+tempImage.onload = (e) => {
 
-//     return
-//     canvasTemp.width = tempImage.width
-//     canvasTemp.height = tempImage.height
-//     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
+    // return
+    canvasTemp.width = tempImage.width
+    canvasTemp.height = tempImage.height
+    store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
 
-//     const exclude = []
-//     blocks.forEach((item) => {
-//         if (item.luminance === true || item.transparency === true || item.redstone === true) {
-//             exclude.push(item.id)
-//         }
-//     })
+    const exclude = []
+    blocks.forEach((item) => {
+        if (item.luminance === true || item.transparency === true || item.redstone === true) {
+            exclude.push(item.id)
+        }
+    })
 
-//     store.convertWorker.postMessage({
-//         imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
-//         exclude: exclude
-//     })
-//     store.startScreen.changeToEditorScreen()
-// }
+    store.convertWorker.postMessage({
+        imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
+        exclude: exclude
+    })
+    store.startScreen.changeToEditorScreen()
+}
 
 window.mineartDOM = {
     changeTool(tool) {

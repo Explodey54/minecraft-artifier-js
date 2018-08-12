@@ -19,6 +19,7 @@ function MineartCanvas() {
         getBlockById(id) { return this.blocksDb[id - 1] },
         initFlag: false,
         imageConvertedHex: null,
+        imageConvertedHexBackup: null,
         imageWidth: null,
         imageHeight: null,
         canvasWidth: null,
@@ -30,8 +31,8 @@ function MineartCanvas() {
         groups: null,
         offset: {
             bounds: {
-                x: 798,
-                y: 500
+                x: null,
+                y: null
             },
             x: 0,
             y: 0,
@@ -74,7 +75,9 @@ function MineartCanvas() {
         history: {
             log: [],
             currentPos: -1,
-            lastMaxPos: -1
+            lastMaxPos: -1,
+            maxStates: 50,
+            offset: 0
         },
         interface: {
             eyedropCurrent: 44,
@@ -349,28 +352,38 @@ function MineartCanvas() {
     }
 
     this._addToHistory = (type, data) => {
-        store.history.currentPos++
-
-        for (let i = store.history.currentPos; i <= store.history.lastMaxPos; i++) {
-            delete store.history.log[i]
+        for (let i = store.history.currentPos; i < store.history.lastMaxPos; i++) {
+            store.history.log.shift()
         }
 
+        if (store.history.currentPos === -1) {
+            store.history.offset = 0
+        }
+
+        if (store.history.log.length === store.history.maxStates) {
+            store.history.log.shift()
+            store.history.offset++
+        }
+
+        store.history.currentPos++
         store.history.lastMaxPos = store.history.currentPos
-        store.history.log[store.history.currentPos] = {
+        store.history.log.push({
             type: type,
             data: data
-        }
+        })
+        
         const event = store.events.history
         event.details = {
             pos: store.history.currentPos,
-            type: store.history.log[store.history.currentPos].type
+            type: type
         }
         $root.dispatchEvent(event)
     }
 
     this._undoBack = (pos) => {
+        pos += -store.history.offset
         const tempSum = {}
-        for (let i = store.history.currentPos; i > pos; i += -1) {
+        for (let i = store.history.currentPos - store.history.offset; i > pos; i--) {
             const logStep = store.history.log[i]
             for (let key in logStep.data.before) {
                 tempSum[key] = logStep.data.before[key]
@@ -385,8 +398,9 @@ function MineartCanvas() {
     }
 
     this._undoForward = (pos) => {
+        pos += -store.history.offset
         const tempSum = {}
-        for (let i = store.history.currentPos; i <= pos; i++) {
+        for (let i = store.history.currentPos - store.history.offset; i <= pos; i++) {
             if (i === -1) { continue }
             const logStep = store.history.log[i]
             for (let key in logStep.data.current) {
@@ -405,17 +419,21 @@ function MineartCanvas() {
         pos = parseInt(pos)
         if (pos === store.history.currentPos) { return }
 
-        // if (pos === -1) {
-        //     ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
-        //     ctxTemp.drawImage(store.blobImage, 0, 0)
-        //     this._renderMainCanvas()
-        // } else {
-            if (store.history.currentPos - pos > 0) {
-                this._undoBack(pos)
-            } else {
-                this._undoForward(pos)
-            }
-        // }
+        if (pos === -1) {
+            this._undoBack(store.history.offset)
+            store.history.currentPos = pos
+            this.render()
+            return
+        } else if (store.history.currentPos === -1) {
+            store.history.currentPos = store.history.offset
+            this.render()
+        }
+
+        if (store.history.currentPos - pos > 0) {
+            this._undoBack(pos)
+        } else {
+            this._undoForward(pos)
+        }
 
         store.history.currentPos = pos
     }
@@ -615,6 +633,19 @@ function MineartCanvas() {
         }
     }
 
+    this._setPosOnOpen = () => {
+        const canvasWidth = store.canvasWidth + store.interface.rulerSize
+        const canvasHeight = store.canvasHeight - store.interface.rulerSize
+        for (let i = store.scale.options.length - 1; i >= 0; i--) {
+            if (store.imageWidth * store.scale.options[i] * store.baseCellSize < canvasWidth && store.imageHeight * store.scale.options[i] * store.baseCellSize < canvasHeight) {
+                store.scale.current = store.scale.options[i]
+                break
+            }
+        }
+        store.offset.x = canvasWidth / 2 - store.imageWidth / 2 * store.scale.current * store.baseCellSize
+        store.offset.y = canvasHeight / 2 - store.imageHeight / 2 * store.scale.current * store.baseCellSize
+    }
+
     this._setEventListeners = function() {
         let tempFakePaintedPoints = {}
 
@@ -715,22 +746,31 @@ function MineartCanvas() {
         canvasOverlay.addEventListener('mousedown', function(e) {
             if (!thisRoot._checkIfReady()) { return }
             if (e.which === 1) {
+                const tool = thisRoot.getTool()
                 let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
                 let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
                 store.controls.mouse.lastMouseX = xBlock
                 store.controls.mouse.lastMouseY = yBlock
                 store.controls.mouse.leftClick = true
 
-                if (thisRoot.getTool() === 'eyedropper') {
+                if (tool === 'brush' || tool === 'pencil' || tool === 'bucket') {
+                    if (store.history.currentPos === -1) {
+                        ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
+                        ctxTemp.drawImage(store.blobImage, 0, 0)
+                        store.imageConvertedHex.set(store.imageConvertedHexBackup, 0)
+                    }
+                }
+
+                if (tool === 'eyedropper') {
                     let id = thisRoot._getBlockIdByPosition(xBlock, yBlock)
                     thisRoot.setEyedrop(id)
                 }
 
-                if (thisRoot.getTool() === 'brush' || thisRoot.getTool() === 'pencil') {
+                if (tool === 'brush' || tool === 'pencil') {
                     draw(xBlock, yBlock)
                 }
 
-                if (thisRoot.getTool() === 'selection') {
+                if (tool === 'selection') {
                     let tempX = xBlock
                     let tempY = yBlock
 
@@ -742,7 +782,7 @@ function MineartCanvas() {
                     store.interface.selection.end = thisRoot._getIntFromPos(tempX, tempY)
                 }
 
-                if (thisRoot.getTool() === 'zoom') {
+                if (tool === 'zoom') {
                     if (store.scale.scaleUp()) {
                         let x = Math.floor(store.controls.mouse.localX - store.offset.x)
                         let y = Math.floor(store.controls.mouse.localY - store.offset.y)
@@ -751,7 +791,7 @@ function MineartCanvas() {
                     }
                 }
 
-                if (thisRoot.getTool() === 'grab') {
+                if (tool === 'grab') {
                     store.controls.mouse.grabbed = true
                     store.controls.mouse.startX = e.clientX - store.boundingRect.x
                     store.controls.mouse.startY = e.clientY - store.boundingRect.y
@@ -759,7 +799,7 @@ function MineartCanvas() {
                     store.controls.mouse.oldOffsetY = store.offset.y
                 }
 
-                if (thisRoot.getTool() === 'bucket') {
+                if (tool === 'bucket') {
                     thisRoot._bucket(xBlock, yBlock, thisRoot.getEyedrop())
                 }
             }
@@ -1103,12 +1143,17 @@ function MineartCanvas() {
                 const topLeftY = visibleCorners.topLeftY
                 const bottomRightX = visibleCorners.bottomRightX
                 const bottomRightY = visibleCorners.bottomRightY
-                let hexBlock
+                let hexBlock, source
+                if (store.history.currentPos === -1) {
+                    source = store.imageConvertedHexBackup
+                } else {
+                    source = store.imageConvertedHex
+                }
 
                 for (let y = topLeftY; y <= bottomRightY; y++) {
                     for (let x = topLeftX; x <= bottomRightX; x++) {
                         if (x < store.imageWidth && y < store.imageHeight) {
-                            hexBlock = store.imageConvertedHex[y * store.imageWidth + x]
+                            hexBlock = source[y * store.imageWidth + x]
                             if (hexBlock > 0) {
                                 let imageForCanvas = store.getBlockById(hexBlock).image
                                 ctxMain.drawImage(imageForCanvas, 
@@ -1126,7 +1171,13 @@ function MineartCanvas() {
                 let visible = thisRoot._getCornersOfVisible()
                 let offsetX = store.offset.x > 0 ? store.offset.x : store.offset.x % (16 * store.scale.current)
                 let offsetY = store.offset.y > 0 ? store.offset.y : store.offset.y % (16 * store.scale.current)
-                ctxMain.drawImage(canvasTemp,
+                let source
+                if (store.history.currentPos === -1) {
+                    source = store.blobImage
+                } else {
+                    source = canvasTemp
+                }
+                ctxMain.drawImage(source,
                   visible.topLeftX * 16, 
                   visible.topLeftY * 16, 
                   (visible.bottomRightX - visible.topLeftX) * 16, 
@@ -1173,8 +1224,7 @@ function MineartCanvas() {
 
         renderHelper([
             store.settings.showOriginal ? 'RENDER_ORIGINAL' : 'RENDER_MAIN',
-            store.settings.showGrid ? 'RENDER_GRID' : false,
-            // 'RENDER_ORIGINAL'
+            store.settings.showGrid ? 'RENDER_GRID' : false
         ])
         // console.log(performance.now() - t0)
     }
@@ -1208,8 +1258,6 @@ function MineartCanvas() {
         canvasTemp.width = store.imageWidth * 16
         canvasTemp.height = store.imageHeight * 16
         ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
-        store.offset.x = store.canvasWidth / 2 - store.imageWidth > 0 ? store.canvasWidth / 2 - store.imageWidth / 2 : 0
-        store.offset.y = store.canvasHeight / 2 - store.imageHeight > 0 ? store.canvasHeight / 2 - store.imageHeight / 2 : 0
     }
 
     this.setBoundingRect = () => {
@@ -1238,6 +1286,8 @@ function MineartCanvas() {
 
     this.loadImageHex = (arr) => {
         store.imageConvertedHex = arr
+        store.imageConvertedHexBackup = new Uint8Array(arr.length)
+        store.imageConvertedHexBackup.set(arr, 0)
         this._createMainBlobImage(arr)
     }
 
@@ -1336,6 +1386,7 @@ function MineartCanvas() {
 
     this.open = (uint8Arr) => {
         this.reset()
+        this._setPosOnOpen()
         this.loadImageHex(uint8Arr)
         this.render()
     }
@@ -1488,10 +1539,6 @@ function MineartCanvas() {
         canvasOverlay.style.position = 'absolute'
         this.setBoundingRect()
         this.setBounds()
-        // canvasMain.width = store.canvasWidth
-        // canvasMain.height = store.canvasHeight
-        // canvasOverlay.width = store.canvasWidth
-        // canvasOverlay.height = store.canvasHeight
         $root.appendChild(canvasMain)
         $root.appendChild(canvasOverlay)
 
