@@ -10,6 +10,9 @@ function MineartCanvas() {
     const canvasTemp = document.createElement('canvas')
     const ctxTemp = canvasTemp.getContext('2d')
 
+    const canvasInit = document.createElement('canvas')
+    const ctxInit = canvasInit.getContext('2d')
+
     const _URL = window.URL || window.webkitURL
 
     const thisRoot = this
@@ -26,7 +29,6 @@ function MineartCanvas() {
         canvasHeight: null,
         baseCellSize: 16,
         boundingRect: null,
-        blobImage: new Image(),
         originalImage: new Image(),
         groups: null,
         offset: {
@@ -257,15 +259,12 @@ function MineartCanvas() {
                                  y * store.baseCellSize,
                                  store.baseCellSize,
                                  store.baseCellSize)
+                ctxInit.drawImage(imageForCanvas,
+                                 x * store.baseCellSize,
+                                 y * store.baseCellSize,
+                                 store.baseCellSize,
+                                 store.baseCellSize)
             }
-        }
-
-        canvasTemp.toBlob((blob) => {
-            store.blobImage.src = _URL.createObjectURL(blob)
-        })
-
-        store.blobImage.onload = () => {
-            $root.dispatchEvent(store.events.cached)
         }
     }
 
@@ -580,6 +579,7 @@ function MineartCanvas() {
         store.groups = groups
 
         console.log(groups.length, Object.keys(catchedBlocks).length)
+        return
 
         groups.forEach((item) => {
             if (item.length === 1) {
@@ -602,29 +602,39 @@ function MineartCanvas() {
         })
     }
 
-    this._convertGroupToCommand = (group, facing) => {
+    this._convertPosToRelCoords = (pos, facing, offset) => {
+        let output, offsetX = 0, offsetY = 0, offsetZ = 0
+        const x = pos.x + 1,
+              y = store.imageHeight - pos.y - 1
+        if (offset) {
+            offsetX = offset.x || 0,
+            offsetY = offset.y || 0, 
+            offsetZ = offset.z || 0
+        }
+            
+        switch (facing) {
+            case 'east':
+                output = `~${x + offsetX} ~${y + offsetX} ~${offsetZ}`
+                break
+            case 'south':
+                output = `~${offsetX} ~${y + offsetY} ~${x + offsetZ}`
+                break
+            case 'west':
+                output = `~${offsetX - x} ~${y + offsetY} ~${offsetZ}`
+                break
+            case 'north':
+                output = `~${offsetX} ~${y + offsetY} ~${offsetZ - x}`
+                break
+        }
+        return output.replace('~0', '~')
+    }
+
+    this._convertGroupToCommand = (group, facing, offset) => {
         const gameId = store.getBlockById(store.imageConvertedHex[group[0]]).game_id
         const output = []
         group.forEach((item) => {
-            const pos = thisRoot._getPosFromInt(item)
-            let x = pos.x + 1
-            let y = store.imageHeight - pos.y - 1
-            if (x === 0) { x = '' }
-            if (y === 0) { y = '' }
-            switch (facing) {
-                case 'east':
-                    output.push(`~${x} ~${y} ~`)
-                    break
-                case 'south':
-                    output.push(`~ ~${y} ~${x}`)
-                    break
-                case 'west':
-                    output.push(`~${-x} ~${y} ~`)
-                    break
-                case 'north':
-                    output.push(`~ ~${y} ~${-x}`)
-                    break    
-            }
+            const pos = this._getPosFromInt(item)
+            output.push(this._convertPosToRelCoords(pos, facing, offset))
         })
         if (output.length === 1) {
             return `setblock ${output[0]} ${gameId}`
@@ -756,7 +766,7 @@ function MineartCanvas() {
                 if (tool === 'brush' || tool === 'pencil' || tool === 'bucket') {
                     if (store.history.currentPos === -1) {
                         ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
-                        ctxTemp.drawImage(store.blobImage, 0, 0)
+                        ctxTemp.drawImage(canvasInit, 0, 0)
                         store.imageConvertedHex.set(store.imageConvertedHexBackup, 0)
                     }
                 }
@@ -854,6 +864,7 @@ function MineartCanvas() {
 
         canvasOverlay.addEventListener("wheel", (e) => {
             if (!thisRoot._checkIfReady()) { return }
+            if (store.controls.mouse.leftClick) { return }
             e.preventDefault()
             if (e.deltaY < 0) {
                 if (store.scale.scaleUp()) {
@@ -1029,11 +1040,17 @@ function MineartCanvas() {
             })
         }
 
-        renderHelper([
-            'RENDER_SELECTION',
-            (this.getTool() === 'pencil' || this.getTool() === 'brush') ? 'RENDER_BRUSH' : false,
-            store.settings.showRulers ? 'RENDER_RULERS' : false
-        ])
+        const renderArray = ['RENDER_SELECTION']
+
+        if ((this.getTool() === 'pencil' || this.getTool() === 'brush') && !store.controls.mouse.grabbed) {
+            renderArray.push('RENDER_BRUSH')
+        }
+
+        if (store.settings.showRulers) {
+            renderArray.push('RENDER_RULERS')
+        }
+
+        renderHelper(renderArray)
     }
 
     this._renderMainCanvas = () => {
@@ -1173,19 +1190,19 @@ function MineartCanvas() {
                 let offsetY = store.offset.y > 0 ? store.offset.y : store.offset.y % (16 * store.scale.current)
                 let source
                 if (store.history.currentPos === -1) {
-                    source = store.blobImage
+                    source = canvasInit
                 } else {
                     source = canvasTemp
                 }
                 ctxMain.drawImage(source,
-                  visible.topLeftX * 16, 
-                  visible.topLeftY * 16, 
-                  (visible.bottomRightX - visible.topLeftX) * 16, 
-                  (visible.bottomRightY - visible.topLeftY) * 16,
-                  offsetX,
-                  offsetY,
-                  (visible.bottomRightX - visible.topLeftX) * 16 * store.scale.current,
-                  (visible.bottomRightY - visible.topLeftY) * 16 * store.scale.current)
+                      visible.topLeftX * 16, 
+                      visible.topLeftY * 16, 
+                      (visible.bottomRightX - visible.topLeftX) * 16, 
+                      (visible.bottomRightY - visible.topLeftY) * 16,
+                      offsetX,
+                      offsetY,
+                      (visible.bottomRightX - visible.topLeftX) * 16 * store.scale.current,
+                      (visible.bottomRightY - visible.topLeftY) * 16 * store.scale.current)
             }
 
             if (store.scale.current > store.scale.cacheFrom) {
@@ -1202,11 +1219,21 @@ function MineartCanvas() {
                   store.imageWidth * store.baseCellSize * store.scale.current, 
                   store.imageHeight * store.baseCellSize * store.scale.current)
         }
+
+        function renderBackground() {
+            ctxMain.fillStyle = 'rgba(100, 100, 100, 0.45)'
+            ctxMain.fillRect(0, 0, store.canvasWidth, store.canvasHeight)
+            ctxMain.clearRect(store.offset.x, 
+                              store.offset.y, 
+                              store.imageWidth * store.baseCellSize * store.scale.current, 
+                              store.imageHeight * store.baseCellSize * store.scale.current)
+        }
         
         const renderList = {
             'RENDER_MAIN': renderMain,
             'RENDER_GRID': renderGrid,
-            'RENDER_ORIGINAL': renderOriginal
+            'RENDER_ORIGINAL': renderOriginal,
+            'RENDER_BACKGROUND': renderBackground
         }
 
         function renderHelper(list) {
@@ -1223,6 +1250,7 @@ function MineartCanvas() {
         ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
 
         renderHelper([
+            'RENDER_BACKGROUND',
             store.settings.showOriginal ? 'RENDER_ORIGINAL' : 'RENDER_MAIN',
             store.settings.showGrid ? 'RENDER_GRID' : false
         ])
@@ -1258,6 +1286,10 @@ function MineartCanvas() {
         canvasTemp.width = store.imageWidth * 16
         canvasTemp.height = store.imageHeight * 16
         ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
+        canvasInit.width = store.imageWidth * 16
+        canvasInit.height = store.imageHeight * 16
+        ctxInit.clearRect(0, 0, canvasInit.width, canvasInit.height)
+        console.log('cleared')
     }
 
     this.setBoundingRect = () => {
@@ -1268,6 +1300,7 @@ function MineartCanvas() {
         canvasMain.height = store.canvasHeight
         canvasOverlay.width = store.canvasWidth
         canvasOverlay.height = store.canvasHeight
+        ctxMain.imageSmoothingEnabled = false
         this.render()
     }
 
@@ -1370,7 +1403,6 @@ function MineartCanvas() {
 
     this.reset = () => {
         store.imageConvertedHex = null
-        store.blobImage = new Image()
         store.offset.x = 0
         store.offset.y = 0
         store.scale.current = 0.0625
@@ -1453,7 +1485,7 @@ function MineartCanvas() {
         }
 
         const outputArr = []
-        let numOfCommands = 315
+        let numOfCommands = 314
 
         const commandTemplate = 'summon falling_block ~ ~1 ~ %replace%'
 
@@ -1476,20 +1508,26 @@ function MineartCanvas() {
             const slice = store.groups.slice(i, i + numOfCommands)
             let output = passengerTemplate.replace(/\n|\s/g, '')
 
-            slice.forEach((item, i) => {
-                const command = this._convertGroupToCommand(item, facing)
+            for (let k = 0; k < slice.length + 1; k++) {
+                let command
+                if (k === 0) {
+                    command = '/kill @e[type=commandblock_minecart]'
+                } else {
+                    const item = slice[k - 1]
+                    command = this._convertGroupToCommand(item, facing, {y: -1})
+                }
                 output = output.replace('%command%', command)
-                if (i !== slice.length - 1) {
+
+                if (k !== slice.length) {
                     output = output.replace('%passenger%', passengerTemplate.replace(/\n|\s/g, ''))
                 } else {
                     output = output.replace('%passenger%', '')
                 }
-            })
+            }
 
             const temp = outsideTemplate.replace(/\n|\s/g, '').replace('%replace%', output)
             const returnStr = commandTemplate.replace('%replace%', temp)
             outputArr.push(returnStr)
-            // console.log(returnStr.length)
         }
 
         return outputArr

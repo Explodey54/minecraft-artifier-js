@@ -19,6 +19,7 @@ const canvasTemp = document.createElement('canvas')
 const store = {
     blocksDefault: blocks,
     uploadedImage: new Image(),
+    uploadedImageName: null,
     convertWorker: new ConvertWorker(),
     mineartCanvas: new MineartCanvas(),
     findBlockById(id) {
@@ -38,6 +39,11 @@ const store = {
         changeToEditorScreen() {
             document.querySelector('section.start-screen').classList.add('hidden')
             document.querySelector('section.editor-screen').classList.remove('hidden')
+        },
+        setNameFile(str) {
+            store.uploadedImageName = str
+            store.editorScreen.$saveInput.value = str
+            store.convertScreen.$inputMcfunction.value = str
         },
         uploadImage(src) {
             store.uploadedImage.src = src
@@ -234,6 +240,7 @@ const store = {
         $divCanvas: document.getElementById('editor-canvas'),
         $topbarBtns: document.querySelectorAll('.topbar-btn'),
         $saveBtn: document.getElementById('editor-save-btn'),
+        $saveInput: document.getElementById('editor-save-input'),
         $replaceMenuTarget: document.getElementById('editor-replace-target'),
         $replaceMenuReplace: document.getElementById('editor-replace-replacement'),
         $replaceMenuBtn: document.getElementById('editor-replace-btn'),
@@ -413,6 +420,26 @@ const store = {
             this.counterManual.setValue(1)
         }
     },
+    modals: {
+        items: {
+            save: document.getElementById('modal-save')
+        },
+        $root: document.querySelector('.modal'),
+        $closeBtn: document.querySelector('.modal-close'),
+        openModal(name) {
+            this.$root.classList.add('is-active')
+            for (let key in this.items) {
+                this.items[key].classList.add('hidden')
+            }
+            this.items[name].classList.remove('hidden')
+        },
+        closeModal() {
+            this.$root.classList.remove('is-active')
+            for (let key in this.items) {
+                this.items[key].classList.add('hidden')
+            }
+        }
+    },
     setEventListeners() {
         //Start screen
         ////////////////////////////////////
@@ -424,9 +451,12 @@ const store = {
             e.preventDefault()
             const regexp = /(.*)\.([^.]*)/
             const ext = e.dataTransfer.files[0].name.match(regexp)[2]
+            const name = e.dataTransfer.files[0].name.match(regexp)[1]
             if (ext == 'jpeg' || ext == 'jpg' || ext == 'png') {
+                this.startScreen.setNameFile(name)
                 this.startScreen.uploadImage(_URL.createObjectURL(e.dataTransfer.files[0]))
             } else if (ext == 'data') {
+                this.startScreen.setNameFile(name)
                 this.startScreen.uploadDataFile(e.dataTransfer.files[0])
             }
         }
@@ -434,9 +464,12 @@ const store = {
         this.startScreen.$inputFile.onchange = (e) => {
             const regexp = /(.*)\.([^.]*)/
             const ext = e.target.files[0].name.match(regexp)[2]
+            const name = e.target.files[0].name.match(regexp)[1]
             if (ext == 'jpeg' || ext == 'jpg' || ext == 'png') {
+                this.startScreen.setNameFile(name)
                 this.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
             } else if (ext == 'data') {
+                this.startScreen.setNameFile(name)
                 this.startScreen.uploadDataFile(e.target.files[0])
             }
         }
@@ -692,6 +725,10 @@ const store = {
             node.setAttribute('data-action-pos', e.details.pos)
             node.innerHTML = e.details.type + ' ' + e.details.pos
             node.onclick = () => {
+                if (this.editorScreen.$settingsOriginal.checked === true) {
+                    this.mineartCanvas.setSettingsValue('showOriginal', false)
+                    this.editorScreen.$settingsOriginal.checked = false
+                }
                 this.editorScreen.$historyFirstAction.classList.remove('info-panels-history-action-current')
                 const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
                 actions.forEach((item) => {
@@ -712,6 +749,10 @@ const store = {
             this.editorScreen.$historyContainer.scrollTop = this.editorScreen.$historyContainer.scrollHeight
         })
 
+        // this.editorScreen.$divCanvas.addEventListener('cached', (e) => {
+        //     this.mineartCanvas.render()
+        // })
+
         this.editorScreen.$historyFirstAction.onclick = (e) => {
             e.target.classList.add('info-panels-history-action-current')
             const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
@@ -726,12 +767,15 @@ const store = {
         this.editorScreen.$btnConvert.onclick = () => {
             document.querySelector('section.convert-screen').classList.remove('hidden')
             this.convertScreen.convert()
+            window.scrollTo(0,document.body.scrollHeight)
         }
 
         this.editorScreen.$saveBtn.onclick = () => {
             const link = this.mineartCanvas.save()
             this.editorScreen.$saveBtn.href = link
-            this.editorScreen.$saveBtn.download = 'data.data'
+            if (this.editorScreen.$saveInput.value) {
+                this.editorScreen.$saveBtn.download = `${this.editorScreen.$saveInput.value}.data`
+            }
         }
 
         this.editorScreen.$inputImage.oninput = (e) => {
@@ -818,6 +862,14 @@ const store = {
         this.convertScreen.$inputMcfunction.oninput = (e) => {
             this.convertScreen.$btnMcfunction.download = e.target.value + '.mcfunction'
         }
+
+        this.modals.$closeBtn.onclick = () => {
+            this.modals.closeModal()
+        }
+
+        // window.addEventListener("load", function(event) {
+        //     alert("images loaded");
+        // });
     }
 }
 
@@ -872,29 +924,29 @@ store.setEventListeners()
 store.editorScreen.fillBlockList()
 
 const tempImage = new Image()
-tempImage.src = require('../static/lum_150_350.png')
-store.startScreen.changeToSettingsScreen()
-store.startScreen.uploadImage(tempImage.src)
-tempImage.onload = (e) => {
+tempImage.src = require('../static/pic_184.jpg')
+// store.startScreen.changeToSettingsScreen()
+// store.startScreen.uploadImage(tempImage.src)
+// tempImage.onload = (e) => {
 
-    // return
-    canvasTemp.width = tempImage.width
-    canvasTemp.height = tempImage.height
-    store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
+//     // return
+//     canvasTemp.width = tempImage.width
+//     canvasTemp.height = tempImage.height
+//     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
 
-    const exclude = []
-    blocks.forEach((item) => {
-        if (item.luminance === true || item.transparency === true || item.redstone === true) {
-            exclude.push(item.id)
-        }
-    })
+//     const exclude = []
+//     blocks.forEach((item) => {
+//         if (item.luminance === true || item.transparency === true || item.redstone === true) {
+//             exclude.push(item.id)
+//         }
+//     })
 
-    store.convertWorker.postMessage({
-        imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
-        exclude: exclude
-    })
-    store.startScreen.changeToEditorScreen()
-}
+//     store.convertWorker.postMessage({
+//         imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
+//         exclude: exclude
+//     })
+//     store.startScreen.changeToEditorScreen()
+// }
 
 window.mineartDOM = {
     changeTool(tool) {

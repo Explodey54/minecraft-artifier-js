@@ -6,6 +6,8 @@
     </head>
     <body>
 
+        <%=require('./modal.html')%>
+
         <section class="section container start-screen">
             <div class="dropzone" id="start-dropzone">
                 <div>Drag and drop your image/.dat file here</div>
@@ -150,10 +152,16 @@
                         </label>
                     </div>
                 </div>
-                <div class="topbar-btn"><a id="editor-save-btn">Save</a></div>
+                <div class="topbar-btn">Save
+                    <div class="topbar-menu topbar-menu-save hidden">
+                        <a class="button is-success" id="editor-save-btn" download="art.data">Save as..</a>
+                        <input class="input" id="editor-save-input">
+                        <span>.data</span>
+                    </div>
+                </div>
                 <div class="topbar-btn">Replace
                     <div class="topbar-menu topbar-menu-replace hidden">
-                        <div class="delete"></div>
+                        <!-- <div class="delete"></div> -->
                         <div class="topbar-menu-replace-form">
                             <div class="replace-group">
                                 <img class="img-thumbnail img-pixelated" id="editor-replace-target">
@@ -173,7 +181,7 @@
                 </div>
                 <div class="topbar-btn">Settings
                     <div class="topbar-menu topbar-menu-settings hidden">
-                        <div class="delete"></div>
+                        <!-- <div class="delete"></div> -->
                         <div class="settings-panel">
                             <label class="checkbox">
                                 <input type="checkbox" id="editor-settings-grid">
@@ -267,7 +275,7 @@
                                 <option value="commblock">Command block</option>
                                 <option value="mcfunction">.mcfunction file</option>
                                 <option value="raw">Raw commands</option>
-                                <option value="manual">Amounnts of blocks</option>
+                                <option value="manual">Amounts of blocks</option>
                             </select>
                         </div>
                     </div>

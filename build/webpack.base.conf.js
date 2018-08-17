@@ -18,7 +18,7 @@ module.exports = {
         loaders: [
             { test: /\.js$/, exclude: /node_modules/, loader: "babel-loader" },
             { test: /\.(png|jpg|gif)$/, loader: 'file-loader' },
-            { test: /\.svg$/, loader: "svg-inline-loader" },
+            { test: /\.(svg|html)$/, loader: "raw-loader", exclude: /index\.html/},
             { test: /\.css$/, loader: 'style-loader!css-loader' }
         ]
     },

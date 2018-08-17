@@ -4,7 +4,7 @@ html {
 }
 
 .hidden {
-	display: none;
+	display: none !important;
 }
 
 .img-pixelated {
@@ -258,6 +258,21 @@ html {
 	width: 100%;
 }
 
+.topbar-menu-save {
+	width: 450px;
+	padding: 10px;
+	display: flex;
+}
+
+.topbar-menu-save input {
+	width: 65%;
+	margin: 0px 10px;
+}
+
+.topbar-menu-save span {
+	line-height: 38px;
+}
+
 .topbar-menu .delete {
 	float: right;
 	margin: 4px;
@@ -381,11 +396,11 @@ html {
 }
 
 .info-panels-history-action-pencil:before {
-	background-image: url('data:image/svg+xml;utf8,<svg version="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 459 459"><path d="M0 362v97h97l280-283-97-97L1 362zm451-260c11-10 11-25 0-36L393 8a25 25 0 0 0-36 0l-46 46 97 96 43-48z"/></svg>');
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 459 459"><path d="M0 362v97h97l280-283-97-97L1 362zm451-260c11-10 11-25 0-36L393 8a25 25 0 0 0-36 0l-46 46 97 96 43-48z"/></svg>');
 }
 
 .info-panels-history-action-brush:before {
-	background-image: url('data:image/svg+xml;utf8,<svg version="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M499 46a43 43 0 0 0-60 0L199 275c26 7 48 24 62 48 4 7 8 15 10 23l229-239a43 43 0 0 0-1-61zM177 302h-4c-20 0-40 7-57 19-20 14-27 35-42 53-18 24-46 35-74 43 16 43 76 60 116 61h4c45 0 97-16 119-60 23-49-6-113-62-116z"/></svg>');
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M499 46a43 43 0 0 0-60 0L199 275c26 7 48 24 62 48 4 7 8 15 10 23l229-239a43 43 0 0 0-1-61zM177 302h-4c-20 0-40 7-57 19-20 14-27 35-42 53-18 24-46 35-74 43 16 43 76 60 116 61h4c45 0 97-16 119-60 23-49-6-113-62-116z"/></svg>');
 }
 
 .info-panels-history-action-bucket:before {
@@ -393,7 +408,7 @@ html {
 }
 
 .info-panels-history-action-replace:before {
-	background-image: url('data:image/svg+xml;utf8,<svg version="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M496 80H128V32a16 16 0 0 0-27-11L5 117c-7 6-7 16 0 22l96 96a16 16 0 0 0 27-11v-48h368c9 0 16-7 16-16V96c0-9-7-16-16-16zM507 373l-96-96a16 16 0 0 0-27 11v48H16c-9 0-16 7-16 16v64c0 9 7 16 16 16h368v48a16 16 0 0 0 27 11l96-96c7-6 7-16 0-22z"/></svg>')
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M496 80H128V32a16 16 0 0 0-27-11L5 117c-7 6-7 16 0 22l96 96a16 16 0 0 0 27-11v-48h368c9 0 16-7 16-16V96c0-9-7-16-16-16zM507 373l-96-96a16 16 0 0 0-27 11v48H16c-9 0-16 7-16 16v64c0 9 7 16 16 16h368v48a16 16 0 0 0 27 11l96-96c7-6 7-16 0-22z"/></svg>')
 }
 
 
