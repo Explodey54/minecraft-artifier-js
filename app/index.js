@@ -22,6 +22,7 @@ const store = {
     uploadedImageName: null,
     convertWorker: new ConvertWorker(),
     mineartCanvas: new MineartCanvas(),
+    minecraftVersion: 12,
     findBlockById(id) {
         return this.blocksDefault.find((item) => {
             if (item.id === id) {
@@ -103,6 +104,7 @@ const store = {
         $tableInput: document.getElementById('settings-input-filter'),
         $tableCheckbox: document.getElementById('settings-table-checkbox'),
         $strTableCounter: document.getElementById('settings-table-counter'),
+        $selectVersion: document.getElementById('settings-version'),
         $btnSubmit: document.getElementById('settings-submit'),
         fillTable() {
             const tbody = this.$tableBlocks.querySelector('tbody')
@@ -200,6 +202,7 @@ const store = {
             }
         },
         drawToCanvas() {
+            this.ctxTemp.imageSmoothingEnabled = false
             const inputWidth = parseInt(this.$inputWidth.value)
             const inputHeight = parseInt(this.$inputHeight.value)
             canvasTemp.width = inputWidth
@@ -262,6 +265,7 @@ const store = {
         $settingsGrid: document.getElementById('editor-settings-grid'),
         $settingsRulers: document.getElementById('editor-settings-rulers'),
         $settingsOriginal: document.getElementById('editor-settings-original'),
+        $settingsGroups: document.getElementById('editor-settings-groups'),
         setEyedropListener(node) {
             this.eyedropListener = node
             node.classList.add('active')
@@ -377,6 +381,8 @@ const store = {
             this.counterCommblock.setMax(this.commBlockStrings.length)
             this.counterCommblock.setCallback((int) => {
                 this.$commBlockTextarea.value = this.commBlockStrings[int - 1]
+                store.mineartCanvas.setSettingsValue('drawGroupsCurrent', int - 1)
+                store.mineartCanvas.render()
             })
             this.counterCommblock.setValue(1)
 
@@ -606,6 +612,15 @@ const store = {
                     })
                 }
             }
+            const version = parseInt(this.settingsScreen.$selectVersion.value)
+            if (version < 12) {
+                blocks.forEach((item) => {
+                    if (item.version > version) {
+                        excludeArr.push(item.id)
+                    }
+                })
+            }
+            this.mineartCanvas.setSettingsValue('minecraftVersion', version)
 
             this.settingsScreen.drawToCanvas()
             this.convertWorker.postMessage({
@@ -620,7 +635,7 @@ const store = {
             this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
             this.mineartCanvas.open(e.data)
             store.editorScreen.setEyedrop(1)
-            store.editorScreen.setBrushSize(9)
+            store.editorScreen.setBrushSize(1)
         }
 
         this.settingsScreen.$imgPres.addEventListener('croppytransformed', (e) => {
@@ -669,6 +684,7 @@ const store = {
             if (e.which === 1 && this.editorScreen.$settingsOriginal.checked === true) {
                 this.mineartCanvas.setSettingsValue('showOriginal', false)
                 this.editorScreen.$settingsOriginal.checked = false
+                this.mineartCanvas.render()
             }
         }
 
@@ -727,6 +743,7 @@ const store = {
             node.onclick = () => {
                 if (this.editorScreen.$settingsOriginal.checked === true) {
                     this.mineartCanvas.setSettingsValue('showOriginal', false)
+                    this.mineartCanvas.render()
                     this.editorScreen.$settingsOriginal.checked = false
                 }
                 this.editorScreen.$historyFirstAction.classList.remove('info-panels-history-action-current')
@@ -830,6 +847,12 @@ const store = {
 
         this.editorScreen.$settingsOriginal.onchange = (e) => {
             this.mineartCanvas.setSettingsValue('showOriginal', e.target.checked)
+            this.mineartCanvas.render()
+        }
+
+        this.editorScreen.$settingsGroups.onchange = (e) => {
+            this.mineartCanvas.setSettingsValue('showDebugDrawGroups', e.target.checked)
+            this.mineartCanvas.render()
         }
 
         //Convert screen
@@ -923,8 +946,9 @@ blocks.sort((a, b) => {
 store.setEventListeners()
 store.editorScreen.fillBlockList()
 
-const tempImage = new Image()
-tempImage.src = require('../static/pic_184.jpg')
+// const tempImage = new Image()
+// tempImage.src = require('../static/pic_100.png')
+// store.mineartCanvas.setSettingsValue('minecraftVersion', 9)
 // store.startScreen.changeToSettingsScreen()
 // store.startScreen.uploadImage(tempImage.src)
 // tempImage.onload = (e) => {

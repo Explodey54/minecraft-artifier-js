@@ -8,7 +8,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Granite",
@@ -19,7 +20,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Polished Granite",
@@ -30,7 +32,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Diorite",
@@ -41,7 +44,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Polished Diorite",
@@ -52,7 +56,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Andesite",
@@ -63,7 +68,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Polished Andesite",
@@ -74,7 +80,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Dirt",
@@ -85,7 +92,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Cobblestone",
@@ -96,7 +104,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Oak Wood Plank",
@@ -107,7 +116,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Spruce Wood Plank",
@@ -118,7 +128,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Birch Wood Plank",
@@ -129,7 +140,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Jungle Wood Plank",
@@ -140,7 +152,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Acacia Wood Plank",
@@ -151,7 +164,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Dark Oak Wood Plank",
@@ -162,7 +176,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Bedrock",
@@ -173,7 +188,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Sand",
@@ -184,7 +200,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Red Sand",
@@ -195,7 +212,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Gravel",
@@ -206,7 +224,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Gold Ore",
@@ -217,7 +236,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Iron Ore",
@@ -228,7 +248,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Coal Ore",
@@ -239,7 +260,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Oak Wood",
@@ -250,7 +272,21 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
+  },
+  {
+    "name": "Oak Wood (Top)",
+    "texture_image": "log_oak_top.png",
+    "game_id": "minecraft:log 0",
+    "game_id_1_13": "minecraft:oak_log",
+    "luminance": false,
+    "transparency": false,
+    "falling": false,
+    "redstone": false,
+    "survival": true,
+    "version": 9,
+    "axis": true
   },
   {
     "name": "Spruce Wood",
@@ -261,7 +297,21 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
+  },
+  {
+    "name": "Spruce Wood (Top)",
+    "texture_image": "log_spruce_top.png",
+    "game_id": "minecraft:log 1",
+    "game_id_1_13": "minecraft:oak_log",
+    "luminance": false,
+    "transparency": false,
+    "falling": false,
+    "redstone": false,
+    "survival": true,
+    "version": 9,
+    "axis": true
   },
   {
     "name": "Birch Wood",
@@ -272,7 +322,21 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
+  },
+  {
+    "name": "Birch Wood (Top)",
+    "texture_image": "log_birch_top.png",
+    "game_id": "minecraft:log 2",
+    "game_id_1_13": "minecraft:birch_log",
+    "luminance": false,
+    "transparency": false,
+    "falling": false,
+    "redstone": false,
+    "survival": true,
+    "version": 9,
+    "axis": true
   },
   {
     "name": "Jungle Wood",
@@ -283,7 +347,21 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
+  },
+  {
+    "name": "Jungle Wood (Top)",
+    "texture_image": "log_jungle_top.png",
+    "game_id": "minecraft:log 3",
+    "game_id_1_13": "minecraft:jungle_log",
+    "luminance": false,
+    "transparency": false,
+    "falling": false,
+    "redstone": false,
+    "survival": true,
+    "version": 9,
+    "axis": true
   },
   {
     "name": "Leaves",
@@ -294,7 +372,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Sponge",
@@ -305,7 +384,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Lapis Lazuli Ore",
@@ -316,7 +396,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Lapis Lazuli Block",
@@ -327,7 +408,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Note Block",
@@ -338,7 +420,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "White Wool",
@@ -349,7 +432,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Orange Wool",
@@ -360,7 +444,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Magenta Wool",
@@ -371,7 +456,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Light Blue Wool",
@@ -382,7 +468,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Yellow Wool",
@@ -393,7 +480,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Lime Wool",
@@ -404,7 +492,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Pink Wool",
@@ -415,7 +504,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Gray Wool",
@@ -426,7 +516,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Light Gray Wool",
@@ -437,7 +528,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Cyan Wool",
@@ -448,7 +540,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Purple Wool",
@@ -459,7 +552,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Blue Wool",
@@ -470,7 +564,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Brown Wool",
@@ -481,7 +576,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Green Wool",
@@ -492,7 +588,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Red Wool",
@@ -503,7 +600,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Black Wool",
@@ -514,7 +612,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Gold Block",
@@ -525,7 +624,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Iron Block",
@@ -536,7 +636,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Bricks",
@@ -547,7 +648,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "TNT",
@@ -558,7 +660,8 @@
     "transparency": false,
     "falling": false,
     "redstone": true,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Bookshelf",
@@ -569,7 +672,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Moss Stone",
@@ -580,7 +684,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Obsidian",
@@ -591,7 +696,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Diamond Ore",
@@ -602,7 +708,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Diamond Block",
@@ -613,7 +720,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Crafting Table",
@@ -624,7 +732,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Redstone Ore",
@@ -635,7 +744,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Snow",
@@ -646,7 +756,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Ice",
@@ -657,7 +768,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Clay",
@@ -668,7 +780,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Netherrack",
@@ -679,7 +792,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Soul Sand",
@@ -690,7 +804,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Glow Stone",
@@ -701,7 +816,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "White Stained Glass",
@@ -712,7 +828,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Orange Stained Glass",
@@ -723,7 +840,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Magenta Stained Glass",
@@ -734,7 +852,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Light Blue Stained Glass",
@@ -745,7 +864,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Yellow Stained Glass",
@@ -756,7 +876,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Lime Stained Glass",
@@ -767,7 +888,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Pink Stained Glass",
@@ -778,7 +900,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Gray Stained Glass",
@@ -789,7 +912,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Light Gray Stained Glass",
@@ -800,7 +924,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Cyan Stained Glass",
@@ -811,7 +936,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Purple Stained Glass",
@@ -822,7 +948,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Blue Stained Glass",
@@ -833,7 +960,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Brown Stained Glass",
@@ -844,7 +972,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Green Stained Glass",
@@ -855,7 +984,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Red Stained Glass",
@@ -866,7 +996,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Black Stained Glass",
@@ -877,7 +1008,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Stonebrick",
@@ -888,7 +1020,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Mossy Stonebrick",
@@ -899,7 +1032,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Cracked Stonebrick",
@@ -910,7 +1044,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Chiseled Stonebrick",
@@ -921,7 +1056,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Brown Mushroom Block",
@@ -932,7 +1068,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Red Mushroom Block",
@@ -943,7 +1080,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Melon Block",
@@ -954,7 +1092,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Nether Brick",
@@ -965,7 +1104,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "End Stone",
@@ -976,7 +1116,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Redstone Lamp",
@@ -987,7 +1128,8 @@
     "transparency": false,
     "falling": false,
     "redstone": true,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Emerald Ore",
@@ -998,7 +1140,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Emerald Block",
@@ -1009,7 +1152,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Redstone Block",
@@ -1020,7 +1164,8 @@
     "transparency": false,
     "falling": false,
     "redstone": true,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Nether Quartz Ore",
@@ -1031,7 +1176,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Quartz Block",
@@ -1042,7 +1188,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Chiseled Quartz Block",
@@ -1053,7 +1200,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Pillar Quartz Block",
@@ -1064,7 +1212,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "White Hardened Clay",
@@ -1075,7 +1224,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Orange Hardened Clay",
@@ -1086,7 +1236,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Magenta Hardened Clay",
@@ -1097,7 +1248,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Light Blue Hardened Clay",
@@ -1108,7 +1260,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Yellow Hardened Clay",
@@ -1119,7 +1272,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Lime Hardened Clay",
@@ -1130,7 +1284,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Pink Hardened Clay",
@@ -1141,7 +1296,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Gray Hardened Clay",
@@ -1152,7 +1308,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Light Gray Hardened Clay",
@@ -1163,7 +1320,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Cyan Hardened Clay",
@@ -1174,7 +1332,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Purple Hardened Clay",
@@ -1185,7 +1344,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Blue Hardened Clay",
@@ -1196,7 +1356,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Brown Hardened Clay",
@@ -1207,7 +1368,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Green Hardened Clay",
@@ -1218,7 +1380,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Red Hardened Clay",
@@ -1229,7 +1392,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Black Hardened Clay",
@@ -1240,7 +1404,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Acacia Wood",
@@ -1251,7 +1416,21 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
+  },
+  {
+    "name": "Acacia Wood (Top)",
+    "texture_image": "log_acacia_top.png",
+    "game_id": "minecraft:log2 0",
+    "game_id_1_13": "minecraft:acacia_log",
+    "luminance": false,
+    "transparency": false,
+    "falling": false,
+    "redstone": false,
+    "survival": true,
+    "version": 9,
+    "axis": true
   },
   {
     "name": "Dark Oak Wood",
@@ -1262,7 +1441,21 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
+  },
+  {
+    "name": "Dark Oak Wood (Top)",
+    "texture_image": "log_big_oak_top.png",
+    "game_id": "minecraft:log2 1",
+    "game_id_1_13": "minecraft:dark_oak_log",
+    "luminance": false,
+    "transparency": false,
+    "falling": false,
+    "redstone": false,
+    "survival": true,
+    "version": 9,
+    "axis": true
   },
   {
     "name": "Slime Block",
@@ -1273,7 +1466,8 @@
     "transparency": true,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Prismarine Bricks",
@@ -1284,7 +1478,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Dark Prismarine",
@@ -1295,7 +1490,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Sea Lantern",
@@ -1306,7 +1502,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Hay Bale",
@@ -1317,7 +1514,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Hardened Clay",
@@ -1328,7 +1526,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Block of Coal",
@@ -1339,7 +1538,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Red Sandstone",
@@ -1350,7 +1550,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Chiseled Red Sandstone",
@@ -1361,7 +1562,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Smooth Red Sandstone",
@@ -1372,7 +1574,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 9
   },
   {
     "name": "Purpur Block",
@@ -1383,7 +1586,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Purpur Pillar",
@@ -1394,7 +1598,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "End Stone Bricks",
@@ -1405,7 +1610,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": false
+    "survival": false,
+    "version": 9
   },
   {
     "name": "Magma Block",
@@ -1416,7 +1622,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 10
   },
   {
     "name": "Nether Wart Block",
@@ -1427,7 +1634,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 10
   },
   {
     "name": "Red Nether Brick",
@@ -1438,7 +1646,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 10
   },
   {
     "name": "Bone Block",
@@ -1449,7 +1658,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 10
   },
   {
     "name": "White Glazed Terracotta",
@@ -1460,7 +1670,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Orange Glazed Terracotta",
@@ -1471,7 +1682,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Magenta Glazed Terracotta",
@@ -1482,7 +1694,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Light Blue Glazed Terracotta",
@@ -1493,7 +1706,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Yellow Glazed Terracotta",
@@ -1504,7 +1718,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Lime Glazed Terracotta",
@@ -1515,7 +1730,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Pink Glazed Terracotta",
@@ -1526,7 +1742,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Gray Glazed Terracotta",
@@ -1537,7 +1754,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Light Gray Glazed Terracotta",
@@ -1548,7 +1766,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Cyan Glazed Terracotta",
@@ -1559,7 +1778,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Purple Glazed Terracotta",
@@ -1570,7 +1790,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Blue Glazed Terracotta",
@@ -1581,7 +1802,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Brown Glazed Terracotta",
@@ -1592,7 +1814,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Green Glazed Terracotta",
@@ -1603,7 +1826,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Red Glazed Terracotta",
@@ -1614,7 +1838,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Black Glazed Terracotta",
@@ -1625,7 +1850,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "White Concrete",
@@ -1636,7 +1862,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Orange Concrete",
@@ -1647,7 +1874,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Magenta Concrete",
@@ -1658,7 +1886,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Light Blue Concrete",
@@ -1669,7 +1898,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Yellow Concrete",
@@ -1680,7 +1910,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Lime Concrete",
@@ -1691,7 +1922,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Pink Concrete",
@@ -1702,7 +1934,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Gray Concrete",
@@ -1713,7 +1946,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Light Gray Concrete",
@@ -1724,7 +1958,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Cyan Concrete",
@@ -1735,7 +1970,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Purple Concrete",
@@ -1746,7 +1982,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Blue Concrete",
@@ -1757,7 +1994,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Brown Concrete",
@@ -1768,7 +2006,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Green Concrete",
@@ -1779,7 +2018,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Red Concrete",
@@ -1790,7 +2030,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Black Concrete",
@@ -1801,7 +2042,8 @@
     "transparency": false,
     "falling": false,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "White Concrete Powder",
@@ -1812,7 +2054,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Orange Concrete Powder",
@@ -1823,7 +2066,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Magenta Concrete Powder",
@@ -1834,7 +2078,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Light Blue Concrete Powder",
@@ -1845,7 +2090,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Yellow Concrete Powder",
@@ -1856,7 +2102,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Lime Concrete Powder",
@@ -1867,7 +2114,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Pink Concrete Powder",
@@ -1878,7 +2126,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Gray Concrete Powder",
@@ -1889,7 +2138,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Light Gray Concrete Powder",
@@ -1900,7 +2150,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Cyan Concrete Powder",
@@ -1911,7 +2162,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Purple Concrete Powder",
@@ -1922,7 +2174,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Blue Concrete Powder",
@@ -1933,7 +2186,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Brown Concrete Powder",
@@ -1944,7 +2198,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Green Concrete Powder",
@@ -1955,7 +2210,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Red Concrete Powder",
@@ -1966,7 +2222,8 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   },
   {
     "name": "Black Concrete Powder",
@@ -1977,6 +2234,7 @@
     "transparency": false,
     "falling": true,
     "redstone": false,
-    "survival": true
+    "survival": true,
+    "version": 12
   }
 ]

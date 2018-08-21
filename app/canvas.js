@@ -114,6 +114,9 @@ function MineartCanvas() {
             showGrid: false,
             showRulers: true,
             showOriginal: false,
+            showDebugDrawGroups: true,
+            minecraftVersion: 12,
+            drawGroupsCurrent: 0
         },
         debug: { //delete in prod!!!
             showTempCanvas: false,
@@ -127,7 +130,8 @@ function MineartCanvas() {
                 '2': 0,
                 '4': 0
             },
-            savedStartHistory: null
+            savedStartHistory: null,
+            drawGroups: []
         }
     }
 
@@ -611,10 +615,10 @@ function MineartCanvas() {
             offsetY = offset.y || 0, 
             offsetZ = offset.z || 0
         }
-            
+
         switch (facing) {
             case 'east':
-                output = `~${x + offsetX} ~${y + offsetX} ~${offsetZ}`
+                output = `~${x + offsetX} ~${y + offsetY} ~${offsetZ}`
                 break
             case 'south':
                 output = `~${offsetX} ~${y + offsetY} ~${x + offsetZ}`
@@ -626,11 +630,24 @@ function MineartCanvas() {
                 output = `~${offsetX} ~${y + offsetY} ~${offsetZ - x}`
                 break
         }
-        return output.replace('~0', '~')
+        return output.replace(new RegExp('~0', 'g'), '~')
     }
 
     this._convertGroupToCommand = (group, facing, offset) => {
-        const gameId = store.getBlockById(store.imageConvertedHex[group[0]]).game_id
+        const block = store.getBlockById(store.imageConvertedHex[group[0]])
+        let gameId = block.game_id
+        if (block.axis) {
+            if (store.settings.minecraftVersion < 13) {
+                const dataAxis = parseInt(gameId.match(/\d$/)[0])
+                if (facing === 'west' || facing === 'east') {
+                    gameId = gameId.replace(/\d$/, dataAxis + 8)
+                } else if (facing === 'north' || facing === 'south') {
+                    gameId = gameId.replace(/\d$/, dataAxis + 4)
+                }
+            } else {
+                console.log('set axis for 13')
+            }
+        }
         const output = []
         group.forEach((item) => {
             const pos = this._getPosFromInt(item)
@@ -1228,12 +1245,37 @@ function MineartCanvas() {
                               store.imageWidth * store.baseCellSize * store.scale.current, 
                               store.imageHeight * store.baseCellSize * store.scale.current)
         }
+
+        function renderGroups() {
+            if (store.debug.drawGroups[0] === undefined) { return }
+            const groups = store.debug.drawGroups[store.settings.drawGroupsCurrent]
+            groups.forEach((item) => {
+                if (item.length === 1) {
+                    const pos = thisRoot._getPosFromInt(item[0])
+                    ctxMain.fillStyle = "red"
+                    ctxMain.fillRect(
+                                  pos.x * store.baseCellSize * store.scale.current + store.offset.x,
+                                  pos.y * store.baseCellSize * store.scale.current + store.offset.y,
+                                  store.scale.current * store.baseCellSize,
+                                  store.scale.current * store.baseCellSize)
+                } else {
+                    const startPos = thisRoot._getPosFromInt(item[0])
+                    const endPos = thisRoot._getPosFromInt(item[1])
+                    ctxMain.strokeRect(
+                                  startPos.x * store.baseCellSize * store.scale.current + store.offset.x,
+                                  endPos.y * store.baseCellSize * store.scale.current + store.offset.y,
+                                  (endPos.x - startPos.x + 1) * store.scale.current * store.baseCellSize,
+                                  (startPos.y - endPos.y + 1) * store.scale.current * store.baseCellSize)
+                }
+            })
+        }
         
         const renderList = {
             'RENDER_MAIN': renderMain,
             'RENDER_GRID': renderGrid,
             'RENDER_ORIGINAL': renderOriginal,
-            'RENDER_BACKGROUND': renderBackground
+            'RENDER_BACKGROUND': renderBackground,
+            'RENDER_GROUPS': renderGroups
         }
 
         function renderHelper(list) {
@@ -1252,7 +1294,8 @@ function MineartCanvas() {
         renderHelper([
             'RENDER_BACKGROUND',
             store.settings.showOriginal ? 'RENDER_ORIGINAL' : 'RENDER_MAIN',
-            store.settings.showGrid ? 'RENDER_GRID' : false
+            store.settings.showGrid ? 'RENDER_GRID' : false,
+            store.settings.showDebugDrawGroups ? 'RENDER_GROUPS' : false,
         ])
         // console.log(performance.now() - t0)
     }
@@ -1398,7 +1441,6 @@ function MineartCanvas() {
 
     this.setSettingsValue = (key, value) => {
         store.settings[key] = value
-        this.render()
     }
 
     this.reset = () => {
@@ -1484,52 +1526,61 @@ function MineartCanvas() {
             this._convertToGroups()
         }
 
+        store.debug.drawGroups = []
+
+        const maxLength = 31449 - 150
         const outputArr = []
-        let numOfCommands = 314
+        let debugDrawGroup = []
+        let commandTemplate, outsideTemplate, passengerTemplate, commandBlockCartId, fallingBlockId
+        let tempStr
 
-        const commandTemplate = 'summon falling_block ~ ~1 ~ %replace%'
+        switch (store.settings.minecraftVersion) {
+            case 9:
+            case 10:
+                fallingBlockId = 'FallingSand'
+                commandBlockCartId = 'MinecartCommandBlock'
+                break
+            case 11:
+            case 12:
+                fallingBlockId = 'falling_block'
+                commandBlockCartId = 'commandblock_minecart'
+                break
+        }
 
-        const outsideTemplate = `
+        commandTemplate = `summon ${fallingBlockId} ~ ~1 ~ {Time:1,Passengers:[%passenger%]}`
+
+        passengerTemplate = `
         {
-            Block:activator_rail,
-            Time:1,
-            Passengers:[%replace%]
-        }`
-
-        const passengerTemplate = `
-        {
-            id: "commandblock_minecart",
+            id: "${commandBlockCartId}",
             Command: "%command%",
             Passengers: [%passenger%]
         }
         `
+        tempStr = passengerTemplate.replace(/\n|\s/g, '')
 
-        for (let i = 0; i < store.groups.length; i += numOfCommands) {
-            const slice = store.groups.slice(i, i + numOfCommands)
-            let output = passengerTemplate.replace(/\n|\s/g, '')
-
-            for (let k = 0; k < slice.length + 1; k++) {
-                let command
-                if (k === 0) {
-                    command = '/kill @e[type=commandblock_minecart]'
-                } else {
-                    const item = slice[k - 1]
-                    command = this._convertGroupToCommand(item, facing, {y: -1})
-                }
-                output = output.replace('%command%', command)
-
-                if (k !== slice.length) {
-                    output = output.replace('%passenger%', passengerTemplate.replace(/\n|\s/g, ''))
-                } else {
-                    output = output.replace('%passenger%', '')
-                }
+        for (let i = 0; i <= store.groups.length; i++) {
+            if (i === store.groups.length) {
+                tempStr = tempStr.replace('%command%', `kill @e[type=${commandBlockCartId},r=2]`)
+                                 .replace(',Passengers:[%passenger%]', '')
+                outputArr.push(commandTemplate.replace('%passenger%', tempStr))
+                store.debug.drawGroups.push(debugDrawGroup)
+                debugDrawGroup = []
+                continue
             }
 
-            const temp = outsideTemplate.replace(/\n|\s/g, '').replace('%replace%', output)
-            const returnStr = commandTemplate.replace('%replace%', temp)
-            outputArr.push(returnStr)
-        }
+            tempStr = tempStr.replace('%command%', this._convertGroupToCommand(store.groups[i], facing, {y: -1}))
+                             .replace('%passenger%', passengerTemplate.replace(/\n|\s/g, ''))
+            debugDrawGroup.push(store.groups[i])
 
+            if (tempStr.length > maxLength) {
+                tempStr = tempStr.replace('%command%', `kill @e[type=${commandBlockCartId},r=2]`)
+                                 .replace(',Passengers:[%passenger%]', '')
+                outputArr.push(commandTemplate.replace('%passenger%', tempStr))
+                tempStr = passengerTemplate.replace(/\n|\s/g, '')
+                store.debug.drawGroups.push(debugDrawGroup)
+                debugDrawGroup = []
+            }
+        }
         return outputArr
     }
 
