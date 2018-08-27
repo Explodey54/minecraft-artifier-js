@@ -264,7 +264,11 @@
                 </div>
 
             </div>
-            <div class="footbar" id="editor-footbar">...</div>
+            <div class="footbar clearfix">
+                <div class="footbar-left" id="editor-footbar-left">...</div>
+                <div class="footbar-right" id="editor-footbar-right"></div>
+            </div>
+            
         </section>
 
         <section class="section container convert-screen hidden">
@@ -305,13 +309,17 @@
                             </select>
                         </div>
                     </div>
-                    <div class="info" id="convert-string-commands"></div>
+                    <div class="info" id="convert-string-commands" style="margin-bottom: 5px;"></div>
+                    <div class="info">Commands to delete:</div>
+                    <div class="info" id="convert-string-delete"></div>
+                    <div class="hidden" id="convert-notify-changed" style="margin-top: 10px;">Your image was changed. <a id="convert-notify-link" href="#">Reconvert?</a></div>
                 </div>
                 <div class="column">
                     <div id="convert-output-commblock" class="ahidden">
                         <div class="control">
                             <textarea class="textarea" type="text" readonly id="convert-commblock-textarea"></textarea>
                             <div class="box counter" id="convert-counter-commblock"></div>
+                            <a class="clipboard" href="#" id="convert-copy-clipboard">Copy to clipboard</a>
                         </div> 
                     </div>
                     <div id="convert-output-mcfunction" class="hidden">

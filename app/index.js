@@ -18,6 +18,7 @@ const canvasTemp = document.createElement('canvas')
 
 const store = {
     blocksDefault: blocks,
+    uploadedType: null,
     uploadedImage: new Image(),
     uploadedImageName: null,
     convertWorker: new ConvertWorker(),
@@ -38,6 +39,9 @@ const store = {
             document.querySelector('section.settings-screen').classList.remove('hidden')
         },
         changeToEditorScreen() {
+            if (store.uploadedType === 'data') {
+                store.editorScreen.$settingsOriginal.disabled = true
+            }
             document.querySelector('section.start-screen').classList.add('hidden')
             document.querySelector('section.editor-screen').classList.remove('hidden')
         },
@@ -47,8 +51,8 @@ const store = {
             store.convertScreen.$inputMcfunction.value = str
         },
         uploadImage(src) {
+            store.uploadedType = 'image'
             store.uploadedImage.src = src
-            store.mineartCanvas.setOriginalImageSrc(src)
             store.uploadedImage.onload = () => {
                 store.settingsScreen.$imgPres.src = src
                 store.settingsScreen.$inputWidth.value = store.uploadedImage.width
@@ -63,6 +67,7 @@ const store = {
             }
         },
         uploadDataFile(file) {
+            store.uploadedType = 'data'
             const reader = new FileReader()
             reader.readAsArrayBuffer(file)
             reader.onloadend = (e) => {
@@ -77,6 +82,7 @@ const store = {
                     uint8Array[i - 6] = data.getUint8(i)
                 }
 
+                store.editorScreen.$footbarRight.innerHTML = `Width: ${width}; Height: ${height};`
                 this.changeToEditorScreen()
                 store.mineartCanvas.init(store.editorScreen.$divCanvas)
                 store.mineartCanvas.setImageSizes(width, height)
@@ -215,6 +221,15 @@ const store = {
                     cropInfo.offsetY = store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.offsetY
                     cropInfo.offsetX = store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.offsetX
                 }
+
+                store.mineartCanvas.setOriginalImage({
+                    src: store.uploadedImage.src,
+                    x: cropInfo.offsetX,
+                    y: cropInfo.offsetY,
+                    width: cropInfo.width,
+                    height: cropInfo.height
+                })
+
                 const widthCropRatio = inputWidth / cropInfo.width
                 const heightCropRatio = inputHeight / cropInfo.height 
                 this.ctxTemp.drawImage(store.uploadedImage, 
@@ -224,6 +239,13 @@ const store = {
                                        store.uploadedImage.naturalHeight * heightCropRatio)
             } else {
                 this.ctxTemp.drawImage(store.uploadedImage, 0, 0, canvasTemp.width, canvasTemp.height)
+                store.mineartCanvas.setOriginalImage({
+                    src: store.uploadedImage.src,
+                    x: 0,
+                    y: 0,
+                    width: store.uploadedImage.width,
+                    height: store.uploadedImage.height
+                })
             }
         },
         changeToEditorScreen() {
@@ -239,7 +261,7 @@ const store = {
         noBlockImg: new Image(),
         currentTool: 'pencil',
         brushSize: null,
-        maxHistory: 50,
+        maxHistory: 5,
         $divCanvas: document.getElementById('editor-canvas'),
         $topbarBtns: document.querySelectorAll('.topbar-btn'),
         $saveBtn: document.getElementById('editor-save-btn'),
@@ -261,7 +283,8 @@ const store = {
         $brushMinus: document.getElementById('editor-brush-minus'),
         $brushPlus: document.getElementById('editor-brush-plus'),
         $mainEyedrop: document.getElementById('editor-main-eyedrop'),
-        $footbar: document.getElementById('editor-footbar'),
+        $footbarLeft: document.getElementById('editor-footbar-left'),
+        $footbarRight: document.getElementById('editor-footbar-right'),
         $settingsGrid: document.getElementById('editor-settings-grid'),
         $settingsRulers: document.getElementById('editor-settings-rulers'),
         $settingsOriginal: document.getElementById('editor-settings-original'),
@@ -363,11 +386,14 @@ const store = {
         $preRaw: document.getElementById('convert-pre-raw'),
         $tableManual: document.getElementById('convert-table-manual'),
         $stringTotalComms: document.getElementById('convert-string-commands'),
+        $stringDelete: document.getElementById('convert-string-delete'),
+        $copyClipboard: document.getElementById('convert-copy-clipboard'),
+        $notifyDiv: document.getElementById('convert-notify-changed'),
+        $notifyLink: document.getElementById('convert-notify-link'),
         convert () {
             if (this.wasChanged) {
                 store.mineartCanvas.resetGroups()
                 this.wasChanged = false
-                console.log('change')
             }
             this.commBlockStrings = store.mineartCanvas.convertAsCommandBlock(this.$selectDirection.value)
             this.mcfunctionBlob = new Blob([store.mineartCanvas.convertAsMcfunction(this.$selectDirection.value)], {type : 'text/plain'})
@@ -424,6 +450,8 @@ const store = {
                 })
             })
             this.counterManual.setValue(1)
+            this.$stringDelete.innerHTML = store.mineartCanvas.getCommandToDelete(this.$selectDirection.value).join('<br>')
+            this.$notifyDiv.classList.add('hidden')
         }
     },
     modals: {
@@ -623,6 +651,7 @@ const store = {
             this.mineartCanvas.setSettingsValue('minecraftVersion', version)
 
             this.settingsScreen.drawToCanvas()
+            store.editorScreen.$footbarRight.innerHTML = `Width: ${canvasTemp.width}; Height: ${canvasTemp.height};`
             this.convertWorker.postMessage({
                 imgData: this.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
                 exclude: excludeArr
@@ -635,7 +664,7 @@ const store = {
             this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
             this.mineartCanvas.open(e.data)
             store.editorScreen.setEyedrop(1)
-            store.editorScreen.setBrushSize(1)
+            store.editorScreen.setBrushSize(3)
         }
 
         this.settingsScreen.$imgPres.addEventListener('croppytransformed', (e) => {
@@ -707,7 +736,7 @@ const store = {
         this.editorScreen.$divCanvas.onmousemove = (e) => {
             const data = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y)
             if (data && data.info) {
-                this.editorScreen.$footbar.innerHTML = `
+                this.editorScreen.$footbarLeft.innerHTML = `
                     X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>${data.info.name}</b>, Game ID: <b>${data.info.game_id}</b> Pos: ${data.blockPos}
                 `
             }
@@ -715,6 +744,7 @@ const store = {
 
         this.editorScreen.$divCanvas.addEventListener('history', (e) => {
             this.convertScreen.wasChanged = true
+            this.convertScreen.$notifyDiv.classList.remove('hidden')
             this.editorScreen.currentHistoryPos = e.details.pos
 
             let historyCounter = 0
@@ -758,7 +788,11 @@ const store = {
                 })
                 node.classList.add('info-panels-history-action-current')
                 this.mineartCanvas.undoTo(parseInt(node.dataset.actionPos))
+                if (this.editorScreen.currentHistoryPos !== parseInt(node.dataset.actionPos)) {
+                    this.convertScreen.$notifyDiv.classList.remove('hidden')
+                }
                 this.editorScreen.currentHistoryPos = parseInt(node.dataset.actionPos)
+                this.convertScreen.wasChanged = true
             }
             
             this.editorScreen.$historyFirstAction.classList.remove('info-panels-history-action-current')
@@ -778,7 +812,11 @@ const store = {
                 item.classList.add('info-panels-history-action-returned')
             })
             this.mineartCanvas.undoTo(-1)
+            if (this.editorScreen.currentHistoryPos !== -1) {
+                this.convertScreen.$notifyDiv.classList.remove('hidden')
+            }
             this.editorScreen.currentHistoryPos = -1
+            this.convertScreen.wasChanged = true
         }
 
         this.editorScreen.$btnConvert.onclick = () => {
@@ -882,8 +920,20 @@ const store = {
             this.convertScreen.convert()
         }
 
-        this.convertScreen.$inputMcfunction.oninput = (e) => {
+        this.convertScreen.$inputMcfunction.oninput = () => {
             this.convertScreen.$btnMcfunction.download = e.target.value + '.mcfunction'
+        }
+
+        this.convertScreen.$copyClipboard.onclick = (e) => {
+            e.preventDefault()
+            this.convertScreen.$commBlockTextarea.select()
+            document.execCommand('copy')
+        }
+
+        this.convertScreen.$notifyLink.onclick = (e) => {
+            e.preventDefault()
+            this.convertScreen.convert()
+            this.convertScreen.$notifyDiv.classList.add('hidden')
         }
 
         this.modals.$closeBtn.onclick = () => {
@@ -946,31 +996,31 @@ blocks.sort((a, b) => {
 store.setEventListeners()
 store.editorScreen.fillBlockList()
 
-// const tempImage = new Image()
-// tempImage.src = require('../static/pic_100.png')
-// store.mineartCanvas.setSettingsValue('minecraftVersion', 9)
-// store.startScreen.changeToSettingsScreen()
-// store.startScreen.uploadImage(tempImage.src)
-// tempImage.onload = (e) => {
+const tempImage = new Image()
+tempImage.src = require('../static/pic_200.png')
+store.mineartCanvas.setSettingsValue('minecraftVersion', 9)
+store.startScreen.changeToSettingsScreen()
+store.startScreen.uploadImage(tempImage.src)
+tempImage.onload = (e) => {
 
-//     // return
-//     canvasTemp.width = tempImage.width
-//     canvasTemp.height = tempImage.height
-//     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
+    // return
+    canvasTemp.width = tempImage.width
+    canvasTemp.height = tempImage.height
+    store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
 
-//     const exclude = []
-//     blocks.forEach((item) => {
-//         if (item.luminance === true || item.transparency === true || item.redstone === true) {
-//             exclude.push(item.id)
-//         }
-//     })
+    const exclude = []
+    blocks.forEach((item) => {
+        if (item.luminance === true || item.transparency === true || item.redstone === true) {
+            exclude.push(item.id)
+        }
+    })
 
-//     store.convertWorker.postMessage({
-//         imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
-//         exclude: exclude
-//     })
-//     store.startScreen.changeToEditorScreen()
-// }
+    store.convertWorker.postMessage({
+        imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
+        exclude: exclude
+    })
+    store.startScreen.changeToEditorScreen()
+}
 
 window.mineartDOM = {
     changeTool(tool) {

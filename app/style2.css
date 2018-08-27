@@ -187,7 +187,16 @@ html {
     color: white;
     padding: 5px;
     font-size: 12px;
-    padding-left: 15px;
+}
+
+.workarea .footbar-left {
+	float: left;
+	padding-left: 10px;
+}
+
+.workarea .footbar-right {
+	float: right;
+	padding-right: 10px;
 }
 
 .editor {
@@ -487,6 +496,14 @@ section.convert-screen {
 	height: 371px;
 }
 
+.convert-screen #convert-output-commblock .clipboard {
+	font-size: 14px;
+	display: inline-block;
+	vertical-align: super;
+    line-height: 30px;
+    margin-left: 5px;
+}
+
 .convert-screen .counter {
 	padding: 0.5rem;
 	width: 270px;
@@ -494,6 +511,7 @@ section.convert-screen {
 	margin-top: 10px;
 	user-select: none;
 	text-align: center;
+	display: inline-block;
 }
 
 .convert-screen .counter input {

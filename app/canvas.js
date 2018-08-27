@@ -19,7 +19,12 @@ function MineartCanvas() {
 
     const store = {
         blocksDb: [],
-        getBlockById(id) { return this.blocksDb[id - 1] },
+        getBlockById(id) {
+            if (id == 0) {
+                return null
+            } 
+            return this.blocksDb[id - 1] 
+        },
         initFlag: false,
         imageConvertedHex: null,
         imageConvertedHexBackup: null,
@@ -29,7 +34,13 @@ function MineartCanvas() {
         canvasHeight: null,
         baseCellSize: 16,
         boundingRect: null,
-        originalImage: new Image(),
+        originalImage: {
+            img: new Image(),
+            x: null,
+            y: null,
+            width: null,
+            height: null
+        },
         groups: null,
         offset: {
             bounds: {
@@ -78,7 +89,7 @@ function MineartCanvas() {
             log: [],
             currentPos: -1,
             lastMaxPos: -1,
-            maxStates: 50,
+            maxStates: 5,
             offset: 0
         },
         interface: {
@@ -231,7 +242,13 @@ function MineartCanvas() {
             return null
         }
 
-        return store.imageConvertedHex[y * store.imageWidth + x]
+        if (store.history.currentPos !== -1) {
+            return store.imageConvertedHex[y * store.imageWidth + x]
+        } else {
+            return store.imageConvertedHexBackup[y * store.imageWidth + x]
+        }
+
+        
     }
 
     this._checkIfInSelection = (int) => {
@@ -356,7 +373,7 @@ function MineartCanvas() {
 
     this._addToHistory = (type, data) => {
         for (let i = store.history.currentPos; i < store.history.lastMaxPos; i++) {
-            store.history.log.shift()
+            store.history.log.pop()
         }
 
         if (store.history.currentPos === -1) {
@@ -444,79 +461,20 @@ function MineartCanvas() {
     this._convertToGroups = () => {
         const catchedBlocks = {}
         const groups = []
+        let hex
+        if (store.history.currentPos === -1) {
+            hex = store.imageConvertedHexBackup
+        } else {
+            hex = store.imageConvertedHex
+        }
 
-        // for (let i = 0; i < store.imageConvertedHex.length; i++) {
-        //     let targetPos = i
-
-        //     if (catchedBlocks[targetPos]) { continue }
-        //     catchedBlocks[targetPos] = true
-
-        //     let targetBlock = store.imageConvertedHex[targetPos]
-        //     let targetWidth = 1
-        //     let targetHeight = 1
-
-        //     while (true) {
-        //         let tempPos = targetPos + targetWidth
-        //         if (store.imageConvertedHex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
-        //             catchedBlocks[targetPos + targetWidth] = true
-        //             targetWidth++
-        //         } else {
-        //             break
-        //         }
-        //         if ((targetPos + targetWidth) % store.imageWidth === 0) { break }
-        //     }
-
-        //     while (true) {
-        //         let tempPos = targetPos + targetHeight * store.imageWidth
-        //         if (store.imageConvertedHex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
-        //             catchedBlocks[targetPos + targetHeight * store.imageWidth] = true
-        //             targetHeight++
-        //         } else {
-        //             break
-        //         }
-        //         if (targetPos + targetWidth * store.imageWidth < store.imageWidth) { break }
-        //     }
-
-        //     if (targetWidth === 1 && targetHeight === 1) {
-        //         groups.push([targetPos])
-        //         continue
-        //     }
-
-        //     let tempHeight = targetHeight
-        //     let startBlockGroup = targetPos
-        //     for (let w = 0; w < targetWidth; w++) {
-        //         for (let h = 0; h < tempHeight; h++) {
-        //             let shiftPos = targetPos + h * store.imageWidth + w + 1
-        //             if (store.imageConvertedHex[shiftPos] === targetBlock) {
-        //                 catchedBlocks[shiftPos] = true
-        //                 if (w + 1 === targetWidth && h + 1 === tempHeight) {
-        //                     if (startBlockGroup === targetPos + targetWidth - 1 + (tempHeight - 1) * store.imageWidth) {
-        //                         groups.push([startBlockGroup])
-        //                     } else {
-        //                         groups.push([startBlockGroup, targetPos + targetWidth - 1 + (tempHeight - 1) * store.imageWidth])
-        //                     }
-        //                 }
-        //             } else {
-        //                 if (startBlockGroup === targetPos + w + (tempHeight - 1) * store.imageWidth) {
-        //                     groups.push([startBlockGroup])
-        //                 } else {
-        //                     groups.push([startBlockGroup, targetPos + w + (tempHeight - 1) * store.imageWidth])
-        //                 }
-        //                 startBlockGroup = targetPos + w + 1
-        //                 tempHeight = h
-        //                 break
-        //             }
-        //         }
-        //     }
-        // }
-
-        for (let i = 0; i < store.imageConvertedHex.length; i++) {
-            let targetPos = Math.floor((store.imageConvertedHex.length - i - 1) / store.imageWidth) * store.imageWidth + (i % store.imageWidth)
+        for (let i = 0; i < hex.length; i++) {
+            let targetPos = Math.floor((hex.length - i - 1) / store.imageWidth) * store.imageWidth + (i % store.imageWidth)
 
             if (catchedBlocks[targetPos]) { continue }
             catchedBlocks[targetPos] = true
 
-            let targetBlock = store.imageConvertedHex[targetPos]
+            let targetBlock = hex[targetPos]
             if (targetBlock === 0) {
                 catchedBlocks[targetPos] = true
                 continue
@@ -527,7 +485,7 @@ function MineartCanvas() {
 
             while (true) {
                 let tempPos = targetPos + targetWidth
-                if (store.imageConvertedHex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
+                if (hex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
                     catchedBlocks[tempPos] = true
                     targetWidth++
                 } else {
@@ -538,7 +496,7 @@ function MineartCanvas() {
 
             while (true) {
                 let tempPos = targetPos - targetHeight * store.imageWidth
-                if (store.imageConvertedHex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
+                if (hex[tempPos] === targetBlock && !catchedBlocks[tempPos]) {
                     catchedBlocks[tempPos] = true
                     targetHeight++
                 } else {
@@ -557,7 +515,7 @@ function MineartCanvas() {
             for (let w = 0; w < targetWidth; w++) {
                 for (let h = 0; h < tempHeight; h++) {
                     let shiftPos = targetPos - h * store.imageWidth + w + 1
-                    if (store.imageConvertedHex[shiftPos] === targetBlock) {
+                    if (hex[shiftPos] === targetBlock) {
                         catchedBlocks[shiftPos] = true
                         if (w + 1 === targetWidth && h + 1 === tempHeight) {
                             if (startBlockGroup === targetPos + targetWidth - 1 + (tempHeight - 1) * store.imageWidth) {
@@ -585,25 +543,25 @@ function MineartCanvas() {
         console.log(groups.length, Object.keys(catchedBlocks).length)
         return
 
-        groups.forEach((item) => {
-            if (item.length === 1) {
-                const pos = this._getPosFromInt(item[0])
-                ctxMain.fillStyle = "red"
-                ctxMain.fillRect(
-                              pos.x * store.baseCellSize * store.scale.current + store.offset.x,
-                              pos.y * store.baseCellSize * store.scale.current + store.offset.y,
-                              store.scale.current * store.baseCellSize,
-                              store.scale.current * store.baseCellSize)
-            } else {
-                const startPos = this._getPosFromInt(item[0])
-                const endPos = this._getPosFromInt(item[1])
-                ctxMain.strokeRect(
-                              startPos.x * store.baseCellSize * store.scale.current + store.offset.x,
-                              endPos.y * store.baseCellSize * store.scale.current + store.offset.y,
-                              (endPos.x - startPos.x + 1) * store.scale.current * store.baseCellSize,
-                              (startPos.y - endPos.y + 1) * store.scale.current * store.baseCellSize)
-            }
-        })
+        // groups.forEach((item) => {
+        //     if (item.length === 1) {
+        //         const pos = this._getPosFromInt(item[0])
+        //         ctxMain.fillStyle = "red"
+        //         ctxMain.fillRect(
+        //                       pos.x * store.baseCellSize * store.scale.current + store.offset.x,
+        //                       pos.y * store.baseCellSize * store.scale.current + store.offset.y,
+        //                       store.scale.current * store.baseCellSize,
+        //                       store.scale.current * store.baseCellSize)
+        //     } else {
+        //         const startPos = this._getPosFromInt(item[0])
+        //         const endPos = this._getPosFromInt(item[1])
+        //         ctxMain.strokeRect(
+        //                       startPos.x * store.baseCellSize * store.scale.current + store.offset.x,
+        //                       endPos.y * store.baseCellSize * store.scale.current + store.offset.y,
+        //                       (endPos.x - startPos.x + 1) * store.scale.current * store.baseCellSize,
+        //                       (startPos.y - endPos.y + 1) * store.scale.current * store.baseCellSize)
+        //     }
+        // })
     }
 
     this._convertPosToRelCoords = (pos, facing, offset) => {
@@ -634,7 +592,12 @@ function MineartCanvas() {
     }
 
     this._convertGroupToCommand = (group, facing, offset) => {
-        const block = store.getBlockById(store.imageConvertedHex[group[0]])
+        let block = store.getBlockById(store.imageConvertedHex[group[0]])
+        if (block === null) {
+            block = {
+                game_id: 'minecraft:air'
+            }
+        }
         let gameId = block.game_id
         if (block.axis) {
             if (store.settings.minecraftVersion < 13) {
@@ -702,14 +665,6 @@ function MineartCanvas() {
             let totalBlocks = Math.pow(size, 2)
             let startPointX = x - radius
             let startPointY = y - radius
-            const maxWidthForRow = {}
-
-            if (thisRoot.getTool() === 'brush') {
-                const PIPortion = 0.42 / (radius + 1)
-                for (let i = 1; i <= radius; i ++) {
-                    maxWidthForRow[i] = Math.round(Math.cos(i * PIPortion * Math.PI) * store.interface.brushSize / 2)
-                }
-            }
 
             for (let i = 0; i < totalBlocks; i++) {
                 let xBlock = startPointX + (i % size)
@@ -721,8 +676,21 @@ function MineartCanvas() {
                 }
                 
                 if (thisRoot.getTool() === 'brush') {
-                    let tempMaxRow = maxWidthForRow[Math.abs(Math.floor(i / size) - radius)]
-                    if (tempMaxRow < Math.abs(i % size - radius)) { continue }
+                    const int = 6
+                    let maxMult
+                    if (int % 2 === 0) {
+                        maxMult = (int / 2) * (int / 2 + 1)
+                    } else {
+                        maxMult = Math.pow(Math.ceil(int / 2), 2)
+                    }
+                    if (maxMult <= 0) { maxMult = 1 }
+                    const row = Math.ceil((i + 1) / size)
+                    const col = i % size + 1
+                    const offsetX = Math.abs(col - radius - 1)
+                    const offsetY = Math.abs(row - radius - 1)
+                    if (Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) > radius + 0.5) {
+                        continue
+                    }
                 }
                 thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
                 tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = thisRoot.getEyedrop()
@@ -742,20 +710,21 @@ function MineartCanvas() {
                 thisRoot._renderOverlayCanvas()
             }
             if (store.controls.mouse.leftClick && (thisRoot.getTool() === 'pencil' || thisRoot.getTool() === 'brush')) {
-                if (xBlock < 0 || xBlock >= store.imageWidth ) { return }
-                if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
+                // if (xBlock < 0 || xBlock >= store.imageWidth ) { return }
+                // if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
                 // if (store.interface.rulerSize > Math.floor(e.pageX - store.boundingRect.x) ||
                 //     store.canvasHeight - store.interface.rulerSize < Math.floor(e.pageY - store.boundingRect.y)) {
                 //         return
                 // }
 
                 //start the bresenham algorithm with the callback
-                const skipEveryN = Math.ceil(store.interface.brushSize / 3) + 1
+                const skipEveryN = Math.ceil(store.interface.brushSize / 2)
                 bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock, skipEveryN, draw)
 
                 store.controls.mouse.lastMouseX = xBlock
                 store.controls.mouse.lastMouseY = yBlock
             }
+
             if (store.controls.mouse.leftClick && thisRoot.getTool() === 'selection') {
                 let tempX = xBlock
                 let tempY = yBlock
@@ -951,6 +920,7 @@ function MineartCanvas() {
             }
 
             ctxOverlay.beginPath()
+            ctxOverlay.globalAlpha = 1
             ctxOverlay.fillStyle = rulerFillStyle
             ctxOverlay.rect(0, store.canvasHeight - store.interface.rulerSize, store.canvasWidth, store.interface.rulerSize)
             ctxOverlay.fill()
@@ -987,91 +957,6 @@ function MineartCanvas() {
             ctxOverlay.fill()
         }
 
-        function renderBrush() {
-            let size = store.interface.brushSize % 2 === 0 ? store.interface.brushSize + 1 : store.interface.brushSize
-            let brushSize = size * store.baseCellSize * store.scale.current
-            ctxOverlay.strokeStyle = "black 1.5px"
-            ctxOverlay.fillStyle = "rgba(0,0,0,0)"
-            ctxOverlay.beginPath()
-            
-            if (thisRoot.getTool() === 'pencil') {
-                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
-                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                ctxOverlay.rect((xBlock - Math.floor(store.interface.brushSize / 2)) * store.baseCellSize * store.scale.current + store.offset.x,
-                                (yBlock - Math.floor(store.interface.brushSize / 2)) * store.baseCellSize * store.scale.current + store.offset.y,
-                                brushSize,
-                                brushSize)
-            }
-
-            if (thisRoot.getTool() === 'brush') {
-                ctxOverlay.arc(store.controls.mouse.localX,
-                        store.controls.mouse.localY,
-                        brushSize / 2,
-                        0,2*Math.PI);
-            }
-
-            ctxOverlay.stroke()
-        }
-
-        function renderSelection() {
-            if (store.interface.selection.start === null || store.interface.selection.end === null) { return }
-            if (store.interface.selection.start === store.interface.selection.end) { return }
-
-            var startPos = thisRoot._getPosFromInt(store.interface.selection.start)
-            var endPos = thisRoot._getPosFromInt(store.interface.selection.end)
-
-            const tempStart = {
-                x: startPos.x <= endPos.x ? startPos.x : endPos.x,  
-                y: startPos.y <= endPos.y ? startPos.y : endPos.y
-            }
-
-            const tempEnd = {
-                x: startPos.x > endPos.x ? startPos.x : endPos.x,  
-                y: startPos.y > endPos.y ? startPos.y : endPos.y
-            }
-
-            ctxOverlay.beginPath();
-            ctxOverlay.rect(tempStart.x * store.baseCellSize * store.scale.current + store.offset.x, 
-                            tempStart.y * store.baseCellSize * store.scale.current + store.offset.y,
-                            (tempEnd.x - tempStart.x  + 1)  * store.baseCellSize * store.scale.current,
-                            (tempEnd.y - tempStart.y + 1) * store.baseCellSize * store.scale.current)
-            ctxOverlay.lineWidth = 1
-            ctxOverlay.setLineDash([10, 5])
-            ctxOverlay.stroke()
-        }
-
-        const renderList = {
-            'RENDER_BRUSH': renderBrush,
-            'RENDER_RULERS': renderRulers,
-            'RENDER_SELECTION': renderSelection
-        }
-
-        function renderHelper(list) {
-            ctxOverlay.save()
-            ctxOverlay.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
-            list.forEach((item) => {
-                if (renderList[item]) {
-                    renderList[item]()
-                    ctxOverlay.restore()
-                }
-            })
-        }
-
-        const renderArray = ['RENDER_SELECTION']
-
-        if ((this.getTool() === 'pencil' || this.getTool() === 'brush') && !store.controls.mouse.grabbed) {
-            renderArray.push('RENDER_BRUSH')
-        }
-
-        if (store.settings.showRulers) {
-            renderArray.push('RENDER_RULERS')
-        }
-
-        renderHelper(renderArray)
-    }
-
-    this._renderMainCanvas = () => {
-
         function renderGrid() {
             let lineWidthBig = 2,
                 lineWidthSmall = 1,
@@ -1102,8 +987,8 @@ function MineartCanvas() {
                     break
             }
 
-            ctxMain.lineWidth = lineWidthBig
-            ctxMain.strokeStyle = strokeStyle
+            ctxOverlay.lineWidth = lineWidthBig
+            ctxOverlay.strokeStyle = strokeStyle
 
             let topOfGridVertical = -store.offset.y >= 0 ? 0 : store.offset.y
             let bottomOfGridVertical = store.offset.y + store.imageHeight * 16 * store.scale.current
@@ -1138,37 +1023,139 @@ function MineartCanvas() {
             }
 
             for (let i = startOfRenderGridHorizontal + 1; i <= endOfRenderGridHorizontal; i += 1) {
-                ctxMain.beginPath()
-                ctxMain.globalAlpha = 1
-                if (i % mainGridLineEveryN === 0) {
-                    ctxMain.lineWidth = lineWidthBig
-                    ctxMain.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
-                    ctxMain.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
+                ctxOverlay.beginPath()
+                ctxOverlay.globalAlpha = 1
+                if (i % mainGridLineEveryN === 0 && i !== store.imageWidth) {
+                    ctxOverlay.lineWidth = lineWidthBig
+                    ctxOverlay.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
+                    ctxOverlay.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
                 } else if (lineWidthSmall > 0) {
-                    ctxMain.globalAlpha = store.scale.current / 4 * 2
-                    ctxMain.lineWidth = lineWidthSmall
-                    ctxMain.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y + 0.5)
-                    ctxMain.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y + 0.5)
+                    ctxOverlay.globalAlpha = store.scale.current / 4 * 2
+                    ctxOverlay.lineWidth = lineWidthSmall
+                    ctxOverlay.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y + 0.5)
+                    ctxOverlay.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y + 0.5)
                 }
-                ctxMain.stroke()
+                ctxOverlay.stroke()
             }
 
             for (let i = startOfRenderGridVertical + 1; i <= endOfRenderGridVertical; i += 1) {
-                ctxMain.beginPath()
-                ctxMain.globalAlpha = 1
-                if (i % mainGridLineEveryN === 0) {
-                    ctxMain.lineWidth = lineWidthBig
-                    ctxMain.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical)
-                    ctxMain.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical)
+                ctxOverlay.beginPath()
+                ctxOverlay.globalAlpha = 1
+                if (i % mainGridLineEveryN === 0 && i !== store.imageHeight) {
+                    ctxOverlay.lineWidth = lineWidthBig
+                    ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical)
+                    ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical)
                 } else if (lineWidthSmall > 0) {
-                    ctxMain.globalAlpha = store.scale.current / 4 * 2
-                    ctxMain.lineWidth = lineWidthSmall
-                    ctxMain.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical + 0.5)
-                    ctxMain.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical + 0.5)
+                    ctxOverlay.globalAlpha = store.scale.current / 4 * 2
+                    ctxOverlay.lineWidth = lineWidthSmall
+                    ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical + 0.5)
+                    ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical + 0.5)
                 }
-                ctxMain.stroke()
+                ctxOverlay.stroke()
             }
         }
+
+        function renderBrush() {
+            let size = store.interface.brushSize % 2 === 0 ? store.interface.brushSize + 1 : store.interface.brushSize
+            let brushSize = size * store.baseCellSize * store.scale.current
+            ctxOverlay.beginPath()
+            
+            if (thisRoot.getTool() === 'pencil') {
+                let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
+                let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
+                ctxOverlay.rect((xBlock - Math.floor(store.interface.brushSize / 2)) * store.baseCellSize * store.scale.current + store.offset.x,
+                                (yBlock - Math.floor(store.interface.brushSize / 2)) * store.baseCellSize * store.scale.current + store.offset.y,
+                                brushSize,
+                                brushSize)
+            }
+
+            if (thisRoot.getTool() === 'brush') {
+                ctxOverlay.arc(store.controls.mouse.localX,
+                        store.controls.mouse.localY,
+                        brushSize / 2,
+                        0,2*Math.PI);
+            }
+
+            ctxOverlay.globalAlpha = 1
+            ctxOverlay.strokeStyle = "white"
+            ctxOverlay.lineWidth = 3
+            ctxOverlay.stroke()
+            ctxOverlay.stroke()
+            ctxOverlay.strokeStyle = "black"
+            ctxOverlay.lineWidth = 1
+            ctxOverlay.stroke()
+            ctxOverlay.stroke()
+        }
+
+        function renderSelection() {
+            if (store.interface.selection.start === null || store.interface.selection.end === null) { return }
+            if (store.interface.selection.start === store.interface.selection.end) { return }
+
+            var startPos = thisRoot._getPosFromInt(store.interface.selection.start)
+            var endPos = thisRoot._getPosFromInt(store.interface.selection.end)
+
+            const tempStart = {
+                x: startPos.x <= endPos.x ? startPos.x : endPos.x,  
+                y: startPos.y <= endPos.y ? startPos.y : endPos.y
+            }
+
+            const tempEnd = {
+                x: startPos.x > endPos.x ? startPos.x : endPos.x,  
+                y: startPos.y > endPos.y ? startPos.y : endPos.y
+            }
+
+            ctxOverlay.beginPath();
+            ctxOverlay.rect(tempStart.x * store.baseCellSize * store.scale.current + store.offset.x, 
+                            tempStart.y * store.baseCellSize * store.scale.current + store.offset.y,
+                            (tempEnd.x - tempStart.x  + 1)  * store.baseCellSize * store.scale.current,
+                            (tempEnd.y - tempStart.y + 1) * store.baseCellSize * store.scale.current)
+            ctxOverlay.lineWidth = 1
+            ctxOverlay.strokeStyle = "white"
+            ctxOverlay.stroke()
+            ctxOverlay.stroke()
+            ctxOverlay.setLineDash([5, 5])
+            ctxOverlay.strokeStyle = "black"
+            ctxOverlay.stroke()
+            ctxOverlay.stroke()
+        }
+
+        const renderList = {
+            'RENDER_BRUSH': renderBrush,
+            'RENDER_RULERS': renderRulers,
+            'RENDER_SELECTION': renderSelection,
+            'RENDER_GRID': renderGrid
+        }
+
+        function renderHelper(list) {
+            ctxOverlay.globalAlpha = 1
+            ctxOverlay.save()
+            ctxOverlay.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
+            list.forEach((item) => {
+                if (renderList[item]) {
+                    renderList[item]()
+                    ctxOverlay.restore()
+                }
+            })
+        }
+
+        const renderArray = ['RENDER_SELECTION']
+
+        if (store.settings.showGrid) {
+            renderArray.push('RENDER_GRID')
+        }
+
+        if ((this.getTool() === 'pencil' || this.getTool() === 'brush') && !store.controls.mouse.grabbed) {
+            renderArray.push('RENDER_BRUSH')
+        }
+
+        if (store.settings.showRulers) {
+            renderArray.push('RENDER_RULERS')
+        }
+
+        renderHelper(renderArray)
+    }
+
+    this._renderMainCanvas = () => {
 
         function renderMain() {
             function renderByLoop() {
@@ -1230,7 +1217,11 @@ function MineartCanvas() {
         }
 
         function renderOriginal() {
-            ctxMain.drawImage(store.originalImage,
+            ctxMain.drawImage(store.originalImage.img,
+                  store.originalImage.x,
+                  store.originalImage.y,
+                  store.originalImage.width,
+                  store.originalImage.height,
                   store.offset.x, 
                   store.offset.y, 
                   store.imageWidth * store.baseCellSize * store.scale.current, 
@@ -1272,7 +1263,6 @@ function MineartCanvas() {
         
         const renderList = {
             'RENDER_MAIN': renderMain,
-            'RENDER_GRID': renderGrid,
             'RENDER_ORIGINAL': renderOriginal,
             'RENDER_BACKGROUND': renderBackground,
             'RENDER_GROUPS': renderGroups
@@ -1280,21 +1270,20 @@ function MineartCanvas() {
 
         function renderHelper(list) {
             ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
-            ctxMain.globalAlpha = 1
             ctxMain.save()
             for (let key in list) {
                 if (renderList[list[key]]) { renderList[list[key]]() }
                 ctxMain.restore()
             }
+            ctxMain.globalAlpha = 1
         }
 
         var t0 = performance.now()
-        ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
+        // ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
 
         renderHelper([
             'RENDER_BACKGROUND',
             store.settings.showOriginal ? 'RENDER_ORIGINAL' : 'RENDER_MAIN',
-            store.settings.showGrid ? 'RENDER_GRID' : false,
             store.settings.showDebugDrawGroups ? 'RENDER_GROUPS' : false,
         ])
         // console.log(performance.now() - t0)
@@ -1416,6 +1405,12 @@ function MineartCanvas() {
         let startBlock = store.interface.selection.start === null ? 0 : store.interface.selection.start
         let endBlock = store.interface.selection.end === null ? store.imageConvertedHex.length - 1 : store.interface.selection.end
 
+        if (store.history.currentPos === -1) {
+            ctxTemp.clearRect(0, 0, canvasTemp.width, canvasTemp.height)
+            ctxTemp.drawImage(canvasInit, 0, 0)
+            store.imageConvertedHex.set(store.imageConvertedHexBackup, 0)
+        }
+
         const history = {
             current: {},
             before: {}
@@ -1491,8 +1486,12 @@ function MineartCanvas() {
         store.groups = null
     }
 
-    this.setOriginalImageSrc = (str) => {
-        store.originalImage.src = str
+    this.setOriginalImage = (obj) => {
+        store.originalImage.img.src = obj.src
+        store.originalImage.x = obj.x
+        store.originalImage.y = obj.y
+        store.originalImage.width = obj.width
+        store.originalImage.height = obj.height
     }
 
     this.convertAsRaw = (facing) => {
@@ -1528,7 +1527,7 @@ function MineartCanvas() {
 
         store.debug.drawGroups = []
 
-        const maxLength = 31449 - 150
+        const maxLength = 31390 - 150
         const outputArr = []
         let debugDrawGroup = []
         let commandTemplate, outsideTemplate, passengerTemplate, commandBlockCartId, fallingBlockId
@@ -1608,6 +1607,19 @@ function MineartCanvas() {
             return b.quant - a.quant
         })
 
+        return output
+    }
+
+    this.getCommandToDelete = (facing) => {
+        const numOfComs = Math.ceil(store.imageWidth * store.imageHeight / 32768)
+        const output = []
+        for (let i = numOfComs; i >= 1; i--) {
+            const tempGroup = [
+                (Math.ceil(i * (store.imageHeight / numOfComs)) - 1) * store.imageWidth,
+                Math.floor((i - 1) * (store.imageHeight / numOfComs) + 1) * store.imageWidth - 1,
+            ]
+            output.push(this._convertGroupToCommand(tempGroup, facing).replace(/minecraft\:.*/, 'minecraft:air'))
+        }
         return output
     }
 
