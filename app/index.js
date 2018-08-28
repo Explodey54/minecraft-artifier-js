@@ -94,7 +94,6 @@ const store = {
         aspectRatio: null,
         svgCroppy: new SvgCroppy(),
         ctxTemp: canvasTemp.getContext('2d'),
-        tableCounter: blocks.length,
         ignoreRatio: false,
         $imgPres: document.getElementById('settings-img-presentation'),
         $imgSizes: document.getElementById('settings-img-sizes'),
@@ -116,27 +115,13 @@ const store = {
             const tbody = this.$tableBlocks.querySelector('tbody')
             store.blocksDefault.forEach((item) => {
                 let row = document.createElement('tr')
+                row.classList.add('visible')
                 row.innerHTML = `
                     <td><input type="checkbox" data-block-id="${item.id}" checked></td>
                     <td><img src="${item.src}" class="img-pixelated"></td>
                     <td>${item.name}</td>
                 `
                 row.querySelector('input').oninput = (e) => {
-                    if (e.target.checked) {
-                        this.tableCounter += 1
-                    } else {
-                        this.tableCounter -= 1
-                    }
-
-                    if (this.tableCounter === 0) {
-                        this.$tableCheckbox.checked = false
-                    } else if (this.tableCounter === blocks.length) {
-                        this.$tableCheckbox.indeterminate = false
-                        this.$tableCheckbox.checked = true
-                    } else {
-                        this.$tableCheckbox.indeterminate = true
-                        this.$tableCheckbox.checked = true
-                    }
                     this.setTableCounter()
                 }
                 row.onclick = (e) => {
@@ -150,7 +135,7 @@ const store = {
         filterTable(name) {
             const regex = new RegExp(name, 'i') 
             store.blocksDefault.forEach((item) => {
-                let row = this.$tableBlocks.querySelector(`tr[data-id='${item.id}']`)
+                let row = this.$tableBlocks.querySelector(`input[data-block-id='${item.id}']`).parentNode.parentNode
                 if (item.name.search(regex) < 0) {
                     row.classList.add('hidden')
                 } else {
@@ -180,8 +165,20 @@ const store = {
             }
         },
         setTableCounter() {
-            const int = this.tableCounter
-            const max = blocks.length 
+            // const hidden = this.$tableBlocks.querySelectorAll('tr.hidden').length
+            const max = this.$tableBlocks.querySelectorAll('tr.visible').length
+            const int = this.$tableBlocks.querySelectorAll('tr.visible td input:checked').length
+            
+            if (int === 0) {
+                this.$tableCheckbox.checked = false
+            } else if (int === max) {
+                this.$tableCheckbox.indeterminate = false
+                this.$tableCheckbox.checked = true
+            } else {
+                this.$tableCheckbox.indeterminate = true
+                this.$tableCheckbox.checked = true
+            }
+
             this.$strTableCounter.innerHTML = `${int}/${max} selected`
         },
         selectBoxGroup(group) {
@@ -589,6 +586,18 @@ const store = {
             this.settingsScreen.setTableCounter()
         }
 
+        this.settingsScreen.$selectVersion.onchange = (e) => {
+            blocks.forEach((item) => {
+                let row = this.settingsScreen.$tableBlocks.querySelector(`input[data-block-id='${item.id}']`).parentNode.parentNode
+                if (item.version > parseInt(e.target.value)) {
+                    row.classList.remove('visible')
+                } else {
+                    row.classList.add('visible')
+                }
+            })
+            this.settingsScreen.setTableCounter()
+        }
+
         this.settingsScreen.$btnSubmit.onclick = (e) => {
             const excludeArr = []
             const blockGroup = document.querySelector('input[name=block-groups]:checked').value
@@ -649,9 +658,10 @@ const store = {
                 })
             }
             this.mineartCanvas.setSettingsValue('minecraftVersion', version)
+            this.convertScreen.$selectVersion.value = version
 
             this.settingsScreen.drawToCanvas()
-            store.editorScreen.$footbarRight.innerHTML = `Width: ${canvasTemp.width}; Height: ${canvasTemp.height};`
+            store.editorScreen.$footbarRight.innerHTML = `Width: <b>${canvasTemp.width} bl.</b> Height: <b>${canvasTemp.height} bl.</b>`
             this.convertWorker.postMessage({
                 imgData: this.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
                 exclude: excludeArr
@@ -877,10 +887,12 @@ const store = {
 
         this.editorScreen.$settingsGrid.onchange = (e) => {
             this.mineartCanvas.setSettingsValue('showGrid', e.target.checked)
+            this.mineartCanvas.render()
         }
 
         this.editorScreen.$settingsRulers.onchange = (e) => {
             this.mineartCanvas.setSettingsValue('showRulers', e.target.checked)
+            this.mineartCanvas.render()
         }
 
         this.editorScreen.$settingsOriginal.onchange = (e) => {
@@ -934,6 +946,11 @@ const store = {
             e.preventDefault()
             this.convertScreen.convert()
             this.convertScreen.$notifyDiv.classList.add('hidden')
+        }
+
+        this.convertScreen.$selectVersion.onchange = (e) => {
+            store.mineartCanvas.setSettingsValue('minecraftVersion', parseInt(e.target.value))
+            this.convertScreen.convert()
         }
 
         this.modals.$closeBtn.onclick = () => {
@@ -996,31 +1013,31 @@ blocks.sort((a, b) => {
 store.setEventListeners()
 store.editorScreen.fillBlockList()
 
-const tempImage = new Image()
-tempImage.src = require('../static/pic_200.png')
-store.mineartCanvas.setSettingsValue('minecraftVersion', 9)
-store.startScreen.changeToSettingsScreen()
-store.startScreen.uploadImage(tempImage.src)
-tempImage.onload = (e) => {
+// const tempImage = new Image()
+// tempImage.src = require('../static/pic_200.png')
+// store.mineartCanvas.setSettingsValue('minecraftVersion', 9)
+// store.startScreen.changeToSettingsScreen()
+// store.startScreen.uploadImage(tempImage.src)
+// tempImage.onload = (e) => {
 
-    // return
-    canvasTemp.width = tempImage.width
-    canvasTemp.height = tempImage.height
-    store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
+//     // return
+//     canvasTemp.width = tempImage.width
+//     canvasTemp.height = tempImage.height
+//     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
 
-    const exclude = []
-    blocks.forEach((item) => {
-        if (item.luminance === true || item.transparency === true || item.redstone === true) {
-            exclude.push(item.id)
-        }
-    })
+//     const exclude = []
+//     blocks.forEach((item) => {
+//         if (item.luminance === true || item.transparency === true || item.redstone === true) {
+//             exclude.push(item.id)
+//         }
+//     })
 
-    store.convertWorker.postMessage({
-        imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
-        exclude: exclude
-    })
-    store.startScreen.changeToEditorScreen()
-}
+//     store.convertWorker.postMessage({
+//         imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
+//         exclude: exclude
+//     })
+//     store.startScreen.changeToEditorScreen()
+// }
 
 window.mineartDOM = {
     changeTool(tool) {

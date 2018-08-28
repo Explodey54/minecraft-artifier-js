@@ -125,7 +125,7 @@ function MineartCanvas() {
             showGrid: false,
             showRulers: true,
             showOriginal: false,
-            showDebugDrawGroups: true,
+            showDebugDrawGroups: false,
             minecraftVersion: 12,
             drawGroupsCurrent: 0
         },
@@ -1109,11 +1109,15 @@ function MineartCanvas() {
                             tempStart.y * store.baseCellSize * store.scale.current + store.offset.y,
                             (tempEnd.x - tempStart.x  + 1)  * store.baseCellSize * store.scale.current,
                             (tempEnd.y - tempStart.y + 1) * store.baseCellSize * store.scale.current)
-            ctxOverlay.lineWidth = 1
+            if (store.scale.current > 0.125) {
+                ctxOverlay.lineWidth = 3
+            } else {
+                ctxOverlay.lineWidth = 2
+            }
             ctxOverlay.strokeStyle = "white"
             ctxOverlay.stroke()
             ctxOverlay.stroke()
-            ctxOverlay.setLineDash([5, 5])
+            ctxOverlay.setLineDash([7, 7])
             ctxOverlay.strokeStyle = "black"
             ctxOverlay.stroke()
             ctxOverlay.stroke()

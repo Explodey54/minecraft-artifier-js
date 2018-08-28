@@ -129,9 +129,13 @@ html {
 }
 
 .settings-screen .blocks-column table tbody tr {
-	display: block;
+	display: none;
 	width: 100%;
 	border-bottom: 1px solid #d4d4d4;
+}
+
+.settings-screen .blocks-column table tbody tr.visible {
+	display: block;
 }
 
 .settings-screen .blocks-column table tbody tr td:nth-child(2) {
