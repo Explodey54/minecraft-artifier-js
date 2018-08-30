@@ -89,7 +89,7 @@ function MineartCanvas() {
             log: [],
             currentPos: -1,
             lastMaxPos: -1,
-            maxStates: 5,
+            maxStates: 100,
             offset: 0
         },
         interface: {
@@ -593,14 +593,19 @@ function MineartCanvas() {
 
     this._convertGroupToCommand = (group, facing, offset) => {
         let block = store.getBlockById(store.imageConvertedHex[group[0]])
+        let gameId
         if (block === null) {
             block = {
                 game_id: 'minecraft:air'
             }
         }
-        let gameId = block.game_id
+        if (store.settings.minecraftVersion === 13) {
+            gameId = block['game_id_13']
+        } else {
+            gameId = block.game_id
+        }
         if (block.axis) {
-            if (store.settings.minecraftVersion < 13) {
+            if (store.settings.minecraftVersion < 13 && block.version < 13) {
                 const dataAxis = parseInt(gameId.match(/\d$/)[0])
                 if (facing === 'west' || facing === 'east') {
                     gameId = gameId.replace(/\d$/, dataAxis + 8)
@@ -608,7 +613,11 @@ function MineartCanvas() {
                     gameId = gameId.replace(/\d$/, dataAxis + 4)
                 }
             } else {
-                console.log('set axis for 13')
+                if (facing === 'west' || facing === 'east') {
+                    gameId = gameId + '[axis=z]'
+                } else if (facing === 'north' || facing === 'south') {
+                    gameId = gameId + '[axis=x]'
+                }
             }
         }
         const output = []
@@ -676,14 +685,6 @@ function MineartCanvas() {
                 }
                 
                 if (thisRoot.getTool() === 'brush') {
-                    const int = 6
-                    let maxMult
-                    if (int % 2 === 0) {
-                        maxMult = (int / 2) * (int / 2 + 1)
-                    } else {
-                        maxMult = Math.pow(Math.ceil(int / 2), 2)
-                    }
-                    if (maxMult <= 0) { maxMult = 1 }
                     const row = Math.ceil((i + 1) / size)
                     const col = i % size + 1
                     const offsetX = Math.abs(col - radius - 1)
@@ -691,7 +692,15 @@ function MineartCanvas() {
                     if (Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) > radius + 0.5) {
                         continue
                     }
+                    
+                    // const xDiv = startPointX % 2, yDiv = startPointY % 2
+                    // if ((xBlock + yBlock) % 2 === 1) {
+                    //     continue
+                    // }
+
                 }
+
+
                 thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
                 tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = thisRoot.getEyedrop()
             }
@@ -1466,20 +1475,22 @@ function MineartCanvas() {
 
     this.save = () => {
         //version 1 save: 
-        //8-byte version, 8-byte blockstype, 16-byte width, 16-byte height, rest 8-byte ids
+        //8-byte canvas version, 8-byte game version, 8-byte blockstype, 16-byte width, 16-byte height, rest 8-byte ids
+
         const version = 1,
               blocksType = 1
 
-        const buffer = new ArrayBuffer(store.imageConvertedHex.length + 6)
+        const buffer = new ArrayBuffer(store.imageConvertedHex.length + 7)
         const data = new DataView(buffer)
 
         data.setUint8(0, version)
-        data.setUint8(1, blocksType)
-        data.setUint16(2, store.imageWidth)
-        data.setUint16(4, store.imageHeight)
+        data.setUint8(1, store.settings.minecraftVersion)
+        data.setUint8(2, blocksType)
+        data.setUint16(3, store.imageWidth)
+        data.setUint16(5, store.imageHeight)
 
         store.imageConvertedHex.forEach((item, i) => {
-            data.setUint8(i + 6, item)
+            data.setUint8(i + 7, item)
         })
 
         const blob = new Blob([data], {type : 'text/plain'})
@@ -1534,7 +1545,7 @@ function MineartCanvas() {
         const maxLength = 31390 - 150
         const outputArr = []
         let debugDrawGroup = []
-        let commandTemplate, outsideTemplate, passengerTemplate, commandBlockCartId, fallingBlockId
+        let commandTemplate, outsideTemplate, passengerTemplate, commandBlockCartId, fallingBlockId, killCommand
         let tempStr
 
         switch (store.settings.minecraftVersion) {
@@ -1542,11 +1553,18 @@ function MineartCanvas() {
             case 10:
                 fallingBlockId = 'FallingSand'
                 commandBlockCartId = 'MinecartCommandBlock'
+                killCommand = `kill @e[type=${commandBlockCartId},r=2]`
                 break
             case 11:
             case 12:
                 fallingBlockId = 'falling_block'
                 commandBlockCartId = 'commandblock_minecart'
+                killCommand = `kill @e[type=${commandBlockCartId},r=2]`
+                break
+            case 13:
+                fallingBlockId = 'falling_block'
+                commandBlockCartId = 'command_block_minecart'
+                killCommand = `kill @e[type=${commandBlockCartId},distance=..2]`
                 break
         }
 
@@ -1563,7 +1581,7 @@ function MineartCanvas() {
 
         for (let i = 0; i <= store.groups.length; i++) {
             if (i === store.groups.length) {
-                tempStr = tempStr.replace('%command%', `kill @e[type=${commandBlockCartId},r=2]`)
+                tempStr = tempStr.replace('%command%', killCommand)
                                  .replace(',Passengers:[%passenger%]', '')
                 outputArr.push(commandTemplate.replace('%passenger%', tempStr))
                 store.debug.drawGroups.push(debugDrawGroup)
@@ -1576,7 +1594,7 @@ function MineartCanvas() {
             debugDrawGroup.push(store.groups[i])
 
             if (tempStr.length > maxLength) {
-                tempStr = tempStr.replace('%command%', `kill @e[type=${commandBlockCartId},r=2]`)
+                tempStr = tempStr.replace('%command%', killCommand)
                                  .replace(',Passengers:[%passenger%]', '')
                 outputArr.push(commandTemplate.replace('%passenger%', tempStr))
                 tempStr = passengerTemplate.replace(/\n|\s/g, '')

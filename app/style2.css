@@ -508,6 +508,11 @@ section.convert-screen {
     margin-left: 5px;
 }
 
+.convert-screen #convert-string-delete {
+	height: 200px;
+	overflow-y: auto;
+}
+
 .convert-screen .counter {
 	padding: 0.5rem;
 	width: 270px;

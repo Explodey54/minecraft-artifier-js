@@ -23,7 +23,7 @@ const store = {
     uploadedImageName: null,
     convertWorker: new ConvertWorker(),
     mineartCanvas: new MineartCanvas(),
-    minecraftVersion: 12,
+    minecraftVersion: 13,
     findBlockById(id) {
         return this.blocksDefault.find((item) => {
             if (item.id === id) {
@@ -73,19 +73,22 @@ const store = {
             reader.onloadend = (e) => {
                 const data = new DataView(reader.result),
                       version = data.getUint8(0),
-                      blocksType = data.getUint8(1),
-                      width = data.getUint16(2),
-                      height = data.getUint16(4)
+                      gameVersion = data.getUint8(1),
+                      blocksType = data.getUint8(2),
+                      width = data.getUint16(3),
+                      height = data.getUint16(5)
                 const uint8Array = new Uint8Array(width * height)
 
-                for (let i = 6; i < data.byteLength; i++) {
-                    uint8Array[i - 6] = data.getUint8(i)
+                for (let i = 7; i < data.byteLength; i++) {
+                    uint8Array[i - 7] = data.getUint8(i)
                 }
 
-                store.editorScreen.$footbarRight.innerHTML = `Width: ${width}; Height: ${height};`
+                store.editorScreen.$footbarRight.innerHTML = `Width: <b>${width} bl.</b> | Height: <b>${height} bl.</b> | MC version: <b>1.${gameVersion}</b>`
                 this.changeToEditorScreen()
                 store.mineartCanvas.init(store.editorScreen.$divCanvas)
                 store.mineartCanvas.setImageSizes(width, height)
+                store.mineartCanvas.setSettingsValue('minecraftVersion', gameVersion)
+                store.convertScreen.$selectVersion.value = gameVersion
                 store.mineartCanvas.open(uint8Array)
             }
         }
@@ -110,6 +113,7 @@ const store = {
         $tableCheckbox: document.getElementById('settings-table-checkbox'),
         $strTableCounter: document.getElementById('settings-table-counter'),
         $selectVersion: document.getElementById('settings-version'),
+        $checkboxCorals: document.getElementById('settings-checkboxes-corals'),
         $btnSubmit: document.getElementById('settings-submit'),
         fillTable() {
             const tbody = this.$tableBlocks.querySelector('tbody')
@@ -258,7 +262,8 @@ const store = {
         noBlockImg: new Image(),
         currentTool: 'pencil',
         brushSize: null,
-        maxHistory: 5,
+        maxHistory: 100,
+        tempEyedrop: false,
         $divCanvas: document.getElementById('editor-canvas'),
         $topbarBtns: document.querySelectorAll('.topbar-btn'),
         $saveBtn: document.getElementById('editor-save-btn'),
@@ -289,10 +294,12 @@ const store = {
         setEyedropListener(node) {
             this.eyedropListener = node
             node.classList.add('active')
+            store.mineartCanvas.setTool('clicker')
         },
         removeEyedropListener() {
             this.eyedropListener.classList.remove('active')
             this.eyedropListener = null
+            store.mineartCanvas.setTool(this.currentTool)
         },
         fillBlockList() {
             this.noBlockImg.src = require('../static/textures/no_block.png')
@@ -306,7 +313,17 @@ const store = {
                 node.classList.add('img-pixelated')
                 node.setAttribute('data-block-id', item.id)
                 node.onclick = () => {
-                    this.setEyedrop(item.id)
+                    if (store.editorScreen.eyedropListener) {
+                        store.editorScreen.eyedropListener.setAttribute('data-block-id', item.id)
+                        store.editorScreen.eyedropListener.src = item.src
+                        const $title = store.editorScreen.eyedropListener.parentNode.querySelector('span')
+                        if ($title) {
+                            $title.innerHTML = item.name
+                        }
+                        store.editorScreen.removeEyedropListener()
+                    } else {
+                        this.setEyedrop(item.id)
+                    }
                 }
                 store.editorScreen.$blocksList.appendChild(node)
             })
@@ -595,6 +612,11 @@ const store = {
                     row.classList.add('visible')
                 }
             })
+            if (parseInt(e.target.value) < 13) {
+                this.settingsScreen.$checkboxCorals.classList.add('hidden')
+            } else {
+                this.settingsScreen.$checkboxCorals.classList.remove('hidden')
+            }
             this.settingsScreen.setTableCounter()
         }
 
@@ -648,11 +670,24 @@ const store = {
                         }
                     })
                 }
+                if (document.querySelector('input[name=include-corals]').checked === false) {
+                    blocks.forEach((item) => {
+                        if (item.coral === true) {
+                            excludeArr.push(item.id)
+                        }
+                    })
+                }
             }
             const version = parseInt(this.settingsScreen.$selectVersion.value)
-            if (version < 12) {
+            if (version < 13) {
                 blocks.forEach((item) => {
                     if (item.version > version) {
+                        excludeArr.push(item.id)
+                    }
+                })
+            } else {
+                blocks.forEach((item) => {
+                    if (item.game_id === 'minecraft:dried_kelp_block') {
                         excludeArr.push(item.id)
                     }
                 })
@@ -661,7 +696,7 @@ const store = {
             this.convertScreen.$selectVersion.value = version
 
             this.settingsScreen.drawToCanvas()
-            store.editorScreen.$footbarRight.innerHTML = `Width: <b>${canvasTemp.width} bl.</b> Height: <b>${canvasTemp.height} bl.</b>`
+            store.editorScreen.$footbarRight.innerHTML = `Width: <b>${canvasTemp.width} bl.</b> | Height: <b>${canvasTemp.height} bl.</b>`
             this.convertWorker.postMessage({
                 imgData: this.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
                 exclude: excludeArr
@@ -748,6 +783,10 @@ const store = {
             if (data && data.info) {
                 this.editorScreen.$footbarLeft.innerHTML = `
                     X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>${data.info.name}</b>, Game ID: <b>${data.info.game_id}</b> Pos: ${data.blockPos}
+                `
+            } else if (data) {
+                this.editorScreen.$footbarLeft.innerHTML = `
+                    X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>-</b>
                 `
             }
         }
@@ -1014,8 +1053,8 @@ store.setEventListeners()
 store.editorScreen.fillBlockList()
 
 // const tempImage = new Image()
-// tempImage.src = require('../static/pic_200.png')
-// store.mineartCanvas.setSettingsValue('minecraftVersion', 9)
+// tempImage.src = require('../static/lum_300.png')
+// store.mineartCanvas.setSettingsValue('minecraftVersion', 13)
 // store.startScreen.changeToSettingsScreen()
 // store.startScreen.uploadImage(tempImage.src)
 // tempImage.onload = (e) => {
