@@ -10,7 +10,7 @@
 
         <section class="section container start-screen">
             <div class="dropzone" id="start-dropzone">
-                <div>Drag and drop your image/.dat file here</div>
+                <div>Drag and drop your image/.data file here</div>
                 <div>
                     <span style="vertical-align: top; line-height: 40px;">or</span>
                     <label class="file-label" style="display: inline-block">
@@ -22,6 +22,10 @@
                             <span class="file-label">Choose a file</span>
                         </span>
                     </label>
+                </div>
+                <div class="warning is-red" id="error-start-screen">
+                    <div class="warning-icon"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
+                    <div class="warning-body">Wrong file type. Try image or .data file.</div>
                 </div>
             </div>
         </section>
@@ -112,16 +116,11 @@
                             <input type="checkbox" name="include-luminance">
                             Include luminance
                         </label>
-                        <label class="checkbox" id="settings-checkboxes-corals">
-                            <input type="checkbox" name="include-corals">
-                            Include corals
-                        </label>
                     </div>
                     <div>
                         <span>Minecraft version:</span>
                         <div class="select">
                           <select id="settings-version">
-                            <option value="13">1.13</option>
                             <option value="12">1.12</option>
                             <option value="11">1.11</option>
                             <option value="10" >1.10</option>
@@ -295,7 +294,6 @@
                         <span>Minecraft version:</span>
                         <div class="select">
                             <select id="convert-select-version">
-                                <option value="13">1.13</option>
                                 <option value="12">1.12</option>
                                 <option value="11">1.11</option>
                                 <option value="10">1.10</option>
@@ -306,7 +304,7 @@
                     <div class="form-option">
                         <span>Spawn towards:</span>
                         <div class="select">
-                            <select id="convert-select-direction">
+                            <select id="convert-select-facing">
                                 <option checked value="north">North</option>
                                 <option value="east">East</option>
                                 <option value="south">South</option>

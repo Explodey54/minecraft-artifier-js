@@ -1,7 +1,7 @@
 const path = require('path')
 const Jimp = require("jimp")
 const fs = require('fs')
-const blocksDb = require('../static/blocks.json')
+const blocksDb = require('../static/blocks_12.json')
 const arr = []
 const colors = []
 

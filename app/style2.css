@@ -34,6 +34,42 @@ html {
 	border-color: yellow;
 }
 
+.warning {
+	display: flex;
+	justify-content: center;
+	align-items: stretch;
+}
+
+.warning .warning-icon {
+	border-top-left-radius: 4px;
+	border-bottom-left-radius: 4px;
+	display: flex;
+	align-items: center;
+	padding: 5px;
+}
+
+.warning .warning-icon i {
+	vertical-align: middle;
+	justify-content: center;
+}
+
+
+.warning .warning-body {
+	height: 100%;
+	padding: 10px;
+}
+
+.warning.is-red .warning-body {
+
+	background-color: #fff5f7;
+	border-color: #ff3860;
+    color: #cd0930;
+}
+
+.warning.is-red .warning-icon {
+	background-color: #ff3860;
+}
+
 .start-screen .dropzone {
 	padding: 200px 0px;
 	height: 500px;

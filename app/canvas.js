@@ -1,3 +1,5 @@
+import SchematicsHelper from './schematics.js'
+
 function MineartCanvas() {
     var $root
 
@@ -247,8 +249,6 @@ function MineartCanvas() {
         } else {
             return store.imageConvertedHexBackup[y * store.imageWidth + x]
         }
-
-        
     }
 
     this._checkIfInSelection = (int) => {
@@ -1473,27 +1473,89 @@ function MineartCanvas() {
         this.render()
     }
 
-    this.save = () => {
-        //version 1 save: 
-        //8-byte canvas version, 8-byte game version, 8-byte blockstype, 16-byte width, 16-byte height, rest 8-byte ids
+    this.save = (facing) => {
+        const schem = new SchematicsHelper()
+        const blockIds = []
+        const dataIds = []
+        let width, length, offsetZ, offsetX
 
-        const version = 1,
-              blocksType = 1
+        for (let i = 0; i < store.imageConvertedHex.length; i++) {
+            let int
+            if (facing === 'south' || facing === 'east') {
+                int = (store.imageHeight - Math.ceil((i + 1) / store.imageWidth)) * store.imageWidth + (i % store.imageWidth)
+            } else if (facing === 'north' || facing === 'west') {
+                int = store.imageConvertedHex.length - i - 1 
+            }
+            const pos = this._getPosFromInt(int)
+            const block = store.getBlockById(this._getBlockIdByPosition(pos.x, pos.y))
+            if (block) {
+                let dataId = block.data_id
 
-        const buffer = new ArrayBuffer(store.imageConvertedHex.length + 7)
-        const data = new DataView(buffer)
+                if (block.axis) {
+                    if (facing === 'west' || facing === 'east') {
+                        dataId += 8
+                    } else if (facing === 'north' || facing === 'south') {
+                        dataId += 4
+                    }
+                }
 
-        data.setUint8(0, version)
-        data.setUint8(1, store.settings.minecraftVersion)
-        data.setUint8(2, blocksType)
-        data.setUint16(3, store.imageWidth)
-        data.setUint16(5, store.imageHeight)
+                blockIds.push(block.block_id)
+                dataIds.push(dataId)
+            } else {
+                blockIds.push(0)
+                dataIds.push(0)
+            }
+            
+        }
 
-        store.imageConvertedHex.forEach((item, i) => {
-            data.setUint8(i + 7, item)
-        })
+        switch (facing) {
+            case 'south':
+                width = 1
+                length = store.imageWidth
+                offsetX = 0
+                offsetZ = 1
+                break
+            case 'east':
+                width = store.imageWidth
+                length = 1
+                offsetX = 1
+                offsetZ = 0
+                break
+            case 'north':
+                width = 1
+                length = store.imageWidth
+                offsetX = 0
+                offsetZ = -store.imageWidth
+                break
+            case 'west':
+                width = store.imageWidth
+                length = 1
+                offsetX = -store.imageWidth
+                offsetZ = 0
+                break
+        }
 
-        const blob = new Blob([data], {type : 'text/plain'})
+        var tag = {
+            Blocks: { type: 'byteArray', value: blockIds },
+            Data: { type: 'byteArray', value: dataIds },
+            Height: { type: 'short', value: store.imageHeight },
+            Length: { type: 'short', value: length },
+            Materials: { type: 'string', value: 'Alpha' },
+            TileEntities: { type: 'list', value: {
+                type: 'compound',
+                value: []
+                } 
+            },
+            WEOffsetX: { type: 'int', value: offsetX },
+            WEOffsetY: { type: 'int', value: 0 },
+            WEOffsetZ: { type: 'int', value: offsetZ },
+            WEOriginX: { type: 'int', value: 0 },
+            WEOriginY: { type: 'int', value: 0 },
+            WEOriginZ: { type: 'int', value: 0 },
+            Width: { type: 'short', value: width }
+        }
+
+        const blob = new Blob([schem.encode(tag)], {type : 'text/plain'})
         return _URL.createObjectURL(blob)
     }
 

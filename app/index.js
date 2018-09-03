@@ -6,6 +6,7 @@ import ConvertWorker from 'worker-loader!./convert.js'
 import MineartCanvas from './canvas.js'
 import SvgCroppy from './svgCroppy.js'
 import Counter from './counter.js'
+import SchematicsHelper from './schematics.js'
 const _URL = window.URL || window.webkitURL
 
 const blocks = require('../static/baked_blocks.json')
@@ -23,10 +24,28 @@ const store = {
     uploadedImageName: null,
     convertWorker: new ConvertWorker(),
     mineartCanvas: new MineartCanvas(),
-    minecraftVersion: 13,
+    minecraftVersion: 12,
     findBlockById(id) {
         return this.blocksDefault.find((item) => {
             if (item.id === id) {
+                return true
+            }
+        })
+    },
+    findBlockByGameId(blockId, dataId) {
+        const dataIrrelevant = [18, 99, 100, 202, 216, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250]
+        const dataAxis = [17, 162]
+        return this.blocksDefault.find((item) => {
+            if (dataAxis.indexOf(blockId) >= 0 && dataId >= 4) {
+                let tempDataId = dataId % 4
+                if (item.block_id === blockId && item.data_id === tempDataId && item.axis) {
+                    return true
+                }
+            } else if (dataIrrelevant.indexOf(blockId) >= 0) {
+                if (item.block_id === blockId) {
+                    return true
+                }
+            } else if (item.block_id === blockId && item.data_id === dataId && !item.axis) {
                 return true
             }
         })
@@ -66,31 +85,63 @@ const store = {
                 store.settingsScreen.svgCroppy.hide()
             }
         },
-        uploadDataFile(file) {
-            store.uploadedType = 'data'
+        uploadSchematic(file) {
+            const err = (str) => {
+                store.errors.triggerError('start-screen', str, 6000)
+            }
+            const schem = new SchematicsHelper()
             const reader = new FileReader()
             reader.readAsArrayBuffer(file)
-            reader.onloadend = (e) => {
-                const data = new DataView(reader.result),
-                      version = data.getUint8(0),
-                      gameVersion = data.getUint8(1),
-                      blocksType = data.getUint8(2),
-                      width = data.getUint16(3),
-                      height = data.getUint16(5)
-                const uint8Array = new Uint8Array(width * height)
+            reader.onload = function(event) {
+                schem.decode(new Uint8Array(event.target.result), (err, data) => {
+                    const blockIds = new Uint8Array(data.value['Blocks'].value)
+                    const dataIds = new Uint8Array(data.value['Data'].value)
+                    const arr = new Uint8Array(blockIds.length)
+                    const height = data.value['Height'].value
+                    let width, facing
+                    if (data.value['Width'].value === 1) {
+                        width = data.value['Length'].value
+                        if (data.value['WEOffsetZ'].value > 0) {
+                            facing = 'south'
+                        } else {
+                            facing = 'north'
+                        }
+                    } else if (data.value['Length'].value === 1) {
+                        width = data.value['Width'].value
+                        if (data.value['WEOffsetX'].value > 0) {
+                            facing = 'east'
+                        } else {
+                            facing = 'west'
+                        }
+                    } else if (data.value['Width'].value === 1 && data.value['Length'].value === 1) {
+                        width = data.value['Width'].value
+                        facing = 'north'
+                    } else {
+                        console.error('wrong height or width or length in schem!!')
+                    }
 
-                for (let i = 7; i < data.byteLength; i++) {
-                    uint8Array[i - 7] = data.getUint8(i)
-                }
-
-                store.editorScreen.$footbarRight.innerHTML = `Width: <b>${width} bl.</b> | Height: <b>${height} bl.</b> | MC version: <b>1.${gameVersion}</b>`
-                this.changeToEditorScreen()
-                store.mineartCanvas.init(store.editorScreen.$divCanvas)
-                store.mineartCanvas.setImageSizes(width, height)
-                store.mineartCanvas.setSettingsValue('minecraftVersion', gameVersion)
-                store.convertScreen.$selectVersion.value = gameVersion
-                store.mineartCanvas.open(uint8Array)
-            }
+                    for (let i = 0; i < arr.length; i++) {
+                        let int
+                        if (facing === 'south' || facing === 'east') {
+                            int = (height - Math.ceil((i + 1) / width)) * width + (i % width)
+                        } else if (facing === 'north' || facing === 'west') {
+                            int = arr.length - i - 1 
+                        }
+                        const block = store.findBlockByGameId(blockIds[int], dataIds[int])
+                        if (block) {
+                            arr[i] = block.id
+                        } else {
+                            // console.log(blockIds[int], dataIds[int])
+                        }
+                    }
+                    store.uploadedType = 'schem'
+                    store.editorScreen.$footbarRight.innerHTML = `Width: <b>${width} bl.</b> | Height: <b>${height} bl.</b>`
+                    store.startScreen.changeToEditorScreen()
+                    store.mineartCanvas.init(store.editorScreen.$divCanvas)
+                    store.mineartCanvas.setImageSizes(width, height)
+                    store.mineartCanvas.open(arr)
+                })
+            };
         }
     },
     settingsScreen: {
@@ -387,7 +438,7 @@ const store = {
         $commBlockTextarea: document.getElementById('convert-commblock-textarea'),
         $selectMethod: document.getElementById('convert-select-method'),
         $selectVersion: document.getElementById('convert-select-version'),
-        $selectDirection: document.getElementById('convert-select-direction'),
+        $selectFacing: document.getElementById('convert-select-facing'),
         $outputCommblock: document.getElementById('convert-output-commblock'),
         $outputMcfunction: document.getElementById('convert-output-mcfunction'),
         $outputRaw: document.getElementById('convert-output-raw'),
@@ -409,9 +460,9 @@ const store = {
                 store.mineartCanvas.resetGroups()
                 this.wasChanged = false
             }
-            this.commBlockStrings = store.mineartCanvas.convertAsCommandBlock(this.$selectDirection.value)
-            this.mcfunctionBlob = new Blob([store.mineartCanvas.convertAsMcfunction(this.$selectDirection.value)], {type : 'text/plain'})
-            this.rawCommands = store.mineartCanvas.convertAsRaw(this.$selectDirection.value)
+            this.commBlockStrings = store.mineartCanvas.convertAsCommandBlock(this.$selectFacing.value)
+            this.mcfunctionBlob = new Blob([store.mineartCanvas.convertAsMcfunction(this.$selectFacing.value)], {type : 'text/plain'})
+            this.rawCommands = store.mineartCanvas.convertAsRaw(this.$selectFacing.value)
             this.$btnMcfunction.href = _URL.createObjectURL(this.mcfunctionBlob)
             this.quantityOfBlocks = store.mineartCanvas.getQuantityOfBlocks()
 
@@ -464,7 +515,7 @@ const store = {
                 })
             })
             this.counterManual.setValue(1)
-            this.$stringDelete.innerHTML = store.mineartCanvas.getCommandToDelete(this.$selectDirection.value).join('<br>')
+            this.$stringDelete.innerHTML = store.mineartCanvas.getCommandToDelete(this.$selectFacing.value).join('<br>')
             this.$notifyDiv.classList.add('hidden')
         }
     },
@@ -488,6 +539,32 @@ const store = {
             }
         }
     },
+    errors: {
+        items: {},
+        init() {
+            const errorList = document.querySelectorAll('div[id^="error-"]')
+            errorList.forEach((item) => {
+                const id = item.id.match(/(error\-)(.*)/)[2]
+                this.items[id] = item
+                item.classList.add('hidden')
+            })
+        },
+        triggerError(id, text, timeout) {
+            console.log(1)
+            if (this.items[id]) {
+                if (!this.items[id].classList.contains('hidden')) {
+                    return
+                }
+                this.items[id].querySelector('.warning-body').innerHTML = text
+                this.items[id].classList.remove('hidden')
+                setTimeout(() => {
+                    this.items[id].classList.add('hidden')
+                }, timeout)
+            } else {
+                console.error('No error id!')
+            }
+        }
+    },
     setEventListeners() {
         //Start screen
         ////////////////////////////////////
@@ -497,28 +574,44 @@ const store = {
 
         this.startScreen.$dropzone.ondrop = (e) => {
             e.preventDefault()
+
             const regexp = /(.*)\.([^.]*)/
             const ext = e.dataTransfer.files[0].name.match(regexp)[2]
             const name = e.dataTransfer.files[0].name.match(regexp)[1]
-            if (ext == 'jpeg' || ext == 'jpg' || ext == 'png') {
+            if (ext == 'jpeg' || ext == 'jpg' || ext == 'png' || ext == 'bmp') {
                 this.startScreen.setNameFile(name)
                 this.startScreen.uploadImage(_URL.createObjectURL(e.dataTransfer.files[0]))
-            } else if (ext == 'data') {
+            } else if (ext == 'schematic') {
                 this.startScreen.setNameFile(name)
-                this.startScreen.uploadDataFile(e.dataTransfer.files[0])
+                this.startScreen.uploadSchematic(e.dataTransfer.files[0])
+            } else {
+                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .data file.', 6000)
             }
         }
 
         this.startScreen.$inputFile.onchange = (e) => {
             const regexp = /(.*)\.([^.]*)/
-            const ext = e.target.files[0].name.match(regexp)[2]
-            const name = e.target.files[0].name.match(regexp)[1]
-            if (ext == 'jpeg' || ext == 'jpg' || ext == 'png') {
+            const output = e.target.files[0].name.match(regexp)
+            let ext, name
+
+            if (output) {
+                ext = e.target.files[0].name.match(regexp)[2]
+                name = e.target.files[0].name.match(regexp)[1]
+            } else {
+                e.target.value = null
+                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .data file.', 6000)
+                return
+            }
+
+            if (ext == 'jpeg' || ext == 'jpg' || ext == 'png' || ext == 'bmp') {
                 this.startScreen.setNameFile(name)
                 this.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
-            } else if (ext == 'data') {
+            } else if (ext == 'schematic') {
                 this.startScreen.setNameFile(name)
-                this.startScreen.uploadDataFile(e.target.files[0])
+                this.startScreen.uploadSchematic(e.target.files[0])
+            } else {
+                e.target.value = null
+                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .data file.', 6000)
             }
         }
 
@@ -875,10 +968,10 @@ const store = {
         }
 
         this.editorScreen.$saveBtn.onclick = () => {
-            const link = this.mineartCanvas.save()
+            const link = this.mineartCanvas.save(this.convertScreen.$selectFacing.value)
             this.editorScreen.$saveBtn.href = link
             if (this.editorScreen.$saveInput.value) {
-                this.editorScreen.$saveBtn.download = `${this.editorScreen.$saveInput.value}.data`
+                this.editorScreen.$saveBtn.download = `${this.editorScreen.$saveInput.value}.schematic`
             }
         }
 
@@ -967,7 +1060,7 @@ const store = {
             }
         }
 
-        this.convertScreen.$selectDirection.onchange = () => {
+        this.convertScreen.$selectFacing.onchange = () => {
             this.convertScreen.convert()
         }
 
@@ -1049,11 +1142,13 @@ blocks.sort((a, b) => {
 
     return aHsv.h - bHsv.h + aHsv.s - bHsv.s + bHsv.v - aHsv.v;
 })
+
+store.errors.init()
 store.setEventListeners()
 store.editorScreen.fillBlockList()
 
 // const tempImage = new Image()
-// tempImage.src = require('../static/lum_300.png')
+// tempImage.src = require('../static/10px.png')
 // store.mineartCanvas.setSettingsValue('minecraftVersion', 13)
 // store.startScreen.changeToSettingsScreen()
 // store.startScreen.uploadImage(tempImage.src)
