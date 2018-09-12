@@ -8,9 +8,18 @@
 
         <%=require('./modal.html')%>
 
+        <div class="modal loading-overlay">
+            <div class="modal-background"></div>
+            <div class="modal-content">
+                <div class="box">
+                    Loading...
+                </div>
+            </div>
+        </div>
+
         <section class="section container start-screen">
             <div class="dropzone" id="start-dropzone">
-                <div>Drag and drop your image/.data file here</div>
+                <div>Drag and drop your image/.schematic file here</div>
                 <div>
                     <span style="vertical-align: top; line-height: 40px;">or</span>
                     <label class="file-label" style="display: inline-block">
@@ -23,9 +32,9 @@
                         </span>
                     </label>
                 </div>
-                <div class="warning is-red" id="error-start-screen">
+                <div class="warning is-red center" id="error-start-screen">
                     <div class="warning-icon"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
-                    <div class="warning-body">Wrong file type. Try image or .data file.</div>
+                    <div class="warning-body"></div>
                 </div>
             </div>
         </section>
@@ -39,9 +48,12 @@
                     <div id="settings-img-sizes"></div>
                     <div class="size-settings clearfix">
                         <div class="size-inputs">
-                            <input class="input" id="settings-input-width" placeholder="Width"><i class="fas fa-link"></i>
-                            <input class="input" id="settings-input-height" placeholder="Height"> =
-                            <span id="settings-equals-blocks"></span>
+                            <span class="input-width">
+                                <input class="input" id="settings-input-width" placeholder="Width">
+                            </span><i class="fas fa-link"></i>
+                            <span class="input-height">
+                                <input class="input" id="settings-input-height" placeholder="Height">
+                            </span> = <span id="settings-equals-blocks"></span>
                         </div>
                         <div class="size-checkboxes">
                             <label class="checkbox">
@@ -53,9 +65,6 @@
                                 Ignore aspect ratio
                             </label>
                         </div>
-                    </div>
-                    <div style="color: red">
-                        Warning: by default blocks can't be built more than 256 coordinates Y (in height), so image may not be created correctly.
                     </div>
                 </div>
                 <div class="column blocks-column">
@@ -129,8 +138,12 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div style="padding: 10px 0px;">
                         <button class="button is-success" id="settings-submit" style="font-size: 20px;">Convert!</button>
+                        <div class="warning is-red inline" id="error-settings-screen">
+                            <div class="warning-icon"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
+                            <div class="warning-body">Please select at least 2 blocks</div>
+                        </div>
                     </div>
                     
                 </div>
@@ -138,6 +151,10 @@
         </section>
 
         <section class="section container workarea editor-screen hidden">
+            <div class="warning is-red center" id="error-editor-screen" style="right: 20px; position: absolute; z-index: 1;">
+                <div class="warning-icon"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
+                <div class="warning-body"></div>
+            </div>
             <div class="topbar">
                 <div class="topbar-btn" id="editor-open-btn">Open
                     <div class="topbar-menu topbar-menu-open hidden">
@@ -150,16 +167,16 @@
                         <label class="file-label">
                             <input class="file-input" type="file" id="editor-file-input-data">
                             <span class="file-cta">
-                                <span class="file-label">Open .data file..</span>
+                                <span class="file-label">Open .schematic..</span>
                             </span>
                         </label>
                     </div>
                 </div>
                 <div class="topbar-btn">Save
                     <div class="topbar-menu topbar-menu-save hidden">
-                        <a class="button is-success" id="editor-save-btn" download="art.data">Save as..</a>
+                        <a class="button is-success" id="editor-save-btn" download="art.schematic">Save as..</a>
                         <input class="input" id="editor-save-input">
-                        <span>.data</span>
+                        <span>.schematic</span>
                     </div>
                 </div>
                 <div class="topbar-btn">Replace
@@ -178,33 +195,30 @@
                                 <span>...</span>
                             </div>
                         </div>
-                        <button class="button" id="editor-replace-btn">Replace</button>
+                        <button class="button is-success" id="editor-replace-btn">Replace</button>
                         <div class="text-info hidden" id="editor-replace-info">Error</div>
                     </div>
                 </div>
                 <div class="topbar-btn">Settings
                     <div class="topbar-menu topbar-menu-settings hidden">
-                        <!-- <div class="delete"></div> -->
                         <div class="settings-panel">
-                            <label class="checkbox">
-                                <input type="checkbox" id="editor-settings-grid">
-                                Show grid
-                            </label>
                             <label class="checkbox">
                                 <input type="checkbox" id="editor-settings-rulers" checked>
                                 Show rulers
                             </label>
                             <label class="checkbox">
-                                <input type="checkbox" id="editor-settings-original">
-                                Show original
+                                <input type="checkbox" id="editor-settings-grid">
+                                Show grid
                             </label>
                             <label class="checkbox">
-                                <input type="checkbox" id="editor-settings-groups">
-                                Show groups
+                                <input type="checkbox" id="editor-settings-original">
+                                Show original
                             </label>
                         </div>
                     </div>
                 </div>
+                <div class="topbar-btn" id="editor-btn-convert">Convert to commands..</div>
+                <div class="topbar-btn">Help</div>
             </div>
             <div class="columns is-mobile">
                 <div class="column is-three-quarters editor">
@@ -264,7 +278,6 @@
                             <div class="info-panels-history-action-start info-panels-history-action-current" id="editor-first-action">Open</div>
                         </div>
                     </div>
-                    <button class="button" id="editor-btn-convert">Convert</button>
                 </div>
 
             </div>
@@ -318,11 +331,11 @@
                     <div class="hidden" id="convert-notify-changed" style="margin-top: 10px;">Your image was changed. <a id="convert-notify-link" href="#">Reconvert?</a></div>
                 </div>
                 <div class="column">
-                    <div id="convert-output-commblock" class="ahidden">
+                    <div id="convert-output-commblock" class="hidden">
                         <div class="control">
                             <textarea class="textarea" type="text" readonly id="convert-commblock-textarea"></textarea>
                             <div class="box counter" id="convert-counter-commblock"></div>
-                            <a class="clipboard" href="#" id="convert-copy-clipboard">Copy to clipboard</a>
+                            <a class="clipboard" href="%23" id="convert-copy-clipboard">Copy to clipboard</a>
                         </div> 
                     </div>
                     <div id="convert-output-mcfunction" class="hidden">

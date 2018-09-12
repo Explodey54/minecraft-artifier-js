@@ -1314,7 +1314,8 @@ function MineartCanvas() {
         let xBlock = (Math.floor((pageX - store.boundingRect.x - store.offset.x) / (store.baseCellSize * store.scale.current)))
         let yBlock = (Math.floor((pageY - store.boundingRect.y - store.offset.y) / (store.baseCellSize * store.scale.current)))
         if (store.interface.rulerSize > Math.floor(pageX - store.boundingRect.x) ||
-            store.canvasHeight - store.interface.rulerSize < Math.floor(pageY - store.boundingRect.y)) {
+            store.canvasHeight - store.interface.rulerSize < Math.floor(pageY - store.boundingRect.y) ||
+            xBlock < 0 || yBlock < 0 || xBlock >= store.imageWidth || yBlock >= store.imageHeight) {
             return null
         }
         return {
@@ -1670,7 +1671,8 @@ function MineartCanvas() {
     this.getQuantityOfBlocks = () => {
         const output = []
         const temp = {}
-        store.imageConvertedHex.forEach((item) => {
+        const arr = store.history.currentPos === -1 ? store.imageConvertedHexBackup : store.imageConvertedHex
+        arr.forEach((item) => {
             if (item > 0) {
                 if (temp[item]) {
                     temp[item]++

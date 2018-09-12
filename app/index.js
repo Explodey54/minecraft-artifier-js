@@ -25,6 +25,11 @@ const store = {
     convertWorker: new ConvertWorker(),
     mineartCanvas: new MineartCanvas(),
     minecraftVersion: 12,
+    waitForLoaded: {
+        arr: null,
+        width: null,
+        height: null
+    },
     findBlockById(id) {
         return this.blocksDefault.find((item) => {
             if (item.id === id) {
@@ -50,6 +55,12 @@ const store = {
             }
         })
     },
+    showLoading() {
+        document.querySelector('.loading-overlay').classList.add('is-active')
+    },
+    hideLoading() {
+        document.querySelector('.loading-overlay').classList.remove('is-active')
+    },
     startScreen: {
         $dropzone: document.getElementById('start-dropzone'),
         $inputFile: document.getElementById('start-file-input'),
@@ -58,11 +69,14 @@ const store = {
             document.querySelector('section.settings-screen').classList.remove('hidden')
         },
         changeToEditorScreen() {
-            if (store.uploadedType === 'data') {
+            if (store.uploadedType === 'schem') {
                 store.editorScreen.$settingsOriginal.disabled = true
+            } else {
+                store.editorScreen.$settingsOriginal.disabled = false
             }
             document.querySelector('section.start-screen').classList.add('hidden')
             document.querySelector('section.editor-screen').classList.remove('hidden')
+            store.editorScreen.resetScreen()
         },
         setNameFile(str) {
             store.uploadedImageName = str
@@ -86,62 +100,100 @@ const store = {
             }
         },
         uploadSchematic(file) {
-            const err = (str) => {
-                store.errors.triggerError('start-screen', str, 6000)
+            store.showLoading()
+            const errFunc = (str, timeout) => {
+                store.errors.triggerError('start-screen', str, 7200)
+                store.errors.triggerError('editor-screen', str, 7200)
+                store.hideLoading()
             }
             const schem = new SchematicsHelper()
             const reader = new FileReader()
             reader.readAsArrayBuffer(file)
             reader.onload = function(event) {
-                schem.decode(new Uint8Array(event.target.result), (err, data) => {
-                    const blockIds = new Uint8Array(data.value['Blocks'].value)
-                    const dataIds = new Uint8Array(data.value['Data'].value)
-                    const arr = new Uint8Array(blockIds.length)
-                    const height = data.value['Height'].value
-                    let width, facing
-                    if (data.value['Width'].value === 1) {
-                        width = data.value['Length'].value
-                        if (data.value['WEOffsetZ'].value > 0) {
-                            facing = 'south'
-                        } else {
-                            facing = 'north'
-                        }
-                    } else if (data.value['Length'].value === 1) {
-                        width = data.value['Width'].value
-                        if (data.value['WEOffsetX'].value > 0) {
-                            facing = 'east'
-                        } else {
-                            facing = 'west'
-                        }
-                    } else if (data.value['Width'].value === 1 && data.value['Length'].value === 1) {
-                        width = data.value['Width'].value
-                        facing = 'north'
-                    } else {
-                        console.error('wrong height or width or length in schem!!')
-                    }
+                try {
+                    schem.decode(new Uint8Array(event.target.result), (err, data) => {
+                        try {
+                            if (err && err.code === "Z_DATA_ERROR") {
+                                errFunc('There is something wrong with this .schematic file..<br>(File decompression error.)')
+                                return
+                            } else if (err) {
+                                errFunc('There is something wrong with this .schematic file..<br>(Unknown error.)')
+                                return
+                            }
 
-                    for (let i = 0; i < arr.length; i++) {
-                        let int
-                        if (facing === 'south' || facing === 'east') {
-                            int = (height - Math.ceil((i + 1) / width)) * width + (i % width)
-                        } else if (facing === 'north' || facing === 'west') {
-                            int = arr.length - i - 1 
+                            const blockIds = new Uint8Array(data.value['Blocks'].value)
+                            const dataIds = new Uint8Array(data.value['Data'].value)
+                            const arr = new Uint8Array(blockIds.length)
+                            const height = data.value['Height'].value
+                            let width, facing
+                            if (data.value['WEOffsetX'] && data.value['WEOffsetY'] && data.value['WEOffsetZ']) {
+                                if (data.value['Width'].value === 1) {
+                                    width = data.value['Length'].value
+                                    if (data.value['WEOffsetZ'].value > 0) {
+                                        facing = 'south'
+                                    } else {
+                                        facing = 'north'
+                                    }
+                                } else if (data.value['Length'].value === 1) {
+                                    width = data.value['Width'].value
+                                    if (data.value['WEOffsetX'].value > 0) {
+                                        facing = 'east'
+                                    } else {
+                                        facing = 'west'
+                                    }
+                                } else if (data.value['Width'].value === 1 && data.value['Length'].value === 1) {
+                                    width = data.value['Width'].value
+                                    facing = 'north'
+                                } else {
+                                    errFunc('There is something wrong with this .schematic file..<br>(Width or length of the schematic must equal 1.)')
+                                    return
+                                }
+                            } else {
+                                if (data.value['Width'].value === 1) {
+                                    width = data.value['Length'].value
+                                    facing = 'north'
+                                } else if (data.value['Length'].value === 1) {
+                                    width = data.value['Width'].value
+                                    facing = 'west'
+                                } else if (data.value['Width'].value === 1 && data.value['Length'].value === 1) {
+                                    width = data.value['Width'].value
+                                    facing = 'north'
+                                } else {
+                                    errFunc('There is something wrong with this .schematic file..<br>(Width or length of the schematic must equal 1.)')
+                                    return
+                                }
+                            }
+
+                            for (let i = 0; i < arr.length; i++) {
+                                let int
+                                if (facing === 'south' || facing === 'east') {
+                                    int = (height - Math.ceil((i + 1) / width)) * width + (i % width)
+                                } else if (facing === 'north' || facing === 'west') {
+                                    int = arr.length - i - 1 
+                                }
+                                const block = store.findBlockByGameId(blockIds[int], dataIds[int])
+                                if (block) {
+                                    arr[i] = block.id
+                                }
+                            }
+                            store.uploadedType = 'schem'
+                            store.editorScreen.$footbarRight.innerHTML = `Width: <b>${width} bl.</b> | Height: <b>${height} bl.</b>`
+                            store.startScreen.changeToEditorScreen()
+                            store.mineartCanvas.init(store.editorScreen.$divCanvas)
+                            store.mineartCanvas.setImageSizes(width, height)
+                            store.mineartCanvas.open(arr)
+                            store.editorScreen.setBrushSize(3)
+                            store.hideLoading()
+                        } catch (err) {
+                            errFunc('There is something wrong with this .schematic file..<br>(File structure error.)')
+                            return
                         }
-                        const block = store.findBlockByGameId(blockIds[int], dataIds[int])
-                        if (block) {
-                            arr[i] = block.id
-                        } else {
-                            // console.log(blockIds[int], dataIds[int])
-                        }
-                    }
-                    store.uploadedType = 'schem'
-                    store.editorScreen.$footbarRight.innerHTML = `Width: <b>${width} bl.</b> | Height: <b>${height} bl.</b>`
-                    store.startScreen.changeToEditorScreen()
-                    store.mineartCanvas.init(store.editorScreen.$divCanvas)
-                    store.mineartCanvas.setImageSizes(width, height)
-                    store.mineartCanvas.open(arr)
-                })
-            };
+                    })
+                } catch (err) {
+                    errFunc('There is something wrong with this .schematic file..<br>(File structure error.)')
+                    return
+                }
+            }
         }
     },
     settingsScreen: {
@@ -180,6 +232,7 @@ const store = {
                     this.setTableCounter()
                 }
                 row.onclick = (e) => {
+                    store.errors.closeError('settings-screen')
                     if (e.target.localName === 'input') { return }
                     row.querySelector('input').click()
                 }
@@ -303,7 +356,21 @@ const store = {
         changeToEditorScreen() {
             document.querySelector('section.settings-screen').classList.add('hidden')
             document.querySelector('section.editor-screen').classList.remove('hidden')
+            if (store.uploadedType === 'schem') {
+                store.editorScreen.$settingsOriginal.disabled = true
+            } else {
+                store.editorScreen.$settingsOriginal.disabled = false
+            }
+            store.editorScreen.resetScreen()
+        },
+        resetScreen() {
+            this.$boxGroupAll.click()
             this.$checkboxCrop.checked = false
+            this.$checkboxIgnoreRatio.checked = false
+            document.querySelectorAll('#settings-checkboxes-include input').forEach((item) => {
+                item.checked = false
+            })
+            document.querySelector('#settings-checkboxes-include input[name="include-falling"]').checked = true
         }
     },
     editorScreen: {
@@ -341,16 +408,18 @@ const store = {
         $settingsGrid: document.getElementById('editor-settings-grid'),
         $settingsRulers: document.getElementById('editor-settings-rulers'),
         $settingsOriginal: document.getElementById('editor-settings-original'),
-        $settingsGroups: document.getElementById('editor-settings-groups'),
+        // $settingsGroups: document.getElementById('editor-settings-groups'),
         setEyedropListener(node) {
             this.eyedropListener = node
             node.classList.add('active')
             store.mineartCanvas.setTool('clicker')
         },
         removeEyedropListener() {
-            this.eyedropListener.classList.remove('active')
-            this.eyedropListener = null
-            store.mineartCanvas.setTool(this.currentTool)
+            if (this.eyedropListener) {
+                this.eyedropListener.classList.remove('active')
+                this.eyedropListener = null
+                store.mineartCanvas.setTool(this.currentTool)
+            }
         },
         fillBlockList() {
             this.noBlockImg.src = require('../static/textures/no_block.png')
@@ -383,6 +452,7 @@ const store = {
             document.querySelector('section.editor-screen').classList.add('hidden')
             document.querySelector('section.convert-screen').classList.add('hidden')
             document.querySelector('section.settings-screen').classList.remove('hidden')
+            store.settingsScreen.resetScreen()
         },
         removeHistory() {
             document.querySelectorAll('.info-panels-history-action').forEach((item) => {
@@ -424,6 +494,23 @@ const store = {
             this.$brushString.innerHTML = `${temp} bl.`
             this.brushSize = temp
             store.mineartCanvas.setBrushSize(temp)
+        },
+        resetScreen() {
+            this.closeTopbarMenus()
+            this.$settingsRulers.checked = true
+            this.$settingsGrid.checked = false
+            this.$settingsOriginal.checked = false
+            this.removeEyedropListener()
+            console.dir(this.$replaceMenuReplace)
+            this.$replaceMenuReplace.src = null
+            this.$replaceMenuTarget.src = null
+            this.$replaceMenuReplace.parentNode.querySelector('span').innerHTML = '...'
+            this.$replaceMenuTarget.parentNode.querySelector('span').innerHTML = '...'
+        },
+        closeTopbarMenus() {
+            document.querySelectorAll('.topbar-menu').forEach((item) => {
+                item.classList.add('hidden')
+            })
         }
     },
     convertScreen: {
@@ -550,16 +637,29 @@ const store = {
             })
         },
         triggerError(id, text, timeout) {
-            console.log(1)
             if (this.items[id]) {
                 if (!this.items[id].classList.contains('hidden')) {
-                    return
+                    clearTimeout(this.items[id].timeout)
+                    this.items[id].timeout = null
                 }
                 this.items[id].querySelector('.warning-body').innerHTML = text
                 this.items[id].classList.remove('hidden')
-                setTimeout(() => {
+                this.items[id].timeout = setTimeout(() => {
                     this.items[id].classList.add('hidden')
+                    this.items[id].timeout = null
                 }, timeout)
+            } else {
+                console.error('No error id!')
+            }
+        },
+        closeError(id) {
+            if (this.items[id]) {
+                if (this.items[id].classList.contains('hidden')) { return }
+                this.items[id].classList.add('hidden')
+                if (this.items[id].timeout) {
+                    clearTimeout(this.items[id].timeout)
+                    this.items[id].timeout = null
+                }
             } else {
                 console.error('No error id!')
             }
@@ -575,17 +675,22 @@ const store = {
         this.startScreen.$dropzone.ondrop = (e) => {
             e.preventDefault()
 
+            if (e.dataTransfer.files.length !== 1) {
+                store.errors.triggerError('start-screen', 'Please, choose only one file.', 5000)
+                return
+            }
+
             const regexp = /(.*)\.([^.]*)/
             const ext = e.dataTransfer.files[0].name.match(regexp)[2]
             const name = e.dataTransfer.files[0].name.match(regexp)[1]
-            if (ext == 'jpeg' || ext == 'jpg' || ext == 'png' || ext == 'bmp') {
+            if (ext.match(/(jpeg|jpg|png|bmp)/i)) {
                 this.startScreen.setNameFile(name)
                 this.startScreen.uploadImage(_URL.createObjectURL(e.dataTransfer.files[0]))
-            } else if (ext == 'schematic') {
+            } else if (ext.match(/(schematic)/i)) {
                 this.startScreen.setNameFile(name)
                 this.startScreen.uploadSchematic(e.dataTransfer.files[0])
             } else {
-                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .data file.', 6000)
+                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .schematic file.', 5000)
             }
         }
 
@@ -599,25 +704,26 @@ const store = {
                 name = e.target.files[0].name.match(regexp)[1]
             } else {
                 e.target.value = null
-                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .data file.', 6000)
+                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .schematic file.', 5000)
                 return
             }
 
-            if (ext == 'jpeg' || ext == 'jpg' || ext == 'png' || ext == 'bmp') {
+            if (ext.match(/(jpeg|jpg|png|bmp)/i)) {
                 this.startScreen.setNameFile(name)
                 this.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
-            } else if (ext == 'schematic') {
+            } else if (ext.match(/(schematic)/i)) {
                 this.startScreen.setNameFile(name)
                 this.startScreen.uploadSchematic(e.target.files[0])
             } else {
                 e.target.value = null
-                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .data file.', 6000)
+                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .schematic file.', 5000)
             }
         }
 
         //Settings screen
         ////////////////////////////////////
         this.settingsScreen.$inputWidth.oninput = (e) => {
+            e.target.value = e.target.value.replace(/\D/gi, '')
             if (!this.settingsScreen.ignoreRatio) {
                 this.settingsScreen.$inputHeight.value = Math.round(this.settingsScreen.$inputWidth.value / this.settingsScreen.aspectRatio)
             }
@@ -625,6 +731,7 @@ const store = {
         }
 
         this.settingsScreen.$inputHeight.oninput = (e) => {
+            e.target.value = e.target.value.replace(/\D/gi, '')
             if (!this.settingsScreen.ignoreRatio) {
                 this.settingsScreen.$inputWidth.value = Math.round(this.settingsScreen.$inputHeight.value * this.settingsScreen.aspectRatio)
             }
@@ -705,17 +812,17 @@ const store = {
                     row.classList.add('visible')
                 }
             })
-            if (parseInt(e.target.value) < 13) {
-                this.settingsScreen.$checkboxCorals.classList.add('hidden')
-            } else {
-                this.settingsScreen.$checkboxCorals.classList.remove('hidden')
-            }
             this.settingsScreen.setTableCounter()
         }
 
         this.settingsScreen.$btnSubmit.onclick = (e) => {
             const excludeArr = []
             const blockGroup = document.querySelector('input[name=block-groups]:checked').value
+            if (this.settingsScreen.$inputHeight.value > 256) {
+                store.errors.triggerError('settings-screen', 'Maximum height is 256.', 7000)
+                return
+            }
+
             switch (blockGroup) {
                 case 'all':
                     break
@@ -727,11 +834,18 @@ const store = {
                     })
                     break
                 case 'custom':
-                    this.settingsScreen.$tableBlocks.querySelectorAll('input').forEach((item) => {
+                    const max = this.settingsScreen.$tableBlocks.querySelectorAll('tr.visible').length
+                    let int = 0
+                    this.settingsScreen.$tableBlocks.querySelectorAll('td input').forEach((item) => {
                         if (item.checked === false) {
                             excludeArr.push(parseInt(item.dataset.blockId))
+                            int++
                         }
                     })
+                    if (int >= max - 1) {
+                        store.errors.triggerError('settings-screen', 'Please select at least 2 blocks.', 7000)
+                        return
+                    }
                     break
             }
             if (blockGroup === 'all' || blockGroup === 'survival') {
@@ -763,13 +877,6 @@ const store = {
                         }
                     })
                 }
-                if (document.querySelector('input[name=include-corals]').checked === false) {
-                    blocks.forEach((item) => {
-                        if (item.coral === true) {
-                            excludeArr.push(item.id)
-                        }
-                    })
-                }
             }
             const version = parseInt(this.settingsScreen.$selectVersion.value)
             if (version < 13) {
@@ -790,6 +897,7 @@ const store = {
 
             this.settingsScreen.drawToCanvas()
             store.editorScreen.$footbarRight.innerHTML = `Width: <b>${canvasTemp.width} bl.</b> | Height: <b>${canvasTemp.height} bl.</b>`
+            store.showLoading()
             this.convertWorker.postMessage({
                 imgData: this.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
                 exclude: excludeArr
@@ -797,6 +905,13 @@ const store = {
         }
 
         this.convertWorker.onmessage = (e) => {
+            if (document.readyState !== 'complete') {
+                store.waitForLoaded.arr = e.data
+                store.waitForLoaded.width = canvasTemp.width
+                store.waitForLoaded.height = canvasTemp.height
+                return
+            }
+            store.hideLoading()
             this.settingsScreen.changeToEditorScreen()
             this.mineartCanvas.init(this.editorScreen.$divCanvas)
             this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
@@ -824,8 +939,14 @@ const store = {
         ////////////////////////////////////
         this.editorScreen.$topbarBtns.forEach((item) => {
             item.onclick = (e) => {
+                const menu = item.querySelector('.topbar-menu')
                 if (e.target === item) {
-                    item.querySelector('.topbar-menu').classList.toggle('hidden')
+                    if (menu.classList.contains('hidden')) {
+                        this.editorScreen.closeTopbarMenus()
+                        menu.classList.remove('hidden')
+                    } else {
+                        this.editorScreen.closeTopbarMenus()
+                    }
                 }
             }
         })
@@ -881,6 +1002,8 @@ const store = {
                 this.editorScreen.$footbarLeft.innerHTML = `
                     X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>-</b>
                 `
+            } else {
+                this.editorScreen.$footbarLeft.innerHTML = '...'
             }
         }
 
@@ -986,7 +1109,7 @@ const store = {
         }
 
         this.editorScreen.$inputData.oninput = (e) => {
-            this.startScreen.uploadDataFile(e.target.files[0])
+            this.startScreen.uploadSchematic(e.target.files[0])
             this.editorScreen.removeHistory()
         }
 
@@ -1032,10 +1155,10 @@ const store = {
             this.mineartCanvas.render()
         }
 
-        this.editorScreen.$settingsGroups.onchange = (e) => {
-            this.mineartCanvas.setSettingsValue('showDebugDrawGroups', e.target.checked)
-            this.mineartCanvas.render()
-        }
+        // this.editorScreen.$settingsGroups.onchange = (e) => {
+        //     this.mineartCanvas.setSettingsValue('showDebugDrawGroups', e.target.checked)
+        //     this.mineartCanvas.render()
+        // }
 
         //Convert screen
         ////////////////////////////////////
@@ -1089,9 +1212,16 @@ const store = {
             this.modals.closeModal()
         }
 
-        // window.addEventListener("load", function(event) {
-        //     alert("images loaded");
-        // });
+        window.addEventListener("load", function(event) {
+            if (store.waitForLoaded.arr !== null) {
+                console.log('waitedforload')
+                store.settingsScreen.changeToEditorScreen()
+                store.mineartCanvas.init(store.editorScreen.$divCanvas)
+                store.mineartCanvas.setImageSizes(store.waitForLoaded.width, store.waitForLoaded.height)
+                store.mineartCanvas.open(store.waitForLoaded.arr)
+                store.waitForLoaded = null
+            }
+        });
     }
 }
 
@@ -1148,12 +1278,12 @@ store.setEventListeners()
 store.editorScreen.fillBlockList()
 
 // const tempImage = new Image()
-// tempImage.src = require('../static/10px.png')
-// store.mineartCanvas.setSettingsValue('minecraftVersion', 13)
+// tempImage.src = require('../static/pic_100.png')
 // store.startScreen.changeToSettingsScreen()
 // store.startScreen.uploadImage(tempImage.src)
-// tempImage.onload = (e) => {
 
+// store.mineartCanvas.setSettingsValue('minecraftVersion', 13)
+// tempImage.onload = (e) => {
 //     // return
 //     canvasTemp.width = tempImage.width
 //     canvasTemp.height = tempImage.height

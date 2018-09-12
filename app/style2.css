@@ -1,6 +1,13 @@
 html {
-	min-width: 1000px !important;
+	min-width: 1088px !important;
 	overflow-x: auto !important;
+}
+
+@media screen and (min-width: 1088px) and (max-width: 1280px) {
+	section.container {
+	    max-width: 1088px;
+	    width: 1088px;
+	}
 }
 
 .hidden {
@@ -34,10 +41,21 @@ html {
 	border-color: yellow;
 }
 
+.warning.hidden {
+	visibility: hidden;
+}
+
 .warning {
 	display: flex;
-	justify-content: center;
 	align-items: stretch;
+}
+
+.warning.center {
+	justify-content: center;
+}
+
+.warning.inline {
+	display: inline-flex;
 }
 
 .warning .warning-icon {
@@ -51,16 +69,25 @@ html {
 .warning .warning-icon i {
 	vertical-align: middle;
 	justify-content: center;
+	color: mistyrose;
 }
-
 
 .warning .warning-body {
 	height: 100%;
 	padding: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    border-top-right-radius: 4px;
+	border-bottom-right-radius: 4px;
+    /*transition: 1s;*/
+}
+
+.warning.hidden .warning-body {
+	display: flex;
+	max-width: 0;
 }
 
 .warning.is-red .warning-body {
-
 	background-color: #fff5f7;
 	border-color: #ff3860;
     color: #cd0930;
@@ -68,6 +95,12 @@ html {
 
 .warning.is-red .warning-icon {
 	background-color: #ff3860;
+}
+
+.loading-overlay .modal-content {
+    width: 200px;
+    text-align: center;
+    font-size: 28px;
 }
 
 .start-screen .dropzone {
@@ -79,15 +112,15 @@ html {
 
 .settings-screen .img-background {
 	background-color: gray;
-	height: 500px;
-	width: 500px;
+	height: 600px;
+	width: 600px;
 	display: flex;
   	align-items: center;
   	justify-content: center;
 }
 
 .settings-screen .img-background .img-presentation {
-	max-height: 500px;
+	max-height: 600px;
 	user-drag: none; 
 	user-select: none;
 	-moz-user-select: none;
@@ -99,6 +132,24 @@ html {
 .settings-screen .size-settings .size-inputs {
 	width: 320px;
 	float: left;
+}
+
+.settings-screen .size-settings .size-inputs .input-width:before,
+.settings-screen .size-settings .size-inputs .input-height:before {
+	display: inline-block;
+	position: absolute;
+	margin-top: 35px;
+	margin-left: 10px;
+	font-size: 11px;
+	color: grey;
+}
+
+.settings-screen .size-settings .size-inputs .input-width:before {
+	content: 'Width';
+}
+
+.settings-screen .size-settings .size-inputs .input-height:before {
+	content: 'Height';
 }
 
 .settings-screen .size-settings .size-checkboxes {
@@ -117,11 +168,12 @@ html {
 
 .settings-screen .blocks-column .block-groups .box {
 	vertical-align: top;
-	height: 200px;
+	height: 175px;
 	width: 30%;
 	display: inline-block;
 	text-align: center;
 	min-width: 120px;
+	margin-right: 2%;
 }
 
 .settings-screen .blocks-column .block-groups .box .title {
@@ -212,6 +264,7 @@ html {
 
 .workarea {
 	height: 100vh;
+	min-height: 600px;
 }
 
 .workarea .columns {
@@ -279,7 +332,7 @@ html {
 .topbar-btn {
 	display: inline-block;
 	cursor: pointer;
-	padding: 2px;
+	padding: 2px 4px;
 	border-radius: 2px;
 	background-color: white;
 	margin-right: 4px;
@@ -293,10 +346,24 @@ html {
 .topbar-menu {
 	position: absolute;
 	width: 270px;
-	background-color: lightblue;
+	background-color: whitesmoke;
 	z-index: 1;
 	left: 0;
 	text-align: center;
+	-webkit-box-shadow: 6px 6px 16px 0px rgba(87,87,87,0.69);
+	-moz-box-shadow: 6px 6px 16px 0px rgba(87,87,87,0.69);
+	box-shadow: 6px 6px 16px 0px rgba(87,87,87,0.69);
+	top: 101%;
+	border: 1px solid #a9a9a9cc;
+}
+
+.topbar-menu .file-cta {
+	border-radius: 0;
+	border: none;
+}
+
+.topbar-menu .file-cta:first-of-type {
+	border-bottom: 1px solid #a9a9a9cc;
 }
 
 .topbar-menu-open {
@@ -329,7 +396,8 @@ html {
 
 .topbar-menu-replace .topbar-menu-replace-form {
 	padding: 20px;
-	padding-bottom: 25px;
+	padding-bottom: 42px;
+	background-color: #e6e6e6;
 }
 
 .topbar-menu-replace .svg-arrow {
@@ -342,6 +410,7 @@ html {
 .topbar-menu-replace .button {
 	margin-top: 15px;
 	margin-bottom: 15px;
+	border-radius: 4px;
 }
 
 .topbar-menu-replace .text-info {
@@ -368,7 +437,8 @@ html {
 }
 
 .topbar-menu-settings {
-
+	padding: 5px 10px;
+	width: 220px;
 }
 
 .topbar-menu-settings .settings-panel {
@@ -388,12 +458,16 @@ html {
 	background-size: 25px;
 }
 
-.info-panels {
+.columns .info-panels {
+	position: relative;
+	padding-left: 0;
 }
 
 .info-panels-blocks {
-	height: 27%; 
-	margin-bottom: 20px;
+	position: absolute;
+	top: 0.75em;
+	width: 96%;
+	height: 28%; 
 }
 
 .info-panels-blocks-img {
@@ -407,33 +481,38 @@ html {
 	font-size: 20px;
 	padding: 0;
 	margin-bottom: 0px;
-	height: 24px;
+	height: 28px;
 }
 
 .info-panels-history {
-	padding: 10px;
-	background-color: white; 
+	bottom: 0.75em;
+	position: absolute;
+	width: 96%;
+    padding: 4px 10px;
+	background-color: whitesmoke; 
 	height: 63%;
-	margin-bottom: 10px;
+	padding-bottom: 1px;
 }
 
 .info-panels-history-container {
-	height: 90%;
+	height: 91%;
 	background-color: #8c8c8c;
 	overflow-y: scroll;
 }
 
 .info-panels-history-action, .info-panels-history-action-start {
 	padding: 10px;
-	background-color: #a3ffff;
+	background-color: #d6d6d6;
 }
 
 .info-panels-history-action-returned {
-	background-color: lightgray;
+	background-color: #b7b7b7;
+    color: #888888;
 }
 
 .info-panels-history-action-current {
-	background-color: #759cff;
+	color: white;
+	background-color: #3399ff;
 }
 
 .info-panels-history-action:before {
@@ -442,6 +521,7 @@ html {
 	width: 12px;
 	height: 12px;
 	margin-right: 8px;
+	color: white;
 }
 
 .info-panels-history-action-pencil:before {
@@ -458,6 +538,22 @@ html {
 
 .info-panels-history-action-replace:before {
 	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M496 80H128V32a16 16 0 0 0-27-11L5 117c-7 6-7 16 0 22l96 96a16 16 0 0 0 27-11v-48h368c9 0 16-7 16-16V96c0-9-7-16-16-16zM507 373l-96-96a16 16 0 0 0-27 11v48H16c-9 0-16 7-16 16v64c0 9 7 16 16 16h368v48a16 16 0 0 0 27 11l96-96c7-6 7-16 0-22z"/></svg>')
+}
+
+.info-panels-history-action-returned.info-panels-history-action-pencil:before {
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 459 459" fill="#888888"><path d="M0 362v97h97l280-283-97-97L1 362zm451-260c11-10 11-25 0-36L393 8a25 25 0 0 0-36 0l-46 46 97 96 43-48z"/></svg>');
+}
+
+.info-panels-history-action-returned.info-panels-history-action-brush:before {
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="#888888"><path d="M499 46a43 43 0 0 0-60 0L199 275c26 7 48 24 62 48 4 7 8 15 10 23l229-239a43 43 0 0 0-1-61zM177 302h-4c-20 0-40 7-57 19-20 14-27 35-42 53-18 24-46 35-74 43 16 43 76 60 116 61h4c45 0 97-16 119-60 23-49-6-113-62-116z"/></svg>');
+}
+
+.info-panels-history-action-returned.info-panels-history-action-bucket:before {
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="#888888"><path d="M439 223.4A143.1 143.1 0 0 1 248.2 252a30 30 0 1 1 19-23.4c18.4 11.8 39.8 18 62.1 17.7a112 112 0 0 0 88.3-44.4L315.4 99.8 362.1 53a31.6 31.6 0 0 1 44.6 0 114.4 114.4 0 0 1 10.9 149l21.4 21.5a144.3 144.3 0 0 0-11-191.7c-24-24-63.1-24-87.1 0l-47 46.7-26.1-26.2-108.6 108.6A115.3 115.3 0 0 0 0 267.2v90h30v-90a30 30 0 0 1 47.4-24.6l-11.5 11.5L310 498.3 512 296.4l-73-73zm-340.2-2.2a60 60 0 0 0-44.1-13.9 84.8 84.8 0 0 1 80.8-22.8l-36.7 36.7z"/></svg>')
+}
+
+.info-panels-history-action-returned.info-panels-history-action-replace:before {
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="#888888"><path d="M496 80H128V32a16 16 0 0 0-27-11L5 117c-7 6-7 16 0 22l96 96a16 16 0 0 0 27-11v-48h368c9 0 16-7 16-16V96c0-9-7-16-16-16zM507 373l-96-96a16 16 0 0 0-27 11v48H16c-9 0-16 7-16 16v64c0 9 7 16 16 16h368v48a16 16 0 0 0 27 11l96-96c7-6 7-16 0-22z"/></svg>')
 }
 
 
@@ -518,9 +614,11 @@ html {
 }
 
 section.convert-screen {
-	height: 500px;
-	background-color: #c5caea;
-	margin-bottom: 20px;
+	height: 485px;
+    background-color: #bdbdbd;
+    margin-bottom: 20px;
+    border-top: 10px solid;
+    padding-top: 25px;
 }
 
 .convert-screen .form-option span {
@@ -537,11 +635,14 @@ section.convert-screen {
 }
 
 .convert-screen #convert-output-commblock .clipboard {
-	font-size: 14px;
 	display: inline-block;
 	vertical-align: super;
     line-height: 30px;
     margin-left: 5px;
+    padding: 0px 4px;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 13px;
 }
 
 .convert-screen #convert-string-delete {
