@@ -16,6 +16,7 @@ blocks.forEach((item) => {
 })
 
 const canvasTemp = document.createElement('canvas')
+const localStorage = window.localStorage
 
 const store = {
     blocksDefault: blocks,
@@ -30,6 +31,7 @@ const store = {
         width: null,
         height: null
     },
+    isSaved: true,
     findBlockById(id) {
         return this.blocksDefault.find((item) => {
             if (item.id === id) {
@@ -379,7 +381,8 @@ const store = {
         currentHistoryPos: -1,
         noBlockImg: new Image(),
         currentTool: 'pencil',
-        brushSize: null,
+        brushSize: 3,
+        pencilSize: 3,
         maxHistory: 100,
         tempEyedrop: false,
         $divCanvas: document.getElementById('editor-canvas'),
@@ -408,7 +411,10 @@ const store = {
         $settingsGrid: document.getElementById('editor-settings-grid'),
         $settingsRulers: document.getElementById('editor-settings-rulers'),
         $settingsOriginal: document.getElementById('editor-settings-original'),
+        $settingsGridColor: document.getElementById('editor-settings-grid-color'),
         // $settingsGroups: document.getElementById('editor-settings-groups'),
+        $helpFaq: document.getElementById('editor-help-faq'),
+        $helpControls: document.getElementById('editor-help-controls'),
         setEyedropListener(node) {
             this.eyedropListener = node
             node.classList.add('active')
@@ -480,6 +486,7 @@ const store = {
             })
         },
         setBrushSize(int) {
+            console.log(int)
             let temp 
             if (int > 25) {
                 temp = 25
@@ -492,16 +499,27 @@ const store = {
             this.$brushShape.style.width = (size % 2 ? size : size - 1) + 'px'
             this.$brushShape.style.height = (size % 2 ? size : size - 1) + 'px'
             this.$brushString.innerHTML = `${temp} bl.`
-            this.brushSize = temp
+            if (this.currentTool === 'pencil') {
+                this.pencilSize = temp
+            } else if (this.currentTool === 'brush') {
+                this.brushSize = temp
+            } else {
+                this.pencilSize = temp
+                this.brushSize = temp
+            }
             store.mineartCanvas.setBrushSize(temp)
         },
         resetScreen() {
+            this.currentTool = 'pencil'
+            this.brushSize = 3
+            this.pencilSize = 3
             this.closeTopbarMenus()
             this.$settingsRulers.checked = true
             this.$settingsGrid.checked = false
             this.$settingsOriginal.checked = false
+            this.$settingsGridColor.value = '#ff4778'
+            this.setEyedrop(1)
             this.removeEyedropListener()
-            console.dir(this.$replaceMenuReplace)
             this.$replaceMenuReplace.src = null
             this.$replaceMenuTarget.src = null
             this.$replaceMenuReplace.parentNode.querySelector('span').innerHTML = '...'
@@ -542,6 +560,7 @@ const store = {
         $copyClipboard: document.getElementById('convert-copy-clipboard'),
         $notifyDiv: document.getElementById('convert-notify-changed'),
         $notifyLink: document.getElementById('convert-notify-link'),
+        $howtoCommand: document.getElementById('convert-howto-command'),
         convert () {
             if (this.wasChanged) {
                 store.mineartCanvas.resetGroups()
@@ -607,11 +626,16 @@ const store = {
         }
     },
     modals: {
-        items: {
-            save: document.getElementById('modal-save')
-        },
+        items: {},
         $root: document.querySelector('.modal'),
         $closeBtn: document.querySelector('.modal-close'),
+        init() {
+            const modalList = document.querySelectorAll('div[id^="modal-"]')
+            modalList.forEach((item) => {
+                const id = item.id.match(/(modal\-)(.*)/)[2]
+                this.items[id] = item
+            })
+        },
         openModal(name) {
             this.$root.classList.add('is-active')
             for (let key in this.items) {
@@ -622,6 +646,10 @@ const store = {
         closeModal() {
             this.$root.classList.remove('is-active')
             for (let key in this.items) {
+                const video = this.items[key].querySelector('iframe')
+                if (video) {
+                    video.src = video.src
+                }
                 this.items[key].classList.add('hidden')
             }
         }
@@ -978,6 +1006,7 @@ const store = {
 
         this.editorScreen.$divCanvas.onclick = (e) => {
             const info = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y).info
+            if (!info) { return }
             if (this.editorScreen.eyedropListener) {
                 this.editorScreen.eyedropListener.setAttribute('data-block-id', info.id)
                 this.editorScreen.eyedropListener.src = info.image.src
@@ -1010,6 +1039,7 @@ const store = {
         this.editorScreen.$divCanvas.addEventListener('history', (e) => {
             this.convertScreen.wasChanged = true
             this.convertScreen.$notifyDiv.classList.remove('hidden')
+            this.isSaved = false
             this.editorScreen.currentHistoryPos = e.details.pos
 
             let historyCounter = 0
@@ -1055,6 +1085,7 @@ const store = {
                 this.mineartCanvas.undoTo(parseInt(node.dataset.actionPos))
                 if (this.editorScreen.currentHistoryPos !== parseInt(node.dataset.actionPos)) {
                     this.convertScreen.$notifyDiv.classList.remove('hidden')
+                    this.isSaved = false
                 }
                 this.editorScreen.currentHistoryPos = parseInt(node.dataset.actionPos)
                 this.convertScreen.wasChanged = true
@@ -1064,10 +1095,6 @@ const store = {
             this.editorScreen.$historyContainer.appendChild(node)
             this.editorScreen.$historyContainer.scrollTop = this.editorScreen.$historyContainer.scrollHeight
         })
-
-        // this.editorScreen.$divCanvas.addEventListener('cached', (e) => {
-        //     this.mineartCanvas.render()
-        // })
 
         this.editorScreen.$historyFirstAction.onclick = (e) => {
             e.target.classList.add('info-panels-history-action-current')
@@ -1079,6 +1106,7 @@ const store = {
             this.mineartCanvas.undoTo(-1)
             if (this.editorScreen.currentHistoryPos !== -1) {
                 this.convertScreen.$notifyDiv.classList.remove('hidden')
+                this.isSaved = false
             }
             this.editorScreen.currentHistoryPos = -1
             this.convertScreen.wasChanged = true
@@ -1096,6 +1124,7 @@ const store = {
             if (this.editorScreen.$saveInput.value) {
                 this.editorScreen.$saveBtn.download = `${this.editorScreen.$saveInput.value}.schematic`
             }
+            this.isSaved = true
         }
 
         this.editorScreen.$inputImage.oninput = (e) => {
@@ -1119,11 +1148,15 @@ const store = {
 
         document.querySelectorAll('input[name="tool"]').forEach((item) => {
             item.addEventListener('click', (e) => {
-                this.editorScreen.currentTool = e.target.value
-                if (e.target.value === 'pencil') {
+                const tool = e.target.value
+                store.mineartCanvas.setTool(tool)
+                this.editorScreen.currentTool = tool
+                if (tool === 'pencil') {
+                    this.editorScreen.setBrushSize(this.editorScreen.pencilSize)
                     this.editorScreen.$brushShape.classList.remove('circle')
                     this.editorScreen.$brushContainer.classList.remove('hidden')
-                } else if (e.target.value === 'brush') {
+                } else if (tool === 'brush') {
+                    this.editorScreen.setBrushSize(this.editorScreen.brushSize)
                     this.editorScreen.$brushShape.classList.add('circle')
                     this.editorScreen.$brushContainer.classList.remove('hidden')
                 } else {
@@ -1133,11 +1166,19 @@ const store = {
         })
 
         this.editorScreen.$brushMinus.onclick = () => {
-            this.editorScreen.setBrushSize(this.editorScreen.brushSize - 1)
+            if (this.editorScreen.currentTool === 'pencil') {
+                this.editorScreen.setBrushSize(this.editorScreen.pencilSize - 1)
+            } else if (this.editorScreen.currentTool === 'brush') {
+                this.editorScreen.setBrushSize(this.editorScreen.brushSize - 1)
+            }
         }
 
         this.editorScreen.$brushPlus.onclick = () => {
-            this.editorScreen.setBrushSize(this.editorScreen.brushSize + 1)
+            if (this.editorScreen.currentTool === 'pencil') {
+                this.editorScreen.setBrushSize(this.editorScreen.pencilSize + 1)
+            } else if (this.editorScreen.currentTool === 'brush') {
+                this.editorScreen.setBrushSize(this.editorScreen.brushSize + 1)
+            }
         }
 
         this.editorScreen.$settingsGrid.onchange = (e) => {
@@ -1152,6 +1193,11 @@ const store = {
 
         this.editorScreen.$settingsOriginal.onchange = (e) => {
             this.mineartCanvas.setSettingsValue('showOriginal', e.target.checked)
+            this.mineartCanvas.render()
+        }
+
+        this.editorScreen.$settingsGridColor.onchange = (e) => {
+            this.mineartCanvas.setSettingsValue('gridColor', e.target.value)
             this.mineartCanvas.render()
         }
 
@@ -1208,6 +1254,11 @@ const store = {
             this.convertScreen.convert()
         }
 
+        this.convertScreen.$howtoCommand.onclick = (e) => {
+            e.preventDefault()
+            this.modals.openModal('howto-command')
+        }
+
         this.modals.$closeBtn.onclick = () => {
             this.modals.closeModal()
         }
@@ -1222,6 +1273,14 @@ const store = {
                 store.waitForLoaded = null
             }
         });
+
+        // window.onbeforeunload = function() {
+        //    if (!store.isSaved) {
+        //        return "DONT LEAVE";
+        //    } else {
+        //       return;
+        //    }
+        // };
     }
 }
 
@@ -1274,8 +1333,10 @@ blocks.sort((a, b) => {
 })
 
 store.errors.init()
+store.modals.init()
 store.setEventListeners()
 store.editorScreen.fillBlockList()
+// store.startScreen.init(store)
 
 // const tempImage = new Image()
 // tempImage.src = require('../static/pic_100.png')

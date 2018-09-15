@@ -181,7 +181,6 @@
                 </div>
                 <div class="topbar-btn">Replace
                     <div class="topbar-menu topbar-menu-replace hidden">
-                        <!-- <div class="delete"></div> -->
                         <div class="topbar-menu-replace-form">
                             <div class="replace-group">
                                 <img class="img-thumbnail img-pixelated" id="editor-replace-target">
@@ -196,7 +195,7 @@
                             </div>
                         </div>
                         <button class="button is-success" id="editor-replace-btn">Replace</button>
-                        <div class="text-info hidden" id="editor-replace-info">Error</div>
+                        <div class="text-info hidden" id="editor-replace-info"></div>
                     </div>
                 </div>
                 <div class="topbar-btn">Settings
@@ -214,40 +213,53 @@
                                 <input type="checkbox" id="editor-settings-original">
                                 Show original
                             </label>
+                            <label>
+                                <input type="color" value="#ff4778" id="editor-settings-grid-color">
+                                Grid color
+                            </label>
                         </div>
                     </div>
                 </div>
                 <div class="topbar-btn" id="editor-btn-convert">Convert to commands..</div>
-                <div class="topbar-btn">Help</div>
+                <div class="topbar-btn">Help
+                    <div class="topbar-menu topbar-menu-help">
+                        <div class="topbar-menu-item" id="editor-help-faq">
+                            FAQ
+                        </div>
+                        <div class="topbar-menu-item" id="editor-help-controls">
+                            Keyboard/mouse controls
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="columns is-mobile">
                 <div class="column is-three-quarters editor">
                     <div class="editor-tools">
-                        <label title="Pencil tool" onclick="mineartDOM.changeTool('pencil')">
+                        <label title="Pencil tool">
                             <input type="radio" name="tool" value="pencil" checked>
                             <%=require('../static/img/pencil.svg')%>
                         </label>
-                        <label title="Brush tool" onclick="mineartDOM.changeTool('brush')">
+                        <label title="Brush tool">
                             <input type="radio" name="tool" value="brush">
                             <%=require('../static/img/brush.svg')%>
                         </label>
-                        <label title="Bucket tool" onclick="mineartDOM.changeTool('bucket')">
+                        <label title="Bucket tool">
                             <input type="radio" name="tool" value="bucket">
                             <%=require('../static/img/bucket.svg')%>
                         </label>
-                        <label title="Selection tool" onclick="mineartDOM.changeTool('selection')">
+                        <label title="Selection tool">
                             <input type="radio" name="tool" value="selection">
                             <%=require('../static/img/selection.svg')%>
                         </label>
-                        <label title="Eyedropper tool" onclick="mineartDOM.changeTool('eyedropper')">
+                        <label title="Eyedropper tool">
                             <input type="radio" name="tool" value="eyedropper">
                             <%=require('../static/img/eyedropper.svg')%>
                         </label>
-                        <label title="Zoom tool" onclick="mineartDOM.changeTool('zoom')">
+                        <label title="Zoom tool">
                             <input type="radio" name="tool" value="zoom">
                             <%=require('../static/img/zoom.svg')%>
                         </label>
-                        <label title="Grab tool" onclick="mineartDOM.changeTool('grab')">
+                        <label title="Grab tool">
                             <input type="radio" name="tool" value="grab">
                             <%=require('../static/img/hold.svg')%>
                         </label>
@@ -328,14 +340,15 @@
                     <div class="info" id="convert-string-commands" style="margin-bottom: 5px;"></div>
                     <div class="info">Commands to delete:</div>
                     <div class="info" id="convert-string-delete"></div>
-                    <div class="hidden" id="convert-notify-changed" style="margin-top: 10px;">Your image was changed. <a id="convert-notify-link" href="#">Reconvert?</a></div>
+                    <div class="hidden" id="convert-notify-changed" style="margin-top: 10px;">Your image was changed. <a id="convert-notify-link" href="%23">Reconvert?</a></div>
                 </div>
                 <div class="column">
-                    <div id="convert-output-commblock" class="hidden">
+                    <div id="convert-output-commblock" class="ahidden">
                         <div class="control">
                             <textarea class="textarea" type="text" readonly id="convert-commblock-textarea"></textarea>
                             <div class="box counter" id="convert-counter-commblock"></div>
-                            <a class="clipboard" href="%23" id="convert-copy-clipboard">Copy to clipboard</a>
+                            <a class="button is-small" style="margin-left:5px; vertical-align: super;" href="%23" id="convert-copy-clipboard">Copy to clipboard</a>
+                            <a href="%23" style="margin-top: 20px; float: right;" class="button is-info" id="convert-howto-command">How do I use command blocks?</a>
                         </div> 
                     </div>
                     <div id="convert-output-mcfunction" class="hidden">

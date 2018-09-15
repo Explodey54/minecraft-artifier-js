@@ -95,7 +95,7 @@ function MineartCanvas() {
             offset: 0
         },
         interface: {
-            eyedropCurrent: 44,
+            eyedropCurrent: 1,
             toolCurrent: 'pencil',
             brushSize: 9,
             selection: {
@@ -129,7 +129,8 @@ function MineartCanvas() {
             showOriginal: false,
             showDebugDrawGroups: false,
             minecraftVersion: 12,
-            drawGroupsCurrent: 0
+            drawGroupsCurrent: 0,
+            gridColor: '#ff4778'
         },
         debug: { //delete in prod!!!
             showTempCanvas: false,
@@ -969,7 +970,7 @@ function MineartCanvas() {
         function renderGrid() {
             let lineWidthBig = 2,
                 lineWidthSmall = 1,
-                strokeStyle = '#ff4778'
+                strokeStyle = store.settings.gridColor
 
             let mainGridLineEveryN
             switch (store.scale.current) {
@@ -1314,9 +1315,13 @@ function MineartCanvas() {
         let xBlock = (Math.floor((pageX - store.boundingRect.x - store.offset.x) / (store.baseCellSize * store.scale.current)))
         let yBlock = (Math.floor((pageY - store.boundingRect.y - store.offset.y) / (store.baseCellSize * store.scale.current)))
         if (store.interface.rulerSize > Math.floor(pageX - store.boundingRect.x) ||
-            store.canvasHeight - store.interface.rulerSize < Math.floor(pageY - store.boundingRect.y) ||
-            xBlock < 0 || yBlock < 0 || xBlock >= store.imageWidth || yBlock >= store.imageHeight) {
-            return null
+            store.canvasHeight - store.interface.rulerSize < Math.floor(pageY - store.boundingRect.y)) {
+            return {
+                x: xBlock + 1,
+                y: store.imageHeight - yBlock,
+                info: null,
+                blockPos: null
+            }
         }
         return {
             x: xBlock + 1,
@@ -1460,11 +1465,16 @@ function MineartCanvas() {
         store.history.log = []
         store.history.currentPos = -1
         store.history.lastMaxPos = -1
-        store.interface.eyedropCurrent = 44
+        store.interface.eyedropCurrent = 1
         store.interface.toolCurrent = 'pencil'
         store.interface.brushSize = 9
         store.interface.selection.start = null
         store.interface.selection.end = null
+        store.settings.showRulers = true
+        store.settings.showGrid = false
+        store.settings.showOriginal = false
+        store.settings.showDebugDrawGroups = false
+        store.settings.gridColor = '#ff4778'
     }
 
     this.open = (uint8Arr) => {
