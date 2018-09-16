@@ -307,8 +307,7 @@
                         <span>Convert method:</span>
                         <div class="select">
                             <select id="convert-select-method">
-                                <option disabled selected>-- select option --</option>
-                                <option value="commblock">Command block</option>
+                                <option value="commblock" selected>Command block</option>
                                 <option value="mcfunction">.mcfunction file</option>
                                 <option value="raw">Raw commands</option>
                                 <option value="manual">Amounts of blocks</option>
@@ -343,7 +342,7 @@
                     <div class="hidden" id="convert-notify-changed" style="margin-top: 10px;">Your image was changed. <a id="convert-notify-link" href="%23">Reconvert?</a></div>
                 </div>
                 <div class="column">
-                    <div id="convert-output-commblock" class="ahidden">
+                    <div id="convert-output-commblock">
                         <div class="control">
                             <textarea class="textarea" type="text" readonly id="convert-commblock-textarea"></textarea>
                             <div class="box counter" id="convert-counter-commblock"></div>

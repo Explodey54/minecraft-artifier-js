@@ -2,12 +2,8 @@
 import './style2.css'
 import 'bulma/css/bulma.css'
 
-import ConvertWorker from 'worker-loader!./convert.js'
-import MineartCanvas from './canvas.js'
-import SvgCroppy from './svgCroppy.js'
-import Counter from './counter.js'
-import SchematicsHelper from './schematics.js'
-const _URL = window.URL || window.webkitURL
+import ConvertWorker from 'worker-loader!./models/convert.js'
+import MineartCanvas from './models/canvas.js'
 
 const blocks = require('../static/baked_blocks.json')
 blocks.forEach((item) => {
@@ -15,16 +11,15 @@ blocks.forEach((item) => {
     delete item.texture_image
 })
 
-const canvasTemp = document.createElement('canvas')
-const localStorage = window.localStorage
-
 const store = {
     blocksDefault: blocks,
+    convertWorker: new ConvertWorker(),
+    mineartCanvas: new MineartCanvas(),
+    canvasTemp: document.createElement('canvas'),
+    localStorage: window.localStorage,
     uploadedType: null,
     uploadedImage: new Image(),
     uploadedImageName: null,
-    convertWorker: new ConvertWorker(),
-    mineartCanvas: new MineartCanvas(),
     minecraftVersion: 12,
     waitForLoaded: {
         arr: null,
@@ -63,568 +58,10 @@ const store = {
     hideLoading() {
         document.querySelector('.loading-overlay').classList.remove('is-active')
     },
-    startScreen: {
-        $dropzone: document.getElementById('start-dropzone'),
-        $inputFile: document.getElementById('start-file-input'),
-        changeToSettingsScreen() {
-            document.querySelector('section.start-screen').classList.add('hidden')
-            document.querySelector('section.settings-screen').classList.remove('hidden')
-        },
-        changeToEditorScreen() {
-            if (store.uploadedType === 'schem') {
-                store.editorScreen.$settingsOriginal.disabled = true
-            } else {
-                store.editorScreen.$settingsOriginal.disabled = false
-            }
-            document.querySelector('section.start-screen').classList.add('hidden')
-            document.querySelector('section.editor-screen').classList.remove('hidden')
-            store.editorScreen.resetScreen()
-        },
-        setNameFile(str) {
-            store.uploadedImageName = str
-            store.editorScreen.$saveInput.value = str
-            store.convertScreen.$inputMcfunction.value = str
-        },
-        uploadImage(src) {
-            store.uploadedType = 'image'
-            store.uploadedImage.src = src
-            store.uploadedImage.onload = () => {
-                store.settingsScreen.$imgPres.src = src
-                store.settingsScreen.$inputWidth.value = store.uploadedImage.width
-                store.settingsScreen.$inputHeight.value = store.uploadedImage.height
-                store.settingsScreen.aspectRatio = store.uploadedImage.width / store.uploadedImage.height
-                store.settingsScreen.setImageSizesString(store.uploadedImage.naturalWidth, store.uploadedImage.naturalHeight)
-                store.settingsScreen.setEqualsString()
-                store.settingsScreen.fillTable()
-                this.changeToSettingsScreen()
-                store.settingsScreen.svgCroppy.init(store.settingsScreen.$imgPres)
-                store.settingsScreen.svgCroppy.hide()
-            }
-        },
-        uploadSchematic(file) {
-            store.showLoading()
-            const errFunc = (str, timeout) => {
-                store.errors.triggerError('start-screen', str, 7200)
-                store.errors.triggerError('editor-screen', str, 7200)
-                store.hideLoading()
-            }
-            const schem = new SchematicsHelper()
-            const reader = new FileReader()
-            reader.readAsArrayBuffer(file)
-            reader.onload = function(event) {
-                try {
-                    schem.decode(new Uint8Array(event.target.result), (err, data) => {
-                        try {
-                            if (err && err.code === "Z_DATA_ERROR") {
-                                errFunc('There is something wrong with this .schematic file..<br>(File decompression error.)')
-                                return
-                            } else if (err) {
-                                errFunc('There is something wrong with this .schematic file..<br>(Unknown error.)')
-                                return
-                            }
-
-                            const blockIds = new Uint8Array(data.value['Blocks'].value)
-                            const dataIds = new Uint8Array(data.value['Data'].value)
-                            const arr = new Uint8Array(blockIds.length)
-                            const height = data.value['Height'].value
-                            let width, facing
-                            if (data.value['WEOffsetX'] && data.value['WEOffsetY'] && data.value['WEOffsetZ']) {
-                                if (data.value['Width'].value === 1) {
-                                    width = data.value['Length'].value
-                                    if (data.value['WEOffsetZ'].value > 0) {
-                                        facing = 'south'
-                                    } else {
-                                        facing = 'north'
-                                    }
-                                } else if (data.value['Length'].value === 1) {
-                                    width = data.value['Width'].value
-                                    if (data.value['WEOffsetX'].value > 0) {
-                                        facing = 'east'
-                                    } else {
-                                        facing = 'west'
-                                    }
-                                } else if (data.value['Width'].value === 1 && data.value['Length'].value === 1) {
-                                    width = data.value['Width'].value
-                                    facing = 'north'
-                                } else {
-                                    errFunc('There is something wrong with this .schematic file..<br>(Width or length of the schematic must equal 1.)')
-                                    return
-                                }
-                            } else {
-                                if (data.value['Width'].value === 1) {
-                                    width = data.value['Length'].value
-                                    facing = 'north'
-                                } else if (data.value['Length'].value === 1) {
-                                    width = data.value['Width'].value
-                                    facing = 'west'
-                                } else if (data.value['Width'].value === 1 && data.value['Length'].value === 1) {
-                                    width = data.value['Width'].value
-                                    facing = 'north'
-                                } else {
-                                    errFunc('There is something wrong with this .schematic file..<br>(Width or length of the schematic must equal 1.)')
-                                    return
-                                }
-                            }
-
-                            for (let i = 0; i < arr.length; i++) {
-                                let int
-                                if (facing === 'south' || facing === 'east') {
-                                    int = (height - Math.ceil((i + 1) / width)) * width + (i % width)
-                                } else if (facing === 'north' || facing === 'west') {
-                                    int = arr.length - i - 1 
-                                }
-                                const block = store.findBlockByGameId(blockIds[int], dataIds[int])
-                                if (block) {
-                                    arr[i] = block.id
-                                }
-                            }
-                            store.uploadedType = 'schem'
-                            store.editorScreen.$footbarRight.innerHTML = `Width: <b>${width} bl.</b> | Height: <b>${height} bl.</b>`
-                            store.startScreen.changeToEditorScreen()
-                            store.mineartCanvas.init(store.editorScreen.$divCanvas)
-                            store.mineartCanvas.setImageSizes(width, height)
-                            store.mineartCanvas.open(arr)
-                            store.editorScreen.setBrushSize(3)
-                            store.hideLoading()
-                        } catch (err) {
-                            errFunc('There is something wrong with this .schematic file..<br>(File structure error.)')
-                            return
-                        }
-                    })
-                } catch (err) {
-                    errFunc('There is something wrong with this .schematic file..<br>(File structure error.)')
-                    return
-                }
-            }
-        }
-    },
-    settingsScreen: {
-        aspectRatio: null,
-        svgCroppy: new SvgCroppy(),
-        ctxTemp: canvasTemp.getContext('2d'),
-        ignoreRatio: false,
-        $imgPres: document.getElementById('settings-img-presentation'),
-        $imgSizes: document.getElementById('settings-img-sizes'),
-        $spanEquals: document.getElementById('settings-equals-blocks'),
-        $inputWidth: document.getElementById('settings-input-width'),
-        $inputHeight: document.getElementById('settings-input-height'),
-        $checkboxCrop: document.getElementById('settings-check-crop'),
-        $checkboxIgnoreRatio: document.getElementById('settings-check-ignore-ratio'),
-        $boxGroupSurvival: document.getElementById('settings-group-survival'),
-        $boxGroupAll: document.getElementById('settings-group-all'),
-        $boxGroupCustom: document.getElementById('settings-group-custom'),
-        $tableBlocks: document.getElementById('settings-table-blocks'),
-        $tableInput: document.getElementById('settings-input-filter'),
-        $tableCheckbox: document.getElementById('settings-table-checkbox'),
-        $strTableCounter: document.getElementById('settings-table-counter'),
-        $selectVersion: document.getElementById('settings-version'),
-        $checkboxCorals: document.getElementById('settings-checkboxes-corals'),
-        $btnSubmit: document.getElementById('settings-submit'),
-        fillTable() {
-            const tbody = this.$tableBlocks.querySelector('tbody')
-            store.blocksDefault.forEach((item) => {
-                let row = document.createElement('tr')
-                row.classList.add('visible')
-                row.innerHTML = `
-                    <td><input type="checkbox" data-block-id="${item.id}" checked></td>
-                    <td><img src="${item.src}" class="img-pixelated"></td>
-                    <td>${item.name}</td>
-                `
-                row.querySelector('input').oninput = (e) => {
-                    this.setTableCounter()
-                }
-                row.onclick = (e) => {
-                    store.errors.closeError('settings-screen')
-                    if (e.target.localName === 'input') { return }
-                    row.querySelector('input').click()
-                }
-                tbody.appendChild(row)
-            })
-            this.setTableCounter()
-        },
-        filterTable(name) {
-            const regex = new RegExp(name, 'i') 
-            store.blocksDefault.forEach((item) => {
-                let row = this.$tableBlocks.querySelector(`input[data-block-id='${item.id}']`).parentNode.parentNode
-                if (item.name.search(regex) < 0) {
-                    row.classList.add('hidden')
-                } else {
-                    row.classList.remove('hidden')
-                }
-            })
-        },
-        setImageSizesString(w, h, crop) {
-            this.$imgSizes.innerHTML = `Image size${crop ? ' (cropped)' : ''}: ${w}x${h}`
-        },
-        setEqualsString() {
-            const w = parseInt(this.$inputWidth.value)
-            const h = parseInt(this.$inputHeight.value)
-            if (w * h > 0) {
-                const int = w * h
-                let output = ''
-                const arr = int.toString().split('')
-                arr.forEach((item, i) => {
-                    output += item
-                    if ((arr.length - i - 1) % 3 === 0 && arr.length - i !== 1) {
-                        output += ','
-                    }
-                })
-                this.$spanEquals.innerHTML = `${output} blocks`
-            } else {
-                this.$spanEquals.innerHTML = '??? blocks'
-            }
-        },
-        setTableCounter() {
-            // const hidden = this.$tableBlocks.querySelectorAll('tr.hidden').length
-            const max = this.$tableBlocks.querySelectorAll('tr.visible').length
-            const int = this.$tableBlocks.querySelectorAll('tr.visible td input:checked').length
-            
-            if (int === 0) {
-                this.$tableCheckbox.checked = false
-            } else if (int === max) {
-                this.$tableCheckbox.indeterminate = false
-                this.$tableCheckbox.checked = true
-            } else {
-                this.$tableCheckbox.indeterminate = true
-                this.$tableCheckbox.checked = true
-            }
-
-            this.$strTableCounter.innerHTML = `${int}/${max} selected`
-        },
-        selectBoxGroup(group) {
-            this.$boxGroupSurvival.classList.remove('box-selected')
-            this.$boxGroupAll.classList.remove('box-selected')
-            this.$boxGroupCustom.classList.remove('box-selected')
-            document.querySelector('.table-blocks-container').classList.add('hidden')
-            document.getElementById('settings-checkboxes-include').classList.remove('hidden')
-            switch (group) {
-                case 'survival':
-                    this.$boxGroupSurvival.classList.add('box-selected')
-                    this.$boxGroupSurvival.querySelector('input[type=radio]').checked = true
-                    break
-                case 'all':
-                    this.$boxGroupAll.classList.add('box-selected')
-                    this.$boxGroupAll.querySelector('input[type=radio]').checked = true
-                    break
-                case 'custom':
-                    this.$boxGroupCustom.classList.add('box-selected')
-                    this.$boxGroupCustom.querySelector('input[type=radio]').checked = true
-                    document.querySelector('.table-blocks-container').classList.remove('hidden')
-                    document.getElementById('settings-checkboxes-include').classList.add('hidden')
-                    break
-            }
-        },
-        drawToCanvas() {
-            this.ctxTemp.imageSmoothingEnabled = false
-            const inputWidth = parseInt(this.$inputWidth.value)
-            const inputHeight = parseInt(this.$inputHeight.value)
-            canvasTemp.width = inputWidth
-            canvasTemp.height = inputHeight
-            if (this.$checkboxCrop.checked) {
-                const cropInfo = this.svgCroppy.getCropInfo()
-                if (store.uploadedImage.naturalHeight > 500) {
-                    cropInfo.height = store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.height
-                    cropInfo.width = store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.width
-                    cropInfo.offsetY = store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.offsetY
-                    cropInfo.offsetX = store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.offsetX
-                }
-
-                store.mineartCanvas.setOriginalImage({
-                    src: store.uploadedImage.src,
-                    x: cropInfo.offsetX,
-                    y: cropInfo.offsetY,
-                    width: cropInfo.width,
-                    height: cropInfo.height
-                })
-
-                const widthCropRatio = inputWidth / cropInfo.width
-                const heightCropRatio = inputHeight / cropInfo.height 
-                this.ctxTemp.drawImage(store.uploadedImage, 
-                                       -cropInfo.offsetX * widthCropRatio, 
-                                       -cropInfo.offsetY * heightCropRatio,
-                                       store.uploadedImage.naturalWidth * widthCropRatio, 
-                                       store.uploadedImage.naturalHeight * heightCropRatio)
-            } else {
-                this.ctxTemp.drawImage(store.uploadedImage, 0, 0, canvasTemp.width, canvasTemp.height)
-                store.mineartCanvas.setOriginalImage({
-                    src: store.uploadedImage.src,
-                    x: 0,
-                    y: 0,
-                    width: store.uploadedImage.width,
-                    height: store.uploadedImage.height
-                })
-            }
-        },
-        changeToEditorScreen() {
-            document.querySelector('section.settings-screen').classList.add('hidden')
-            document.querySelector('section.editor-screen').classList.remove('hidden')
-            if (store.uploadedType === 'schem') {
-                store.editorScreen.$settingsOriginal.disabled = true
-            } else {
-                store.editorScreen.$settingsOriginal.disabled = false
-            }
-            store.editorScreen.resetScreen()
-        },
-        resetScreen() {
-            this.$boxGroupAll.click()
-            this.$checkboxCrop.checked = false
-            this.$checkboxIgnoreRatio.checked = false
-            document.querySelectorAll('#settings-checkboxes-include input').forEach((item) => {
-                item.checked = false
-            })
-            document.querySelector('#settings-checkboxes-include input[name="include-falling"]').checked = true
-        }
-    },
-    editorScreen: {
-        eyedropListener: null,
-        mainEyedrop: null,
-        currentHistoryPos: -1,
-        noBlockImg: new Image(),
-        currentTool: 'pencil',
-        brushSize: 3,
-        pencilSize: 3,
-        maxHistory: 100,
-        tempEyedrop: false,
-        $divCanvas: document.getElementById('editor-canvas'),
-        $topbarBtns: document.querySelectorAll('.topbar-btn'),
-        $saveBtn: document.getElementById('editor-save-btn'),
-        $saveInput: document.getElementById('editor-save-input'),
-        $replaceMenuTarget: document.getElementById('editor-replace-target'),
-        $replaceMenuReplace: document.getElementById('editor-replace-replacement'),
-        $replaceMenuBtn: document.getElementById('editor-replace-btn'),
-        $replaceMenuInfo: document.getElementById('editor-replace-info'),
-        $historyContainer: document.getElementById('editor-history'),
-        $historyFirstAction: document.getElementById('editor-first-action'),        
-        $blocksList: document.getElementById('editor-block-list'),
-        $btnConvert: document.getElementById('editor-btn-convert'),
-        $inputImage: document.getElementById('editor-file-input-image'),
-        $inputData: document.getElementById('editor-file-input-data'),
-        $inputFilter: document.getElementById('editor-input-filter'),
-        $brushContainer: document.getElementById('editor-brush-container'),
-        $brushShape: document.getElementById('editor-brush-shape'),
-        $brushString: document.getElementById('editor-brush-string'),
-        $brushMinus: document.getElementById('editor-brush-minus'),
-        $brushPlus: document.getElementById('editor-brush-plus'),
-        $mainEyedrop: document.getElementById('editor-main-eyedrop'),
-        $footbarLeft: document.getElementById('editor-footbar-left'),
-        $footbarRight: document.getElementById('editor-footbar-right'),
-        $settingsGrid: document.getElementById('editor-settings-grid'),
-        $settingsRulers: document.getElementById('editor-settings-rulers'),
-        $settingsOriginal: document.getElementById('editor-settings-original'),
-        $settingsGridColor: document.getElementById('editor-settings-grid-color'),
-        // $settingsGroups: document.getElementById('editor-settings-groups'),
-        $helpFaq: document.getElementById('editor-help-faq'),
-        $helpControls: document.getElementById('editor-help-controls'),
-        setEyedropListener(node) {
-            this.eyedropListener = node
-            node.classList.add('active')
-            store.mineartCanvas.setTool('clicker')
-        },
-        removeEyedropListener() {
-            if (this.eyedropListener) {
-                this.eyedropListener.classList.remove('active')
-                this.eyedropListener = null
-                store.mineartCanvas.setTool(this.currentTool)
-            }
-        },
-        fillBlockList() {
-            this.noBlockImg.src = require('../static/textures/no_block.png')
-            this.noBlockImg.onclick = () => {
-                this.setEyedrop(0)
-            }
-            store.editorScreen.$blocksList.appendChild(this.noBlockImg)
-            store.blocksDefault.forEach((item) => {
-                const node = new Image()
-                node.src = item.src
-                node.classList.add('img-pixelated')
-                node.setAttribute('data-block-id', item.id)
-                node.onclick = () => {
-                    if (store.editorScreen.eyedropListener) {
-                        store.editorScreen.eyedropListener.setAttribute('data-block-id', item.id)
-                        store.editorScreen.eyedropListener.src = item.src
-                        const $title = store.editorScreen.eyedropListener.parentNode.querySelector('span')
-                        if ($title) {
-                            $title.innerHTML = item.name
-                        }
-                        store.editorScreen.removeEyedropListener()
-                    } else {
-                        this.setEyedrop(item.id)
-                    }
-                }
-                store.editorScreen.$blocksList.appendChild(node)
-            })
-        },
-        changeToSettingsScreen() {
-            document.querySelector('section.editor-screen').classList.add('hidden')
-            document.querySelector('section.convert-screen').classList.add('hidden')
-            document.querySelector('section.settings-screen').classList.remove('hidden')
-            store.settingsScreen.resetScreen()
-        },
-        removeHistory() {
-            document.querySelectorAll('.info-panels-history-action').forEach((item) => {
-                item.remove()
-            })
-        },
-        setEyedrop(int) {
-            if (int != 0) {
-                const block = store.findBlockById(int)
-                this.$mainEyedrop.src = block.src
-            } else {
-                this.$mainEyedrop.src = this.noBlockImg.src
-            }
-            this.mainEyedrop = int
-            store.mineartCanvas.setEyedrop(int)
-        },
-        filterBlockList(str) {
-            store.blocksDefault.forEach((item) => {
-                const regex = new RegExp(str, 'i')
-                if (item.name.match(regex)) {
-                    this.$blocksList.querySelector(`img[data-block-id="${item.id}"]`).classList.remove('hidden')
-                } else {
-                    this.$blocksList.querySelector(`img[data-block-id="${item.id}"]`).classList.add('hidden')
-                }
-            })
-        },
-        setBrushSize(int) {
-            console.log(int)
-            let temp 
-            if (int > 25) {
-                temp = 25
-            } else if (int < 1) {
-                temp = 1
-            } else {
-                temp = int
-            }
-            const size = temp < 3 ? 3 : temp
-            this.$brushShape.style.width = (size % 2 ? size : size - 1) + 'px'
-            this.$brushShape.style.height = (size % 2 ? size : size - 1) + 'px'
-            this.$brushString.innerHTML = `${temp} bl.`
-            if (this.currentTool === 'pencil') {
-                this.pencilSize = temp
-            } else if (this.currentTool === 'brush') {
-                this.brushSize = temp
-            } else {
-                this.pencilSize = temp
-                this.brushSize = temp
-            }
-            store.mineartCanvas.setBrushSize(temp)
-        },
-        resetScreen() {
-            this.currentTool = 'pencil'
-            this.brushSize = 3
-            this.pencilSize = 3
-            this.closeTopbarMenus()
-            this.$settingsRulers.checked = true
-            this.$settingsGrid.checked = false
-            this.$settingsOriginal.checked = false
-            this.$settingsGridColor.value = '#ff4778'
-            this.setEyedrop(1)
-            this.removeEyedropListener()
-            this.$replaceMenuReplace.src = null
-            this.$replaceMenuTarget.src = null
-            this.$replaceMenuReplace.parentNode.querySelector('span').innerHTML = '...'
-            this.$replaceMenuTarget.parentNode.querySelector('span').innerHTML = '...'
-        },
-        closeTopbarMenus() {
-            document.querySelectorAll('.topbar-menu').forEach((item) => {
-                item.classList.add('hidden')
-            })
-        }
-    },
-    convertScreen: {
-        wasChanged: false,
-        commBlockStrings: null,
-        mcfunctionBlob: null,
-        rawCommands: null,
-        quantityOfBlocks: null,
-        counterCommblock: new Counter(),
-        counterRaw: new Counter(),
-        counterManual: new Counter(),
-        $commBlockTextarea: document.getElementById('convert-commblock-textarea'),
-        $selectMethod: document.getElementById('convert-select-method'),
-        $selectVersion: document.getElementById('convert-select-version'),
-        $selectFacing: document.getElementById('convert-select-facing'),
-        $outputCommblock: document.getElementById('convert-output-commblock'),
-        $outputMcfunction: document.getElementById('convert-output-mcfunction'),
-        $outputRaw: document.getElementById('convert-output-raw'),
-        $outputManual: document.getElementById('convert-output-manual'),
-        $counterCommblock: document.getElementById('convert-counter-commblock'),
-        $counterRaw: document.getElementById('convert-counter-raw'),
-        $counterManual: document.getElementById('convert-counter-manual'),
-        $btnMcfunction: document.getElementById('convert-btn-mcfunction'),
-        $inputMcfunction: document.getElementById('convert-input-mcfunction'),
-        $preRaw: document.getElementById('convert-pre-raw'),
-        $tableManual: document.getElementById('convert-table-manual'),
-        $stringTotalComms: document.getElementById('convert-string-commands'),
-        $stringDelete: document.getElementById('convert-string-delete'),
-        $copyClipboard: document.getElementById('convert-copy-clipboard'),
-        $notifyDiv: document.getElementById('convert-notify-changed'),
-        $notifyLink: document.getElementById('convert-notify-link'),
-        $howtoCommand: document.getElementById('convert-howto-command'),
-        convert () {
-            if (this.wasChanged) {
-                store.mineartCanvas.resetGroups()
-                this.wasChanged = false
-            }
-            this.commBlockStrings = store.mineartCanvas.convertAsCommandBlock(this.$selectFacing.value)
-            this.mcfunctionBlob = new Blob([store.mineartCanvas.convertAsMcfunction(this.$selectFacing.value)], {type : 'text/plain'})
-            this.rawCommands = store.mineartCanvas.convertAsRaw(this.$selectFacing.value)
-            this.$btnMcfunction.href = _URL.createObjectURL(this.mcfunctionBlob)
-            this.quantityOfBlocks = store.mineartCanvas.getQuantityOfBlocks()
-
-            this.$stringTotalComms.innerHTML = `Total commands: ${this.rawCommands.length}`
-
-            this.counterCommblock.init(this.$counterCommblock)
-            this.counterCommblock.setMax(this.commBlockStrings.length)
-            this.counterCommblock.setCallback((int) => {
-                this.$commBlockTextarea.value = this.commBlockStrings[int - 1]
-                store.mineartCanvas.setSettingsValue('drawGroupsCurrent', int - 1)
-                store.mineartCanvas.render()
-            })
-            this.counterCommblock.setValue(1)
-
-            this.counterRaw.init(this.$counterRaw)
-            const commandsOnPage = 1000
-            this.counterRaw.setMax(Math.ceil(this.rawCommands.length / commandsOnPage))
-            this.counterRaw.setCallback((int) => {
-                const slice = this.rawCommands.slice((int - 1) * commandsOnPage, commandsOnPage * int)
-                let output = ''
-                slice.forEach((item) => {
-                    output += `<span>${item}</span>\n`
-                })
-                this.$preRaw.style.counterIncrement = 'line ' + (int - 1) * commandsOnPage
-                this.$preRaw.innerHTML = output
-            })
-            this.counterRaw.setValue(1)
-
-            const rowsOnPage = 10
-            const $tbody = this.$tableManual.querySelector('tbody')
-            this.counterManual.init(this.$counterManual)
-            this.counterManual.setMax(Math.ceil(this.quantityOfBlocks.length / rowsOnPage))
-            this.counterManual.setCallback((int) => {
-                $tbody.innerHTML = ''
-                const slice = this.quantityOfBlocks.slice((int - 1) * rowsOnPage, rowsOnPage * int)
-                slice.forEach((item) => {
-                    const $row = document.createElement('tr')
-                    const block = store.findBlockById(parseInt(item.id))
-                    let quantityStr = ''
-                    if (item.quant > 63) {
-                        quantityStr += `${Math.floor(item.quant / 64)} stacks`
-                        if (item.quant % 64 !== 0) {
-                            quantityStr += ` + ${item.quant % 64} blocks`
-                        }
-                    } else {
-                        quantityStr += `${item.quant} blocks`
-                    }
-                    $row.innerHTML = `<td><img class="img-pixelated" src="${block.src}"></td><td>${block.name}</td><td>${quantityStr}</td>`
-                    $tbody.appendChild($row)
-                })
-            })
-            this.counterManual.setValue(1)
-            this.$stringDelete.innerHTML = store.mineartCanvas.getCommandToDelete(this.$selectFacing.value).join('<br>')
-            this.$notifyDiv.classList.add('hidden')
-        }
-    },
+    startScreen: require('./screens/start.js').output,
+    settingsScreen: require('./screens/settings.js').output,
+    editorScreen: require('./screens/editor.js').output,
+    convertScreen: require('./screens/convert.js').output,
     modals: {
         items: {},
         $root: document.querySelector('.modal'),
@@ -694,569 +131,21 @@ const store = {
         }
     },
     setEventListeners() {
-        //Start screen
-        ////////////////////////////////////
-        this.startScreen.$dropzone.ondragover = (e) => {
-            e.preventDefault()
-        }
-
-        this.startScreen.$dropzone.ondrop = (e) => {
-            e.preventDefault()
-
-            if (e.dataTransfer.files.length !== 1) {
-                store.errors.triggerError('start-screen', 'Please, choose only one file.', 5000)
-                return
-            }
-
-            const regexp = /(.*)\.([^.]*)/
-            const ext = e.dataTransfer.files[0].name.match(regexp)[2]
-            const name = e.dataTransfer.files[0].name.match(regexp)[1]
-            if (ext.match(/(jpeg|jpg|png|bmp)/i)) {
-                this.startScreen.setNameFile(name)
-                this.startScreen.uploadImage(_URL.createObjectURL(e.dataTransfer.files[0]))
-            } else if (ext.match(/(schematic)/i)) {
-                this.startScreen.setNameFile(name)
-                this.startScreen.uploadSchematic(e.dataTransfer.files[0])
-            } else {
-                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .schematic file.', 5000)
-            }
-        }
-
-        this.startScreen.$inputFile.onchange = (e) => {
-            const regexp = /(.*)\.([^.]*)/
-            const output = e.target.files[0].name.match(regexp)
-            let ext, name
-
-            if (output) {
-                ext = e.target.files[0].name.match(regexp)[2]
-                name = e.target.files[0].name.match(regexp)[1]
-            } else {
-                e.target.value = null
-                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .schematic file.', 5000)
-                return
-            }
-
-            if (ext.match(/(jpeg|jpg|png|bmp)/i)) {
-                this.startScreen.setNameFile(name)
-                this.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
-            } else if (ext.match(/(schematic)/i)) {
-                this.startScreen.setNameFile(name)
-                this.startScreen.uploadSchematic(e.target.files[0])
-            } else {
-                e.target.value = null
-                store.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .schematic file.', 5000)
-            }
-        }
-
-        //Settings screen
-        ////////////////////////////////////
-        this.settingsScreen.$inputWidth.oninput = (e) => {
-            e.target.value = e.target.value.replace(/\D/gi, '')
-            if (!this.settingsScreen.ignoreRatio) {
-                this.settingsScreen.$inputHeight.value = Math.round(this.settingsScreen.$inputWidth.value / this.settingsScreen.aspectRatio)
-            }
-            this.settingsScreen.setEqualsString()
-        }
-
-        this.settingsScreen.$inputHeight.oninput = (e) => {
-            e.target.value = e.target.value.replace(/\D/gi, '')
-            if (!this.settingsScreen.ignoreRatio) {
-                this.settingsScreen.$inputWidth.value = Math.round(this.settingsScreen.$inputHeight.value * this.settingsScreen.aspectRatio)
-            }
-            this.settingsScreen.setEqualsString()
-        }
-
-        this.settingsScreen.$checkboxCrop.onchange = (e) => {
-            if (e.target.checked) {
-                this.settingsScreen.svgCroppy.unhide()
-                const cropInfo = this.settingsScreen.svgCroppy.getCropInfo()
-                if (store.uploadedImage.naturalHeight > 500) {
-                    cropInfo.width = Math.round(store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.width)
-                    cropInfo.height = Math.round(store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.height)
-                }
-                this.settingsScreen.setImageSizesString(cropInfo.width, cropInfo.height, true)
-                this.settingsScreen.aspectRatio = cropInfo.width / cropInfo.height
-            } else {
-                this.settingsScreen.svgCroppy.hide()
-                this.settingsScreen.setImageSizesString(store.uploadedImage.naturalWidth, store.uploadedImage.naturalHeight)
-                this.settingsScreen.aspectRatio = this.uploadedImage.width / this.uploadedImage.height
-                this.settingsScreen.$inputWidth.value = this.uploadedImage.width
-                this.settingsScreen.$inputHeight.value = this.uploadedImage.height
-            }
-            this.settingsScreen.setEqualsString()
-        }
-
-        this.settingsScreen.$checkboxIgnoreRatio.onchange = (e) => {
-            this.settingsScreen.ignoreRatio = e.target.checked
-            const icon = document.querySelector('.size-inputs i')
-            if (e.target.checked === false) {
-                this.settingsScreen.$inputHeight.value = Math.round(this.settingsScreen.$inputWidth.value / this.settingsScreen.aspectRatio)
-                this.settingsScreen.$inputWidth.value = Math.round(this.settingsScreen.$inputHeight.value * this.settingsScreen.aspectRatio)
-                this.settingsScreen.setEqualsString()
-                icon.style.opacity = 1
-            } else {
-                icon.style.opacity = 0.3
-            }
-        }
-
-        this.settingsScreen.$boxGroupSurvival.onclick = (e) => {
-            this.settingsScreen.selectBoxGroup('survival')
-        }
-
-        this.settingsScreen.$boxGroupAll.onclick = (e) => {
-            this.settingsScreen.selectBoxGroup('all')
-        }
-
-        this.settingsScreen.$boxGroupCustom.onclick = (e) => {
-            this.settingsScreen.selectBoxGroup('custom')
-        }
-
-        this.settingsScreen.$tableInput.oninput = (e) => {
-            this.settingsScreen.filterTable(this.settingsScreen.$tableInput.value)
-        }
-
-        this.settingsScreen.$tableCheckbox.oninput = (e) => {
-            const checkboxes = this.settingsScreen.$tableBlocks.querySelectorAll('tbody input')
-            if (e.target.checked) {
-                checkboxes.forEach((item) => {
-                    item.checked = true
-                })
-                this.settingsScreen.tableCounter = blocks.length
-            } else {
-                checkboxes.forEach((item) => {
-                    item.checked = false
-                })
-                this.settingsScreen.tableCounter = 0
-            }
-            this.settingsScreen.setTableCounter()
-        }
-
-        this.settingsScreen.$selectVersion.onchange = (e) => {
-            blocks.forEach((item) => {
-                let row = this.settingsScreen.$tableBlocks.querySelector(`input[data-block-id='${item.id}']`).parentNode.parentNode
-                if (item.version > parseInt(e.target.value)) {
-                    row.classList.remove('visible')
-                } else {
-                    row.classList.add('visible')
-                }
-            })
-            this.settingsScreen.setTableCounter()
-        }
-
-        this.settingsScreen.$btnSubmit.onclick = (e) => {
-            const excludeArr = []
-            const blockGroup = document.querySelector('input[name=block-groups]:checked').value
-            if (this.settingsScreen.$inputHeight.value > 256) {
-                store.errors.triggerError('settings-screen', 'Maximum height is 256.', 7000)
-                return
-            }
-
-            switch (blockGroup) {
-                case 'all':
-                    break
-                case 'survival':
-                    blocks.forEach((item) => {
-                        if (item.survival !== true) {
-                            excludeArr.push(item.id)
-                        }
-                    })
-                    break
-                case 'custom':
-                    const max = this.settingsScreen.$tableBlocks.querySelectorAll('tr.visible').length
-                    let int = 0
-                    this.settingsScreen.$tableBlocks.querySelectorAll('td input').forEach((item) => {
-                        if (item.checked === false) {
-                            excludeArr.push(parseInt(item.dataset.blockId))
-                            int++
-                        }
-                    })
-                    if (int >= max - 1) {
-                        store.errors.triggerError('settings-screen', 'Please select at least 2 blocks.', 7000)
-                        return
-                    }
-                    break
-            }
-            if (blockGroup === 'all' || blockGroup === 'survival') {
-                if (document.querySelector('input[name=include-transparent]').checked === false) {
-                    blocks.forEach((item) => {
-                        if (item.transparency === true) {
-                            excludeArr.push(item.id)
-                        }
-                    })
-                }
-                if (document.querySelector('input[name=include-falling]').checked === false) {
-                    blocks.forEach((item) => {
-                        if (item.falling === true) {
-                            excludeArr.push(item.id)
-                        }
-                    })
-                }
-                if (document.querySelector('input[name=include-redstone]').checked === false) {
-                    blocks.forEach((item) => {
-                        if (item.redstone === true) {
-                            excludeArr.push(item.id)
-                        }
-                    })
-                }
-                if (document.querySelector('input[name=include-luminance]').checked === false) {
-                    blocks.forEach((item) => {
-                        if (item.luminance === true) {
-                            excludeArr.push(item.id)
-                        }
-                    })
-                }
-            }
-            const version = parseInt(this.settingsScreen.$selectVersion.value)
-            if (version < 13) {
-                blocks.forEach((item) => {
-                    if (item.version > version) {
-                        excludeArr.push(item.id)
-                    }
-                })
-            } else {
-                blocks.forEach((item) => {
-                    if (item.game_id === 'minecraft:dried_kelp_block') {
-                        excludeArr.push(item.id)
-                    }
-                })
-            }
-            this.mineartCanvas.setSettingsValue('minecraftVersion', version)
-            this.convertScreen.$selectVersion.value = version
-
-            this.settingsScreen.drawToCanvas()
-            store.editorScreen.$footbarRight.innerHTML = `Width: <b>${canvasTemp.width} bl.</b> | Height: <b>${canvasTemp.height} bl.</b>`
-            store.showLoading()
-            this.convertWorker.postMessage({
-                imgData: this.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
-                exclude: excludeArr
-            })
-        }
-
         this.convertWorker.onmessage = (e) => {
             if (document.readyState !== 'complete') {
                 store.waitForLoaded.arr = e.data
-                store.waitForLoaded.width = canvasTemp.width
-                store.waitForLoaded.height = canvasTemp.height
+                store.waitForLoaded.width = store.canvasTemp.width
+                store.waitForLoaded.height = store.canvasTemp.height
                 return
             }
             store.hideLoading()
             this.settingsScreen.changeToEditorScreen()
-            this.mineartCanvas.init(this.editorScreen.$divCanvas)
-            this.mineartCanvas.setImageSizes(canvasTemp.width, canvasTemp.height)
+            console.log(store.editorScreen.$canvas)
+            this.mineartCanvas.init(store.editorScreen.$canvas)
+            this.mineartCanvas.setImageSizes(store.canvasTemp.width, store.canvasTemp.height)
             this.mineartCanvas.open(e.data)
             store.editorScreen.setEyedrop(1)
             store.editorScreen.setBrushSize(3)
-        }
-
-        this.settingsScreen.$imgPres.addEventListener('croppytransformed', (e) => {
-            const cropInfo = this.settingsScreen.svgCroppy.getCropInfo()
-            if (store.uploadedImage.naturalWidth > 500) {
-                cropInfo.width = Math.round(store.uploadedImage.naturalWidth / store.settingsScreen.$imgPres.width * cropInfo.width)
-                cropInfo.height = Math.round(store.uploadedImage.naturalHeight / store.settingsScreen.$imgPres.height * cropInfo.height)
-            }
-            this.settingsScreen.setImageSizesString(cropInfo.width, cropInfo.height, true)
-            this.settingsScreen.aspectRatio = cropInfo.width / cropInfo.height
-            if (!this.settingsScreen.ignoreRatio) {
-                this.settingsScreen.$inputHeight.value = Math.round(this.settingsScreen.$inputWidth.value / this.settingsScreen.aspectRatio)
-                this.settingsScreen.$inputWidth.value = Math.round(this.settingsScreen.$inputHeight.value * this.settingsScreen.aspectRatio)
-            }
-            this.settingsScreen.setEqualsString()
-        })
-
-        //Editor screen
-        ////////////////////////////////////
-        this.editorScreen.$topbarBtns.forEach((item) => {
-            item.onclick = (e) => {
-                const menu = item.querySelector('.topbar-menu')
-                if (e.target === item) {
-                    if (menu.classList.contains('hidden')) {
-                        this.editorScreen.closeTopbarMenus()
-                        menu.classList.remove('hidden')
-                    } else {
-                        this.editorScreen.closeTopbarMenus()
-                    }
-                }
-            }
-        })
-
-        this.editorScreen.$replaceMenuTarget.onclick = (e) => {
-            this.editorScreen.setEyedropListener(e.target)
-        }
-
-        this.editorScreen.$replaceMenuReplace.onclick = (e) => {
-            this.editorScreen.setEyedropListener(e.target)
-        }
-
-        this.editorScreen.$replaceMenuBtn.onclick = (e) => {
-            const id1 = parseInt(this.editorScreen.$replaceMenuTarget.dataset.blockId)
-            const id2 = parseInt(this.editorScreen.$replaceMenuReplace.dataset.blockId)
-
-            const replacedNum = this.mineartCanvas.replace(id1, id2)
-            this.editorScreen.$replaceMenuInfo.classList.remove('hidden')
-            this.editorScreen.$replaceMenuInfo.innerHTML = `${replacedNum} block(s) replaced.`
-        }
-
-        this.editorScreen.$divCanvas.onmousedown = (e) => {
-            if (e.which === 1 && this.editorScreen.$settingsOriginal.checked === true) {
-                this.mineartCanvas.setSettingsValue('showOriginal', false)
-                this.editorScreen.$settingsOriginal.checked = false
-                this.mineartCanvas.render()
-            }
-        }
-
-        this.editorScreen.$divCanvas.onclick = (e) => {
-            const info = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y).info
-            if (!info) { return }
-            if (this.editorScreen.eyedropListener) {
-                this.editorScreen.eyedropListener.setAttribute('data-block-id', info.id)
-                this.editorScreen.eyedropListener.src = info.image.src
-                const $title = this.editorScreen.eyedropListener.parentNode.querySelector('span')
-                if ($title) {
-                    $title.innerHTML = info.name
-                }
-                this.editorScreen.removeEyedropListener()
-            }
-            if (this.editorScreen.currentTool === 'eyedropper') {
-                this.editorScreen.setEyedrop(info.id)
-            }
-        }
-
-        this.editorScreen.$divCanvas.onmousemove = (e) => {
-            const data = this.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y)
-            if (data && data.info) {
-                this.editorScreen.$footbarLeft.innerHTML = `
-                    X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>${data.info.name}</b>, Game ID: <b>${data.info.game_id}</b> Pos: ${data.blockPos}
-                `
-            } else if (data) {
-                this.editorScreen.$footbarLeft.innerHTML = `
-                    X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>-</b>
-                `
-            } else {
-                this.editorScreen.$footbarLeft.innerHTML = '...'
-            }
-        }
-
-        this.editorScreen.$divCanvas.addEventListener('history', (e) => {
-            this.convertScreen.wasChanged = true
-            this.convertScreen.$notifyDiv.classList.remove('hidden')
-            this.isSaved = false
-            this.editorScreen.currentHistoryPos = e.details.pos
-
-            let historyCounter = 0
-            const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
-            actions.forEach((item) => {
-                item.classList.remove('info-panels-history-action-current')
-                if (parseInt(item.dataset.actionPos) >= parseInt(this.editorScreen.currentHistoryPos)) {
-                    item.remove()
-                    historyCounter--
-                } else {
-                    historyCounter++
-                }
-            })
-            
-            if (historyCounter === this.editorScreen.maxHistory) {
-                const lastAction = this.editorScreen.$historyContainer.querySelector('.info-panels-history-action')
-                lastAction.remove()
-            }
-
-            const node = document.createElement('div')
-            node.classList.add('info-panels-history-action')
-            node.classList.add('info-panels-history-action-current')
-            node.classList.add('info-panels-history-action-' + e.details.type)
-            node.setAttribute('data-action-pos', e.details.pos)
-            node.innerHTML = e.details.type + ' ' + e.details.pos
-            node.onclick = () => {
-                if (this.editorScreen.$settingsOriginal.checked === true) {
-                    this.mineartCanvas.setSettingsValue('showOriginal', false)
-                    this.mineartCanvas.render()
-                    this.editorScreen.$settingsOriginal.checked = false
-                }
-                this.editorScreen.$historyFirstAction.classList.remove('info-panels-history-action-current')
-                const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
-                actions.forEach((item) => {
-                    item.classList.remove('info-panels-history-action-current')
-                    if (parseInt(item.dataset.actionPos) > parseInt(node.dataset.actionPos)) {
-                        item.classList.add('info-panels-history-action-returned')
-                    } else {
-                        item.classList.remove('info-panels-history-action-returned')
-                    }
-                })
-                node.classList.add('info-panels-history-action-current')
-                this.mineartCanvas.undoTo(parseInt(node.dataset.actionPos))
-                if (this.editorScreen.currentHistoryPos !== parseInt(node.dataset.actionPos)) {
-                    this.convertScreen.$notifyDiv.classList.remove('hidden')
-                    this.isSaved = false
-                }
-                this.editorScreen.currentHistoryPos = parseInt(node.dataset.actionPos)
-                this.convertScreen.wasChanged = true
-            }
-            
-            this.editorScreen.$historyFirstAction.classList.remove('info-panels-history-action-current')
-            this.editorScreen.$historyContainer.appendChild(node)
-            this.editorScreen.$historyContainer.scrollTop = this.editorScreen.$historyContainer.scrollHeight
-        })
-
-        this.editorScreen.$historyFirstAction.onclick = (e) => {
-            e.target.classList.add('info-panels-history-action-current')
-            const actions = this.editorScreen.$historyContainer.querySelectorAll('.info-panels-history-action')
-            actions.forEach((item) => {
-                item.classList.remove('info-panels-history-action-current')
-                item.classList.add('info-panels-history-action-returned')
-            })
-            this.mineartCanvas.undoTo(-1)
-            if (this.editorScreen.currentHistoryPos !== -1) {
-                this.convertScreen.$notifyDiv.classList.remove('hidden')
-                this.isSaved = false
-            }
-            this.editorScreen.currentHistoryPos = -1
-            this.convertScreen.wasChanged = true
-        }
-
-        this.editorScreen.$btnConvert.onclick = () => {
-            document.querySelector('section.convert-screen').classList.remove('hidden')
-            this.convertScreen.convert()
-            window.scrollTo(0,document.body.scrollHeight)
-        }
-
-        this.editorScreen.$saveBtn.onclick = () => {
-            const link = this.mineartCanvas.save(this.convertScreen.$selectFacing.value)
-            this.editorScreen.$saveBtn.href = link
-            if (this.editorScreen.$saveInput.value) {
-                this.editorScreen.$saveBtn.download = `${this.editorScreen.$saveInput.value}.schematic`
-            }
-            this.isSaved = true
-        }
-
-        this.editorScreen.$inputImage.oninput = (e) => {
-            this.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
-            this.editorScreen.changeToSettingsScreen()
-            this.editorScreen.removeHistory()
-        }
-
-        this.editorScreen.$inputData.onclick = (e) => {
-            e.target.value = null
-        }
-
-        this.editorScreen.$inputData.oninput = (e) => {
-            this.startScreen.uploadSchematic(e.target.files[0])
-            this.editorScreen.removeHistory()
-        }
-
-        this.editorScreen.$inputFilter.oninput = (e) => {
-            this.editorScreen.filterBlockList(e.target.value)
-        }
-
-        document.querySelectorAll('input[name="tool"]').forEach((item) => {
-            item.addEventListener('click', (e) => {
-                const tool = e.target.value
-                store.mineartCanvas.setTool(tool)
-                this.editorScreen.currentTool = tool
-                if (tool === 'pencil') {
-                    this.editorScreen.setBrushSize(this.editorScreen.pencilSize)
-                    this.editorScreen.$brushShape.classList.remove('circle')
-                    this.editorScreen.$brushContainer.classList.remove('hidden')
-                } else if (tool === 'brush') {
-                    this.editorScreen.setBrushSize(this.editorScreen.brushSize)
-                    this.editorScreen.$brushShape.classList.add('circle')
-                    this.editorScreen.$brushContainer.classList.remove('hidden')
-                } else {
-                    this.editorScreen.$brushContainer.classList.add('hidden')
-                }
-            })
-        })
-
-        this.editorScreen.$brushMinus.onclick = () => {
-            if (this.editorScreen.currentTool === 'pencil') {
-                this.editorScreen.setBrushSize(this.editorScreen.pencilSize - 1)
-            } else if (this.editorScreen.currentTool === 'brush') {
-                this.editorScreen.setBrushSize(this.editorScreen.brushSize - 1)
-            }
-        }
-
-        this.editorScreen.$brushPlus.onclick = () => {
-            if (this.editorScreen.currentTool === 'pencil') {
-                this.editorScreen.setBrushSize(this.editorScreen.pencilSize + 1)
-            } else if (this.editorScreen.currentTool === 'brush') {
-                this.editorScreen.setBrushSize(this.editorScreen.brushSize + 1)
-            }
-        }
-
-        this.editorScreen.$settingsGrid.onchange = (e) => {
-            this.mineartCanvas.setSettingsValue('showGrid', e.target.checked)
-            this.mineartCanvas.render()
-        }
-
-        this.editorScreen.$settingsRulers.onchange = (e) => {
-            this.mineartCanvas.setSettingsValue('showRulers', e.target.checked)
-            this.mineartCanvas.render()
-        }
-
-        this.editorScreen.$settingsOriginal.onchange = (e) => {
-            this.mineartCanvas.setSettingsValue('showOriginal', e.target.checked)
-            this.mineartCanvas.render()
-        }
-
-        this.editorScreen.$settingsGridColor.onchange = (e) => {
-            this.mineartCanvas.setSettingsValue('gridColor', e.target.value)
-            this.mineartCanvas.render()
-        }
-
-        // this.editorScreen.$settingsGroups.onchange = (e) => {
-        //     this.mineartCanvas.setSettingsValue('showDebugDrawGroups', e.target.checked)
-        //     this.mineartCanvas.render()
-        // }
-
-        //Convert screen
-        ////////////////////////////////////
-        this.convertScreen.$selectMethod.onchange = (e) => {
-            this.convertScreen.$outputCommblock.classList.add('hidden')
-            this.convertScreen.$outputMcfunction.classList.add('hidden')
-            this.convertScreen.$outputRaw.classList.add('hidden')
-            this.convertScreen.$outputManual.classList.add('hidden')
-            switch (e.target.value) {
-                case 'commblock':
-                    this.convertScreen.$outputCommblock.classList.remove('hidden')
-                    break
-                case 'mcfunction':
-                    this.convertScreen.$outputMcfunction.classList.remove('hidden')
-                    break
-                case 'raw':
-                    this.convertScreen.$outputRaw.classList.remove('hidden')
-                    break
-                case 'manual':
-                    this.convertScreen.$outputManual.classList.remove('hidden')
-                    break
-            }
-        }
-
-        this.convertScreen.$selectFacing.onchange = () => {
-            this.convertScreen.convert()
-        }
-
-        this.convertScreen.$inputMcfunction.oninput = () => {
-            this.convertScreen.$btnMcfunction.download = e.target.value + '.mcfunction'
-        }
-
-        this.convertScreen.$copyClipboard.onclick = (e) => {
-            e.preventDefault()
-            this.convertScreen.$commBlockTextarea.select()
-            document.execCommand('copy')
-        }
-
-        this.convertScreen.$notifyLink.onclick = (e) => {
-            e.preventDefault()
-            this.convertScreen.convert()
-            this.convertScreen.$notifyDiv.classList.add('hidden')
-        }
-
-        this.convertScreen.$selectVersion.onchange = (e) => {
-            store.mineartCanvas.setSettingsValue('minecraftVersion', parseInt(e.target.value))
-            this.convertScreen.convert()
-        }
-
-        this.convertScreen.$howtoCommand.onclick = (e) => {
-            e.preventDefault()
-            this.modals.openModal('howto-command')
         }
 
         this.modals.$closeBtn.onclick = () => {
@@ -1267,7 +156,7 @@ const store = {
             if (store.waitForLoaded.arr !== null) {
                 console.log('waitedforload')
                 store.settingsScreen.changeToEditorScreen()
-                store.mineartCanvas.init(store.editorScreen.$divCanvas)
+                store.mineartCanvas.init(store.editorScreen.$canvas)
                 store.mineartCanvas.setImageSizes(store.waitForLoaded.width, store.waitForLoaded.height)
                 store.mineartCanvas.open(store.waitForLoaded.arr)
                 store.waitForLoaded = null
@@ -1332,11 +221,15 @@ blocks.sort((a, b) => {
     return aHsv.h - bHsv.h + aHsv.s - bHsv.s + bHsv.v - aHsv.v;
 })
 
+store.startScreen.init(store)
+store.settingsScreen.init(store)
+store.editorScreen.init(store)
+store.convertScreen.init(store)
 store.errors.init()
 store.modals.init()
 store.setEventListeners()
 store.editorScreen.fillBlockList()
-// store.startScreen.init(store)
+
 
 // const tempImage = new Image()
 // tempImage.src = require('../static/pic_100.png')
@@ -1346,8 +239,8 @@ store.editorScreen.fillBlockList()
 // store.mineartCanvas.setSettingsValue('minecraftVersion', 13)
 // tempImage.onload = (e) => {
 //     // return
-//     canvasTemp.width = tempImage.width
-//     canvasTemp.height = tempImage.height
+//     store.canvasTemp.width = tempImage.width
+//     store.canvasTemp.height = tempImage.height
 //     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
 
 //     const exclude = []
@@ -1358,47 +251,47 @@ store.editorScreen.fillBlockList()
 //     })
 
 //     store.convertWorker.postMessage({
-//         imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, canvasTemp.width, canvasTemp.height).data,
+//         imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, store.canvasTemp.width, store.canvasTemp.height).data,
 //         exclude: exclude
 //     })
 //     store.startScreen.changeToEditorScreen()
 // }
 
-window.mineartDOM = {
-    changeTool(tool) {
-        store.mineartCanvas.setTool(tool)
-    },
-    testShowPainted() {
-        return store.mineartCanvas.debugRenderAllPainted()
-    },
-    undo() {
-        store.mineartCanvas.undoOnce()
-    },
-    logStore() {
-        return store.mineartCanvas._debugReturnStore()
-    },
-    debugSaveHistory() {
-        store.mineartCanvas._debugSaveHistory()
-    },
-    debugCompareHistory() {
-        return store.mineartCanvas._debugCompareHistory()
-    },
-    replace(target, replace) {
-        return store.mineartCanvas.replace(target, replace)
-    },
-    setEyedrop(id) {
-        store.mineartCanvas.setEyedrop(id)
-    },
-    save() {
-        return store.mineartCanvas.save()
-    },
-    open() {
-        store.mineartCanvas.open()
-    },
-    convert() {
-        store.mineartCanvas._convertToGroups()
-    },
-    bucket(x, y, id) {
-        store.mineartCanvas._bucket(x, y, id)
-    }
-}
+// window.mineartDOM = {
+//     changeTool(tool) {
+//         store.mineartCanvas.setTool(tool)
+//     },
+//     testShowPainted() {
+//         return store.mineartCanvas.debugRenderAllPainted()
+//     },
+//     undo() {
+//         store.mineartCanvas.undoOnce()
+//     },
+//     logStore() {
+//         return store.mineartCanvas._debugReturnStore()
+//     },
+//     debugSaveHistory() {
+//         store.mineartCanvas._debugSaveHistory()
+//     },
+//     debugCompareHistory() {
+//         return store.mineartCanvas._debugCompareHistory()
+//     },
+//     replace(target, replace) {
+//         return store.mineartCanvas.replace(target, replace)
+//     },
+//     setEyedrop(id) {
+//         store.mineartCanvas.setEyedrop(id)
+//     },
+//     save() {
+//         return store.mineartCanvas.save()
+//     },
+//     open() {
+//         store.mineartCanvas.open()
+//     },
+//     convert() {
+//         store.mineartCanvas._convertToGroups()
+//     },
+//     bucket(x, y, id) {
+//         store.mineartCanvas._bucket(x, y, id)
+//     }
+// }

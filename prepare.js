@@ -1,7 +1,7 @@
 const path = require('path')
 const Jimp = require("jimp")
 const fs = require('fs')
-const blocksDb = require('../static/blocks_12.json')
+const blocksDb = require('./static/blocks_12.json')
 const arr = []
 const colors = []
 
@@ -28,7 +28,7 @@ const colors = []
   
 blocksDb.forEach((item, i) => {
     item.id = i + 1
-    arr.push(Jimp.read('../static/textures/' + item.texture_image).then(function (image) {
+    arr.push(Jimp.read('./static/textures/' + item.texture_image).then(function (image) {
         let redSum = 0
         let greenSum = 0
         let blueSum = 0
@@ -62,7 +62,7 @@ Promise.all(arr).then(() => {
   //       return console.log(err);
   //   }
   // })
-  fs.writeFile(path.join(__dirname, '../static/baked_blocks.json'), JSON.stringify(blocksDb), function(err) {
+  fs.writeFile(path.join(__dirname, './static/baked_blocks.json'), JSON.stringify(blocksDb), function(err) {
     if(err) {
         return console.log(err);
     }

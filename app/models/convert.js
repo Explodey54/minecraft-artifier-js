@@ -1,4 +1,4 @@
-const blocks = require('../static/baked_blocks.json')
+const blocks = require('../../static/baked_blocks.json')
 
 // function findSimilarBlocks(image) {
 //     let output = ''
