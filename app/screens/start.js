@@ -24,13 +24,16 @@ const store = {
     },
     changeToEditorScreen() {
         if (store.parent.uploadedType === 'schem') {
+            store.parent.editorScreen.$settingsOriginal.parentNode.setAttribute('disabled', '')
             store.parent.editorScreen.$settingsOriginal.disabled = true
         } else {
+            store.parent.editorScreen.$settingsOriginal.parentNode.removeAttribute('disabled')
             store.parent.editorScreen.$settingsOriginal.disabled = false
         }
         document.querySelector('section.start-screen').classList.add('hidden')
         document.querySelector('section.editor-screen').classList.remove('hidden')
         store.parent.editorScreen.resetScreen()
+        store.parent.convertScreen.resetScreen()
     },
     setNameFile(str) {
         store.parent.uploadedImageName = str
@@ -51,6 +54,13 @@ const store = {
             this.changeToSettingsScreen()
             store.parent.settingsScreen.svgCroppy.init(store.parent.settingsScreen.$imgPresentation)
             store.parent.settingsScreen.svgCroppy.hide()
+            if (store.parent.uploadedImage.naturalWidth < 100 || store.parent.uploadedImage.naturalHeight < 100) {
+                store.parent.settingsScreen.$checkCrop.disabled = true
+                store.parent.settingsScreen.$checkCrop.parentNode.setAttribute('disabled', '')
+            } else {
+                store.parent.settingsScreen.$checkCrop.disabled = false
+                store.parent.settingsScreen.$checkCrop.parentNode.removeAttribute('disabled')
+            }
         }
     },
     uploadSchematic(file) {
@@ -167,8 +177,16 @@ const store = {
             }
 
             const regexp = /(.*)\.([^.]*)/
-            const ext = e.dataTransfer.files[0].name.match(regexp)[2]
-            const name = e.dataTransfer.files[0].name.match(regexp)[1]
+            const output = e.dataTransfer.files[0].name.match(regexp)
+            let ext, name
+            if (output) {
+                ext = e.dataTransfer.files[0].name.match(regexp)[2]
+                name = e.dataTransfer.files[0].name.match(regexp)[1]
+            } else {
+                store.parent.errors.triggerError('start-screen', 'Wrong file type. Try image (jpg, png, bmp) or .schematic file.', 5000)
+                return
+            }
+
             if (ext.match(/(jpeg|jpg|png|bmp)/i)) {
                 this.setNameFile(name)
                 this.uploadImage(_URL.createObjectURL(e.dataTransfer.files[0]))

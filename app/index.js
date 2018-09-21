@@ -140,7 +140,6 @@ const store = {
             }
             store.hideLoading()
             this.settingsScreen.changeToEditorScreen()
-            console.log(store.editorScreen.$canvas)
             this.mineartCanvas.init(store.editorScreen.$canvas)
             this.mineartCanvas.setImageSizes(store.canvasTemp.width, store.canvasTemp.height)
             this.mineartCanvas.open(e.data)
@@ -160,7 +159,12 @@ const store = {
                 store.mineartCanvas.setImageSizes(store.waitForLoaded.width, store.waitForLoaded.height)
                 store.mineartCanvas.open(store.waitForLoaded.arr)
                 store.waitForLoaded = null
+                store.hideLoading()
             }
+        });
+
+        document.addEventListener("DOMContentLoaded", function(event) {
+            document.body.style.display = 'block'
         });
 
         // window.onbeforeunload = function() {

@@ -131,15 +131,18 @@ const store = {
         this.$settingsGridColor.value = '#ff4778'
         this.setEyedrop(1)
         this.removeEyedropListener()
-        this.$replaceReplacement.src = null
-        this.$replaceTarget.src = null
+        this.$replaceReplacement.src = require('../../static/textures/transparent.png')
+        this.$replaceTarget.src = require('../../static/textures/transparent.png')
         this.$replaceReplacement.parentNode.querySelector('span').innerHTML = '...'
         this.$replaceTarget.parentNode.querySelector('span').innerHTML = '...'
+        this.$replaceInfo.classList.add('hidden')
+        this.$firstAction.classList.add('info-panels-history-action-current')
     },
     closeTopbarMenus() {
         document.querySelectorAll('.topbar-menu').forEach((item) => {
             item.classList.add('hidden')
         })
+        this.$replaceInfo.classList.add('hidden')
     },
     setEventListeners() {
     	this.$topbarBtns.forEach((item) => {
@@ -168,6 +171,13 @@ const store = {
             const id1 = parseInt(this.$replaceTarget.dataset.blockId)
             const id2 = parseInt(this.$replaceReplacement.dataset.blockId)
 
+            if (id1 && id2) {
+                this.$replaceBtn.classList.remove('border-danger')
+            } else {
+                this.$replaceBtn.classList.add('border-danger')
+                return
+            }
+
             const replacedNum = store.parent.mineartCanvas.replace(id1, id2)
             this.$replaceInfo.classList.remove('hidden')
             this.$replaceInfo.innerHTML = `${replacedNum} block(s) replaced.`
@@ -182,6 +192,7 @@ const store = {
         }
 
         this.$canvas.onclick = (e) => {
+            store.parent.mineartCanvas.render()
             const info = store.parent.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y).info
             if (!info) { return }
             if (this.eyedropListener) {
@@ -241,7 +252,7 @@ const store = {
             node.classList.add('info-panels-history-action-current')
             node.classList.add('info-panels-history-action-' + e.details.type)
             node.setAttribute('data-action-pos', e.details.pos)
-            node.innerHTML = e.details.type + ' ' + e.details.pos
+            node.innerHTML = e.details.type.charAt(0).toUpperCase() + e.details.type.slice(1)
             node.onclick = () => {
                 if (this.$settingsOriginal.checked === true) {
                     store.parent.mineartCanvas.setSettingsValue('showOriginal', false)
@@ -287,25 +298,60 @@ const store = {
             }
             this.currentHistoryPos = -1
             store.parent.convertScreen.wasChanged = true
+            if (this.$settingsOriginal.checked === true) {
+                store.parent.mineartCanvas.setSettingsValue('showOriginal', false)
+                store.parent.mineartCanvas.render()
+                this.$settingsOriginal.checked = false
+            }
         }
 
         this.$btnConvert.onclick = () => {
-            document.querySelector('section.convert-screen').classList.remove('hidden')
+            const convertScreen = document.querySelector('section.convert-screen')
+            convertScreen.classList.remove('hidden')
             store.parent.convertScreen.convert()
-            window.scrollTo(0,document.body.scrollHeight)
+            setTimeout(() => {
+                convertScreen.scrollIntoView({behavior: 'smooth'})
+            }, 100)
         }
 
         this.$saveBtn.onclick = () => {
+            if (this.$saveInput.value) {
+                this.$saveBtn.classList.remove('border-danger')
+                this.$saveBtn.download = `${this.$saveInput.value}.schematic`
+            } else {
+                this.$saveBtn.classList.add('border-danger')
+                return
+            }
             const link = store.parent.mineartCanvas.save(store.parent.convertScreen.$selectFacing.value)
             this.$saveBtn.href = link
-            if (this.$saveInput.value) {
-                this.$saveBtn.download = `${this.$saveInput.value}.schematic`
-            }
             this.isSaved = true
         }
 
         this.$fileInputImage.oninput = (e) => {
+            if (e.target.files.length !== 1) {
+                store.parent.errors.triggerError('editor-screen', 'Please, choose only one file.', 5000)
+                return
+            }
+            const regexp = /(.*)\.([^.]*)/
+            const output = e.target.files[0].name.match(regexp)
+            let ext, name
+            if (output) {
+                ext = e.target.files[0].name.match(regexp)[2]
+                name = e.target.files[0].name.match(regexp)[1]
+            } else {
+                store.parent.errors.triggerError('editor-screen', 'Wrong file type. Try image file (jpg, png, bmp).', 5000)
+                return
+            }
+            if (ext.match(/(jpeg|jpg|png|bmp)/i)) {
+                store.parent.startScreen.setNameFile(name)
+                store.parent.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
+            } else {
+                store.parent.errors.triggerError('editor-screen', 'Wrong file type. Try image file (jpg, png, bmp).', 5000)
+                return
+            }
+
             store.parent.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
+            store.parent.startScreen.setNameFile(name)
             this.changeToSettingsScreen()
             this.removeHistory()
         }
@@ -315,7 +361,30 @@ const store = {
         }
 
         this.$fileInputData.oninput = (e) => {
+            if (e.target.files.length !== 1) {
+                store.parent.errors.triggerError('editor-screen', 'Please, choose only one file.', 5000)
+                return
+            }
+            const regexp = /(.*)\.([^.]*)/
+            const output = e.target.files[0].name.match(regexp)
+            let ext, name
+            if (output) {
+                ext = e.target.files[0].name.match(regexp)[2]
+                name = e.target.files[0].name.match(regexp)[1]
+            } else {
+                store.parent.errors.triggerError('editor-screen', 'Wrong file type. Try .schematic file.', 5000)
+                return
+            }
+            if (ext.match(/(schematic)/i)) {
+                store.parent.startScreen.setNameFile(name)
+                store.parent.startScreen.uploadImage(_URL.createObjectURL(e.target.files[0]))
+            } else {
+                store.parent.errors.triggerError('editor-screen', 'Wrong file type. Try .schematic file.', 5000)
+                return
+            }
+
             store.parent.startScreen.uploadSchematic(e.target.files[0])
+            store.parent.startScreen.setNameFile(name)
             this.removeHistory()
         }
 
@@ -376,6 +445,14 @@ const store = {
         this.$settingsGridColor.onchange = (e) => {
             store.parent.mineartCanvas.setSettingsValue('gridColor', e.target.value)
             store.parent.mineartCanvas.render()
+        }
+
+        this.$helpFaq.onclick = () => {
+            store.parent.modals.openModal('faq')
+        }
+
+        this.$helpControls.onclick = () => {
+            store.parent.modals.openModal('controls')
         }
     }
 }

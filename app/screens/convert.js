@@ -89,6 +89,16 @@ const store = {
         this.$stringDelete.innerHTML = store.parent.mineartCanvas.getCommandToDelete(this.$selectFacing.value).join('<br>')
         this.$notifyChanged.classList.add('hidden')
     },
+    resetScreen() {
+        this.$selectVersion.value = 12
+        this.$selectMethod.value = 'commblock'
+        this.$selectFacing.value = 'north'
+        document.querySelector('section.convert-screen').classList.add('hidden')
+        this.$outputCommblock.classList.remove('hidden')
+        this.$outputMcfunction.classList.add('hidden')
+        this.$outputRaw.classList.add('hidden')
+        this.$outputManual.classList.add('hidden')
+    },
     setEventListeners() {
         this.$selectMethod.onchange = (e) => {
             this.$outputCommblock.classList.add('hidden')
@@ -115,8 +125,15 @@ const store = {
             this.convert()
         }
 
-        this.$inputMcfunction.oninput = (e) => {
-            this.$btnMcfunction.download = e.target.value + '.mcfunction'
+        this.$btnMcfunction.onclick = (e) => {
+            if (this.$inputMcfunction.value) {
+                this.$btnMcfunction.classList.remove('border-danger')
+                this.$btnMcfunction.download = `${this.$inputMcfunction.value}.mcfunction`
+            } else {
+                this.$btnMcfunction.classList.add('border-danger')
+                e.preventDefault()
+                return
+            }
         }
 
         this.$copyClipboard.onclick = (e) => {

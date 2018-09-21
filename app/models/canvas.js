@@ -1475,6 +1475,7 @@ function MineartCanvas() {
         store.settings.showOriginal = false
         store.settings.showDebugDrawGroups = false
         store.settings.gridColor = '#ff4778'
+        this.resetGroups()
     }
 
     this.open = (uint8Arr) => {

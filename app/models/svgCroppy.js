@@ -1,6 +1,10 @@
-import { setAttr } from 'redom'
-
 function SvgCroppy() {
+    function setAttr(node, obj) {
+        for (let key in obj) {
+            node.setAttribute(key, obj[key])
+        }
+    }
+
     const store = {
         style: {
             cornerWidth: 20,
@@ -392,10 +396,10 @@ function SvgCroppy() {
 
         $wrapper.style.height = $root.clientHeight + 'px'
 
-        store.posData.selectRect.width = $root.width - 40
-        store.posData.selectRect.height = $root.height - 40
-        store.posData.selectRect.offsetX = 20
-        store.posData.selectRect.offsetY = 20
+        store.posData.selectRect.width = Math.round($root.width * 0.8)
+        store.posData.selectRect.height = Math.round($root.height * 0.8)
+        store.posData.selectRect.offsetX = Math.round($root.width * 0.1)
+        store.posData.selectRect.offsetY = Math.round($root.height * 0.1)
         
         store.posData.boundingRect = $wrapper.getBoundingClientRect()
 

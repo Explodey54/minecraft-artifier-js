@@ -4,7 +4,7 @@
         <title>Minecraft Art To Block</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
     </head>
-    <body>
+    <body style="display: none;">
 
         <%=require('./modal.html')%>
 
@@ -126,6 +126,12 @@
                             Include luminance
                         </label>
                     </div>
+                    <div style="margin-bottom: 10px; margin-top: -2px;">
+                        <label class="checkbox">
+                            <input type="checkbox" id="settings-ignore-height-limit">
+                            Ignore max height limit
+                        </label>
+                    </div>
                     <div>
                         <span>Minecraft version:</span>
                         <div class="select">
@@ -137,7 +143,6 @@
                           </select>
                         </div>
                     </div>
-
                     <div style="padding: 10px 0px;">
                         <button class="button is-success" id="settings-submit" style="font-size: 20px;">Convert!</button>
                         <div class="warning is-red inline" id="error-settings-screen">
@@ -174,9 +179,12 @@
                 </div>
                 <div class="topbar-btn">Save
                     <div class="topbar-menu topbar-menu-save hidden">
-                        <a class="button is-success" id="editor-save-btn" download="art.schematic">Save as..</a>
-                        <input class="input" id="editor-save-input">
-                        <span>.schematic</span>
+                        <div style="display: flex;">
+                            <a class="button is-success" id="editor-save-btn" download="art.schematic">Save as..</a>
+                            <input class="input" id="editor-save-input">
+                            <span style="margin-left: -5px;">.schematic</span>
+                        </div>
+                        <div style="font-size: 11px; text-align: left; padding-top: 5px; padding-left: 2px;">Schematic files are compatible with WorldEdit plugin.</div>
                     </div>
                 </div>
                 <div class="topbar-btn">Replace
@@ -307,7 +315,7 @@
                         <span>Convert method:</span>
                         <div class="select">
                             <select id="convert-select-method">
-                                <option value="commblock" selected>Command block</option>
+                                <option checked value="commblock" selected>Command block</option>
                                 <option value="mcfunction">.mcfunction file</option>
                                 <option value="raw">Raw commands</option>
                                 <option value="manual">Amounts of blocks</option>
@@ -318,7 +326,8 @@
                         <span>Minecraft version:</span>
                         <div class="select">
                             <select id="convert-select-version">
-                                <option value="12">1.12</option>
+                                <option value="13">1.13</option>
+                                <option checked value="12">1.12</option>
                                 <option value="11">1.11</option>
                                 <option value="10">1.10</option>
                                 <option value="9">1.9</option>
@@ -346,7 +355,7 @@
                         <div class="control">
                             <textarea class="textarea" type="text" readonly id="convert-commblock-textarea"></textarea>
                             <div class="box counter" id="convert-counter-commblock"></div>
-                            <a class="button is-small" style="margin-left:5px; vertical-align: super;" href="%23" id="convert-copy-clipboard">Copy to clipboard</a>
+                            <a class="button is-small tooltip" data-tooltip="Copied to clipboard" style="margin-left:5px; vertical-align: super;" href="%23" id="convert-copy-clipboard">Copy to clipboard</a>
                             <a href="%23" style="margin-top: 20px; float: right;" class="button is-info" id="convert-howto-command">How do I use command blocks?</a>
                         </div> 
                     </div>

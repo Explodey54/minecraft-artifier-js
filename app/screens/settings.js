@@ -124,12 +124,13 @@ const store = {
         store.parent.canvasTemp.width = inputWidth
         store.parent.canvasTemp.height = inputHeight
         if (this.$checkCrop.checked) {
+            console.log(this.svgCroppy.getCropInfo())
             const cropInfo = this.svgCroppy.getCropInfo()
             if (store.parent.uploadedImage.naturalHeight > 500) {
-                cropInfo.height = store.parent.uploadedImage.naturalHeight / store.parent.$imgPresentation.height * cropInfo.height
-                cropInfo.width = store.parent.uploadedImage.naturalWidth / store.parent.$imgPresentation.width * cropInfo.width
-                cropInfo.offsetY = store.parent.uploadedImage.naturalHeight / store.parent.$imgPresentation.height * cropInfo.offsetY
-                cropInfo.offsetX = store.parent.uploadedImage.naturalWidth / store.parent.$imgPresentation.width * cropInfo.offsetX
+                cropInfo.height = store.parent.uploadedImage.naturalHeight / store.$imgPresentation.height * cropInfo.height
+                cropInfo.width = store.parent.uploadedImage.naturalWidth / store.$imgPresentation.width * cropInfo.width
+                cropInfo.offsetY = store.parent.uploadedImage.naturalHeight / store.$imgPresentation.height * cropInfo.offsetY
+                cropInfo.offsetX = store.parent.uploadedImage.naturalWidth / store.$imgPresentation.width * cropInfo.offsetX
             }
 
             store.parent.mineartCanvas.setOriginalImage({
@@ -166,16 +167,21 @@ const store = {
         } else {
             store.parent.editorScreen.$settingsOriginal.disabled = false
         }
-        store.parent.editorScreen.resetScreen()
     },
     resetScreen() {
         this.$groupAll.click()
         this.$checkCrop.checked = false
         this.$checkIgnoreRatio.checked = false
+        this.$ignoreHeightLimit.checked = false
+        this.ignoreRatio = false
+        document.querySelector('.size-inputs i').style.opacity = 1
         document.querySelectorAll('#settings-checkboxes-include input').forEach((item) => {
             item.checked = false
         })
         document.querySelector('#settings-checkboxes-include input[name="include-falling"]').checked = true
+        this.$tableBlocks.querySelectorAll('tbody tr').forEach((item) => {
+            item.remove()
+        })
     },
     setEventListeners() {
     	        this.$inputWidth.oninput = (e) => {
@@ -271,10 +277,25 @@ const store = {
             this.setTableCounter()
         }
 
+        this.$imgPresentation.addEventListener('croppytransformed', (e) => {
+            const cropInfo = this.svgCroppy.getCropInfo()
+            if (store.parent.uploadedImage.naturalWidth > 500) {
+                cropInfo.width = Math.round(store.parent.uploadedImage.naturalWidth / store.$imgPresentation.width * cropInfo.width)
+                cropInfo.height = Math.round(store.parent.uploadedImage.naturalHeight / store.$imgPresentation.height * cropInfo.height)
+            }
+            this.setImageSizesString(cropInfo.width, cropInfo.height, true)
+            this.aspectRatio = cropInfo.width / cropInfo.height
+            if (!this.ignoreRatio) {
+                this.$inputHeight.value = Math.round(this.$inputWidth.value / this.aspectRatio)
+                this.$inputWidth.value = Math.round(this.$inputHeight.value * this.aspectRatio)
+            }
+            this.setEqualsString()
+        })
+
         this.$submit.onclick = (e) => {
             const excludeArr = []
             const blockGroup = document.querySelector('input[name=block-groups]:checked').value
-            if (this.$inputHeight.value > 256) {
+            if (this.$inputHeight.value > 256 && this.$ignoreHeightLimit.checked === false) {
                 store.parent.errors.triggerError('settings-screen', 'Maximum height is 256.', 7000)
                 return
             }
@@ -348,9 +369,10 @@ const store = {
                     }
                 })
             }
+            store.parent.editorScreen.resetScreen()
+            store.parent.convertScreen.resetScreen()
             store.parent.mineartCanvas.setSettingsValue('minecraftVersion', version)
-            // store.parent.convertScreen.$version.value = version
-
+            store.parent.convertScreen.$selectVersion.value = version
             this.drawToCanvas()
             store.parent.editorScreen.$footbarRight.innerHTML = `Width: <b>${store.parent.canvasTemp.width} bl.</b> | Height: <b>${store.parent.canvasTemp.height} bl.</b>`
             store.parent.showLoading()
@@ -359,21 +381,6 @@ const store = {
                 exclude: excludeArr
             })
         }
-
-        this.$imgPresentation.addEventListener('croppytransformed', (e) => {
-            const cropInfo = this.svgCroppy.getCropInfo()
-            if (store.parent.uploadedImage.naturalWidth > 500) {
-                cropInfo.width = Math.round(store.parent.uploadedImage.naturalWidth / store.$imgPresentation.width * cropInfo.width)
-                cropInfo.height = Math.round(store.parent.uploadedImage.naturalHeight / store.$imgPresentation.height * cropInfo.height)
-            }
-            this.setImageSizesString(cropInfo.width, cropInfo.height, true)
-            this.aspectRatio = cropInfo.width / cropInfo.height
-            if (!this.ignoreRatio) {
-                this.$inputHeight.value = Math.round(this.$inputWidth.value / this.aspectRatio)
-                this.$inputWidth.value = Math.round(this.$inputHeight.value * this.aspectRatio)
-            }
-            this.setEqualsString()
-        })
     }
 }
 
