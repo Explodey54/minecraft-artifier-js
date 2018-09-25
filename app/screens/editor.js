@@ -41,16 +41,22 @@ const store = {
     },
     fillBlockList() {
         this.noBlockImg.src = require('../../static/textures/no_block.png')
-        this.noBlockImg.onclick = () => {
+        const wrapperNoBlock = document.createElement('div')
+        wrapperNoBlock.onclick = () => {
             this.setEyedrop(0)
         }
-        store.$blockList.appendChild(this.noBlockImg)
+        wrapperNoBlock.title = 'No Block'
+        wrapperNoBlock.appendChild(this.noBlockImg)
+        wrapperNoBlock.classList.add('info-panels-blocks-img-wrapper')
+        store.$blockList.appendChild(wrapperNoBlock)
         store.parent.blocksDefault.forEach((item) => {
+            const wrapper = document.createElement('div')
             const node = new Image()
             node.src = item.src
             node.classList.add('img-pixelated')
             node.setAttribute('data-block-id', item.id)
-            node.onclick = () => {
+            wrapper.title = item.name
+            wrapper.onclick = () => {
                 if (store.eyedropListener) {
                     store.eyedropListener.setAttribute('data-block-id', item.id)
                     store.eyedropListener.src = item.src
@@ -63,7 +69,9 @@ const store = {
                     this.setEyedrop(item.id)
                 }
             }
-            store.$blockList.appendChild(node)
+            wrapper.appendChild(node)
+            wrapper.classList.add('info-panels-blocks-img-wrapper')
+            store.$blockList.appendChild(wrapper)
         })
     },
     changeToSettingsScreen() {
@@ -81,8 +89,10 @@ const store = {
         if (int != 0) {
             const block = store.parent.findBlockById(int)
             this.$mainEyedrop.src = block.src
+            this.$mainEyedrop.title = block.name
         } else {
             this.$mainEyedrop.src = this.noBlockImg.src
+            this.$mainEyedrop.title = 'No Block'
         }
         this.mainEyedrop = int
         store.parent.mineartCanvas.setEyedrop(int)
@@ -137,12 +147,38 @@ const store = {
         this.$replaceTarget.parentNode.querySelector('span').innerHTML = '...'
         this.$replaceInfo.classList.add('hidden')
         this.$firstAction.classList.add('info-panels-history-action-current')
+        document.querySelector('.editor-tools input[value="pencil"]').checked = true
+        this.$brushShape.classList.remove('circle')
+        this.$brushContainer.classList.remove('hidden')
+        if (store.parent.localStorage.getItem('gridColor')) {
+            this.$settingsGridColor.value = store.parent.localStorage.getItem('gridColor')
+            store.parent.mineartCanvas.setSettingsValue('gridColor', this.$settingsGridColor.value)
+        }
     },
     closeTopbarMenus() {
         document.querySelectorAll('.topbar-menu').forEach((item) => {
             item.classList.add('hidden')
         })
         this.$replaceInfo.classList.add('hidden')
+    },
+    undoOnce() {
+        const temp = store.currentHistoryPos - 1
+        const node = document.querySelector(`.info-panels-history-action[data-action-pos="${temp}"]`)
+        if (temp < -1) { return }
+        if (temp === -1 || node === null) {
+            this.$firstAction.click()
+        } else {
+            node.click()
+        }
+    },
+    redoOnce() {
+        const temp = store.currentHistoryPos + 1
+        const node = document.querySelector(`.info-panels-history-action[data-action-pos="${temp}"]`)
+        if (node) {
+            node.click()
+        } else if (temp === 0) {
+            document.querySelector('.info-panels-history-action').click()
+        }
     },
     setEventListeners() {
     	this.$topbarBtns.forEach((item) => {
@@ -204,7 +240,7 @@ const store = {
                 }
                 this.removeEyedropListener()
             }
-            if (this.currentTool === 'eyedropper') {
+            if (this.currentTool === 'eyedropper' || store.parent.mineartCanvas.getTool() === 'clicker') {
                 this.setEyedrop(info.id)
             }
         }
@@ -413,17 +449,17 @@ const store = {
 
         this.$brushMinus.onclick = () => {
             if (this.currentTool === 'pencil') {
-                this.setBrushSize(this.pencilSize - 1)
+                this.setBrushSize(this.pencilSize - 2)
             } else if (this.currentTool === 'brush') {
-                this.setBrushSize(this.brushSize - 1)
+                this.setBrushSize(this.brushSize - 2)
             }
         }
 
         this.$brushPlus.onclick = () => {
             if (this.currentTool === 'pencil') {
-                this.setBrushSize(this.pencilSize + 1)
+                this.setBrushSize(this.pencilSize + 2)
             } else if (this.currentTool === 'brush') {
-                this.setBrushSize(this.brushSize + 1)
+                this.setBrushSize(this.brushSize + 2)
             }
         }
 
@@ -444,6 +480,7 @@ const store = {
 
         this.$settingsGridColor.onchange = (e) => {
             store.parent.mineartCanvas.setSettingsValue('gridColor', e.target.value)
+            store.parent.localStorage.setItem('gridColor', e.target.value)
             store.parent.mineartCanvas.render()
         }
 

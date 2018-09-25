@@ -102,7 +102,8 @@ function MineartCanvas() {
                 start: null,
                 end: null
             },
-            rulerSize: 25
+            rulerSize: 25,
+            cursor: ''
         },
         events: {
             cached: new CustomEvent('cached'),
@@ -192,6 +193,10 @@ function MineartCanvas() {
 
     /* PRIVATE METHODS */
     //////////////////////////////////////
+
+    this._setCursor = (str) => {
+        canvasOverlay.setAttribute('data-cursor', str)
+    }
 
     this._checkIfReady = () => {
         if (store.blocksDb.length === 0) { return false }
@@ -658,7 +663,10 @@ function MineartCanvas() {
             let i = 0
 
             while(true) {
-                if ((x0==x1) && (y0==y1)) break;
+                if ((x0==x1) && (y0==y1)) {
+                    callback(x0, y0)
+                    break
+                }
                 var e2 = 2*err;
                 if (e2 >-dy){ err -= dy; x0  += sx; }
                 if (e2 < dx){ err += dx; y0  += sy; }
@@ -700,7 +708,6 @@ function MineartCanvas() {
                     // }
 
                 }
-
 
                 thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
                 tempFakePaintedPoints[yBlock * store.imageWidth + xBlock] = thisRoot.getEyedrop()
@@ -755,8 +762,6 @@ function MineartCanvas() {
                 const tool = thisRoot.getTool()
                 let xBlock = (Math.floor((store.controls.mouse.localX - store.offset.x) / (store.baseCellSize * store.scale.current)))
                 let yBlock = (Math.floor((store.controls.mouse.localY - store.offset.y) / (store.baseCellSize * store.scale.current)))
-                store.controls.mouse.lastMouseX = xBlock
-                store.controls.mouse.lastMouseY = yBlock
                 store.controls.mouse.leftClick = true
 
                 if (tool === 'brush' || tool === 'pencil' || tool === 'bucket') {
@@ -767,13 +772,20 @@ function MineartCanvas() {
                     }
                 }
 
+                if (tool === 'brush' || tool === 'pencil') {
+                    if (e.shiftKey) {
+                        bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock, 1, draw)
+                    } else {
+                        draw(xBlock, yBlock)
+                    }
+                }
+
+                store.controls.mouse.lastMouseX = xBlock
+                store.controls.mouse.lastMouseY = yBlock
+
                 if (tool === 'eyedropper') {
                     let id = thisRoot._getBlockIdByPosition(xBlock, yBlock)
                     thisRoot.setEyedrop(id)
-                }
-
-                if (tool === 'brush' || tool === 'pencil') {
-                    draw(xBlock, yBlock)
                 }
 
                 if (tool === 'selection') {
@@ -803,6 +815,7 @@ function MineartCanvas() {
                     store.controls.mouse.startY = e.clientY - store.boundingRect.y
                     store.controls.mouse.oldOffsetX = store.offset.x
                     store.controls.mouse.oldOffsetY = store.offset.y
+                    thisRoot._setCursor('grabbing')
                 }
 
                 if (tool === 'bucket') {
@@ -816,6 +829,7 @@ function MineartCanvas() {
                 store.controls.mouse.startY = e.clientY - store.boundingRect.y
                 store.controls.mouse.oldOffsetX = store.offset.x
                 store.controls.mouse.oldOffsetY = store.offset.y
+                thisRoot._setCursor('grabbing')
             }
             if (e.which === 3) {
                 if (thisRoot.getTool() === 'zoom') {
@@ -856,11 +870,14 @@ function MineartCanvas() {
                 store.interface.selection.end = null
                 thisRoot._renderOverlayCanvas()
             }
+
+            thisRoot._setCursor(store.interface.cursor)
         })
 
         canvasOverlay.addEventListener("wheel", (e) => {
             if (!thisRoot._checkIfReady()) { return }
             if (store.controls.mouse.leftClick) { return }
+            if (store.controls.mouse.grabbed) { return }
             e.preventDefault()
             if (e.deltaY < 0) {
                 if (store.scale.scaleUp()) {
@@ -993,7 +1010,7 @@ function MineartCanvas() {
                     mainGridLineEveryN = 50
                     break
                 case 0.0625:
-                    mainGridLineEveryN = 100
+                    mainGridLineEveryN = 50
                     break
             }
 
@@ -1035,7 +1052,7 @@ function MineartCanvas() {
             for (let i = startOfRenderGridHorizontal + 1; i <= endOfRenderGridHorizontal; i += 1) {
                 ctxOverlay.beginPath()
                 ctxOverlay.globalAlpha = 1
-                if (i % mainGridLineEveryN === 0 && i !== store.imageWidth) {
+                if (i % mainGridLineEveryN === 0 && i !== store.imageHeight) {
                     ctxOverlay.lineWidth = lineWidthBig
                     ctxOverlay.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
                     ctxOverlay.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
@@ -1051,7 +1068,8 @@ function MineartCanvas() {
             for (let i = startOfRenderGridVertical + 1; i <= endOfRenderGridVertical; i += 1) {
                 ctxOverlay.beginPath()
                 ctxOverlay.globalAlpha = 1
-                if (i % mainGridLineEveryN === 0 && i !== store.imageHeight) {
+                if (i % mainGridLineEveryN === 0 && i !== store.imageWidth) {
+
                     ctxOverlay.lineWidth = lineWidthBig
                     ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical)
                     ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical)
@@ -1362,6 +1380,35 @@ function MineartCanvas() {
 
     this.setTool = (str) => {
         store.interface.toolCurrent = str
+        switch (str) {
+            case 'selection':
+                store.interface.cursor = 'crosshair'
+                this._setCursor(store.interface.cursor)
+                break
+            case 'zoom':
+                store.interface.cursor = 'zoom'
+                this._setCursor(store.interface.cursor)
+                break
+            case 'grab':
+                store.interface.cursor = 'grab'
+                this._setCursor(store.interface.cursor)
+                break
+            case 'bucket':
+                store.interface.cursor = 'bucket'
+                this._setCursor(store.interface.cursor)
+                break
+            case 'eyedropper':
+            case 'clicker':
+                store.interface.cursor = 'eyedropper'
+                this._setCursor(store.interface.cursor)
+                break
+            case 'brush':
+            case 'pencil':
+                store.interface.cursor = ''
+                this._setCursor(store.interface.cursor)
+                break
+        }
+        this.render()
     }
 
     this.getTool = () => {

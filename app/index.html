@@ -3,6 +3,7 @@
     <head>
         <title>Minecraft Art To Block</title>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+        <link rel="icon" type="image/png" href="<%=require('../static/img/favicon.png')%>">
     </head>
     <body style="display: none;">
 
@@ -49,10 +50,10 @@
                     <div class="size-settings clearfix">
                         <div class="size-inputs">
                             <span class="input-width">
-                                <input class="input" id="settings-input-width" placeholder="Width">
+                                <input class="input" id="settings-input-width">
                             </span><i class="fas fa-link"></i>
                             <span class="input-height">
-                                <input class="input" id="settings-input-height" placeholder="Height">
+                                <input class="input" id="settings-input-height">
                             </span> = <span id="settings-equals-blocks"></span>
                         </div>
                         <div class="size-checkboxes">
@@ -129,7 +130,7 @@
                     <div style="margin-bottom: 10px; margin-top: -2px;">
                         <label class="checkbox">
                             <input type="checkbox" id="settings-ignore-height-limit">
-                            Ignore max height limit
+                            Ignore in-game height limit
                         </label>
                     </div>
                     <div>
@@ -147,7 +148,7 @@
                         <button class="button is-success" id="settings-submit" style="font-size: 20px;">Convert!</button>
                         <div class="warning is-red inline" id="error-settings-screen">
                             <div class="warning-icon"><i class="fas fa-exclamation-triangle fa-2x"></i></div>
-                            <div class="warning-body">Please select at least 2 blocks</div>
+                            <div class="warning-body"></div>
                         </div>
                     </div>
                     
@@ -243,31 +244,31 @@
             <div class="columns is-mobile">
                 <div class="column is-three-quarters editor">
                     <div class="editor-tools">
-                        <label title="Pencil tool">
+                        <label title="Pencil tool (P)">
                             <input type="radio" name="tool" value="pencil" checked>
                             <%=require('../static/img/pencil.svg')%>
                         </label>
-                        <label title="Brush tool">
+                        <label title="Brush tool (B)">
                             <input type="radio" name="tool" value="brush">
                             <%=require('../static/img/brush.svg')%>
                         </label>
-                        <label title="Bucket tool">
+                        <label title="Bucket tool (U)">
                             <input type="radio" name="tool" value="bucket">
                             <%=require('../static/img/bucket.svg')%>
                         </label>
-                        <label title="Selection tool">
+                        <label title="Selection tool (S)">
                             <input type="radio" name="tool" value="selection">
                             <%=require('../static/img/selection.svg')%>
                         </label>
-                        <label title="Eyedropper tool">
+                        <label title="Eyedropper tool (E)">
                             <input type="radio" name="tool" value="eyedropper">
                             <%=require('../static/img/eyedropper.svg')%>
                         </label>
-                        <label title="Zoom tool">
+                        <label title="Zoom tool (Z)">
                             <input type="radio" name="tool" value="zoom">
                             <%=require('../static/img/zoom.svg')%>
                         </label>
-                        <label title="Grab tool">
+                        <label title="Grab tool (G)">
                             <input type="radio" name="tool" value="grab">
                             <%=require('../static/img/hold.svg')%>
                         </label>

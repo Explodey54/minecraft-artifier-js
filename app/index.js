@@ -1,3 +1,5 @@
+'use strict'
+
 // import './style.css'
 import './style2.css'
 import 'bulma/css/bulma.css'
@@ -27,6 +29,7 @@ const store = {
         height: null
     },
     isSaved: true,
+    leftClick: false,
     findBlockById(id) {
         return this.blocksDefault.find((item) => {
             if (item.id === id) {
@@ -145,6 +148,7 @@ const store = {
             this.mineartCanvas.open(e.data)
             store.editorScreen.setEyedrop(1)
             store.editorScreen.setBrushSize(3)
+            store.editorScreen.resetScreen()
         }
 
         this.modals.$closeBtn.onclick = () => {
@@ -167,62 +171,84 @@ const store = {
             document.body.style.display = 'block'
         });
 
-        // window.onbeforeunload = function() {
-        //    if (!store.isSaved) {
-        //        return "DONT LEAVE";
-        //    } else {
-        //       return;
-        //    }
-        // };
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'INPUT' || document.querySelector('section.editor-screen').classList.contains('hidden')) {
+                return
+            }
+            if (store.leftClick) { return }
+            switch (e.which) {
+                case 17:
+                    store.mineartCanvas.setTool('clicker')
+                    store.mineartCanvas.render()
+                    break
+                case 80:
+                    document.querySelector('.editor-tools input[value="pencil"]').click()
+                    break
+                case 66:
+                    document.querySelector('.editor-tools input[value="brush"]').click()
+                    break
+                case 85:
+                    document.querySelector('.editor-tools input[value="bucket"]').click()
+                    break
+                case 83:
+                    document.querySelector('.editor-tools input[value="selection"]').click()
+                    break
+                case 69:
+                    document.querySelector('.editor-tools input[value="eyedropper"]').click()
+                    break
+                case 90:
+                    if (e.ctrlKey) {
+                        store.editorScreen.undoOnce()
+                    } else {
+                        document.querySelector('.editor-tools input[value="zoom"]').click()
+                    }
+                    break
+                case 89:
+                    if (e.ctrlKey) {
+                        store.editorScreen.redoOnce()
+                    }
+                    break
+                case 71:
+                    document.querySelector('.editor-tools input[value="grab"]').click()
+                    break
+                case 219:
+                    if (store.editorScreen.currentTool === 'pencil' || store.editorScreen.currentTool === 'brush') {
+                        store.editorScreen.$brushMinus.click()
+                    }
+                    break
+                case 221:
+                    if (store.editorScreen.currentTool === 'pencil' || store.editorScreen.currentTool === 'brush') {
+                        store.editorScreen.$brushPlus.click()
+                    }
+                    break
+            }
+        })
+
+        document.addEventListener('keyup', (e) => {
+            if (document.activeElement.tagName === 'INPUT' || document.querySelector('section.editor-screen').classList.contains('hidden')) {
+                return
+            }
+            if (store.leftClick) { return }
+            switch (e.which) {
+                case 17:
+                    store.mineartCanvas.setTool(store.editorScreen.currentTool)
+                    break
+            }
+        })
+
+        document.addEventListener('mousedown', (e) => {
+            store.leftClick = true
+        })
+
+        document.addEventListener('mouseup', (e) => {
+            store.leftClick = false
+        })
     }
 }
 
 store.mineartCanvas.setBlocks(blocks)
 blocks.sort((a, b) => {
-    function rgb2hsv () {
-        var rr, gg, bb,
-            r = arguments[0] / 255,
-            g = arguments[1] / 255,
-            b = arguments[2] / 255,
-            h, s,
-            v = Math.max(r, g, b),
-            diff = v - Math.min(r, g, b),
-            diffc = function(c){
-                return (v - c) / 6 / diff + 1 / 2;
-            };
-
-        if (diff == 0) {
-            h = s = 0;
-        } else {
-            s = diff / v;
-            rr = diffc(r);
-            gg = diffc(g);
-            bb = diffc(b);
-
-            if (r === v) {
-                h = bb - gg;
-            }else if (g === v) {
-                h = (1 / 3) + rr - bb;
-            }else if (b === v) {
-                h = (2 / 3) + gg - rr;
-            }
-            if (h < 0) {
-                h += 1;
-            }else if (h > 1) {
-                h -= 1;
-            }
-        }
-        return {
-            h: Math.round(h * 360),
-            s: Math.round(s * 100),
-            v: Math.round(v * 100)
-        };
-    }
-
-    const aHsv = rgb2hsv(a.red, a.green, a.blue)
-    const bHsv = rgb2hsv(b.red, b.green, b.blue)
-
-    return aHsv.h - bHsv.h + aHsv.s - bHsv.s + bHsv.v - aHsv.v;
+    return a.h - b.h + a.s - b.s + b.l - a.l;
 })
 
 store.startScreen.init(store)

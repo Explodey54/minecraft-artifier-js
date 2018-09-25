@@ -22,6 +22,10 @@ const store = {
     	})
     	this.ctxTemp = store.parent.canvasTemp.getContext('2d')
     	this.setEventListeners()
+        if (store.parent.localStorage.getItem('minecraftVersion')) {
+            console.log(store.parent.localStorage.getItem('minecraftVersion'))
+            this.$version.value = store.parent.localStorage.getItem('minecraftVersion')
+        }
     },
     fillTable() {
         const tbody = this.$tableBlocks.querySelector('tbody')
@@ -255,7 +259,7 @@ const store = {
                 checkboxes.forEach((item) => {
                     item.checked = true
                 })
-                this.tableCounter = blocks.length
+                this.tableCounter = this.parent.blocksDefault.length
             } else {
                 checkboxes.forEach((item) => {
                     item.checked = false
@@ -296,7 +300,17 @@ const store = {
             const excludeArr = []
             const blockGroup = document.querySelector('input[name=block-groups]:checked').value
             if (this.$inputHeight.value > 256 && this.$ignoreHeightLimit.checked === false) {
-                store.parent.errors.triggerError('settings-screen', 'Maximum height is 256.', 7000)
+                store.parent.errors.triggerError('settings-screen', 'In-game height limit is 256 blocks.', 7000)
+                return
+            }
+
+            if (this.$inputHeight.value > 1024) {
+                store.parent.errors.triggerError('settings-screen', 'Maximum convert height is 1024.', 7000)
+                return
+            }
+
+            if (this.$inputWidth.value > 1024) {
+                store.parent.errors.triggerError('settings-screen', 'Maximum convert width is 1024.', 7000)
                 return
             }
 
@@ -313,12 +327,13 @@ const store = {
                 case 'custom':
                     const max = this.$tableBlocks.querySelectorAll('tr.visible').length
                     let int = 0
-                    this.$tableBlocks.querySelectorAll('td input').forEach((item) => {
+                    this.$tableBlocks.querySelectorAll('tr.visible td input').forEach((item) => {
                         if (item.checked === false) {
                             excludeArr.push(parseInt(item.dataset.blockId))
                             int++
                         }
                     })
+                    console.log(int, max - 1)
                     if (int >= max - 1) {
                         store.parent.errors.triggerError('settings-screen', 'Please select at least 2 blocks.', 7000)
                         return
@@ -373,6 +388,7 @@ const store = {
             store.parent.convertScreen.resetScreen()
             store.parent.mineartCanvas.setSettingsValue('minecraftVersion', version)
             store.parent.convertScreen.$selectVersion.value = version
+            store.parent.localStorage.setItem('minecraftVersion', version)
             this.drawToCanvas()
             store.parent.editorScreen.$footbarRight.innerHTML = `Width: <b>${store.parent.canvasTemp.width} bl.</b> | Height: <b>${store.parent.canvasTemp.height} bl.</b>`
             store.parent.showLoading()

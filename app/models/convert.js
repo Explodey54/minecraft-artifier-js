@@ -28,8 +28,10 @@ const blocks = require('../../static/baked_blocks.json')
 // }
 
 onmessage = function(e) {
+    const blocksCopy = Object.assign({}, blocks)
+
     e.data.exclude.forEach((item) => {
-        delete blocks[item - 1]
+        delete blocksCopy[item - 1]
     })
 
     console.log('Started converting in: ' + performance.now())
@@ -50,15 +52,16 @@ onmessage = function(e) {
             blue: imageData[i + 2],
             alpha: imageData[i + 3]
         }
-        if (pixelRgb.alpha > 10) {
+        if (pixelRgb.alpha > 70) {
             let temp = false
-            blocks.forEach((item) => {
+            for (let key in blocksCopy) {
+                const item = blocksCopy[key]
                 let dev = Math.abs(pixelRgb.red - item.red) + Math.abs(pixelRgb.green - item.green) + Math.abs(pixelRgb.blue - item.blue)
                 if (!temp || dev < temp.deviation) {
                     temp = item
                     temp.deviation = dev
                 }
-            })
+            }
             output[i / 4] = temp.id
         } else {
             output[i / 4] = 0
