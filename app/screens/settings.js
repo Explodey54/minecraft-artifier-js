@@ -177,6 +177,7 @@ const store = {
         this.$checkCrop.checked = false
         this.$checkIgnoreRatio.checked = false
         this.$ignoreHeightLimit.checked = false
+        this.$inputFilter.value = ''
         this.ignoreRatio = false
         document.querySelector('.size-inputs i').style.opacity = 1
         document.querySelectorAll('#settings-checkboxes-include input').forEach((item) => {
@@ -186,6 +187,7 @@ const store = {
         this.$tableBlocks.querySelectorAll('tbody tr').forEach((item) => {
             item.remove()
         })
+
     },
     setEventListeners() {
     	        this.$inputWidth.oninput = (e) => {
@@ -311,6 +313,11 @@ const store = {
 
             if (this.$inputWidth.value > 1024) {
                 store.parent.errors.triggerError('settings-screen', 'Maximum convert width is 1024.', 7000)
+                return
+            }
+
+            if (this.$inputWidth.value <= 0 || this.$inputHeight.value <= 0) {
+                store.parent.errors.triggerError('settings-screen', 'Width and height must be more than 0.', 7000)
                 return
             }
 

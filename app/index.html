@@ -182,7 +182,7 @@
                     <div class="topbar-menu topbar-menu-save hidden">
                         <div style="display: flex;">
                             <a class="button is-success" id="editor-save-btn" download="art.schematic">Save as..</a>
-                            <input class="input" id="editor-save-input">
+                            <input class="input" type="text" id="editor-save-input">
                             <span style="margin-left: -5px;">.schematic</span>
                         </div>
                         <div style="font-size: 11px; text-align: left; padding-top: 5px; padding-left: 2px;">Schematic files are compatible with WorldEdit plugin.</div>
@@ -226,6 +226,18 @@
                                 <input type="color" value="#ff4778" id="editor-settings-grid-color">
                                 Grid color
                             </label>
+                            <label style="margin-top: 5px; line-height: 27px;">
+                                <div class="select is-small">
+                                    <select id="editor-settings-we-direction">
+                                        <option checked value="north">North</option>
+                                        <option value="east">East</option>
+                                        <option value="south">South</option>
+                                        <option value="west">West</option>
+                                    </select>
+                                </div>
+                                WorldEdit spawn direction
+                            </label>
+
                         </div>
                     </div>
                 </div>
@@ -255,10 +267,6 @@
                         <label title="Bucket tool (U)">
                             <input type="radio" name="tool" value="bucket">
                             <%=require('../static/img/bucket.svg')%>
-                        </label>
-                        <label title="Selection tool (S)">
-                            <input type="radio" name="tool" value="selection">
-                            <%=require('../static/img/selection.svg')%>
                         </label>
                         <label title="Eyedropper tool (E)">
                             <input type="radio" name="tool" value="eyedropper">

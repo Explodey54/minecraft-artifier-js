@@ -160,6 +160,7 @@ const store = {
             item.classList.add('hidden')
         })
         this.$replaceInfo.classList.add('hidden')
+        this.removeEyedropListener()
     },
     undoOnce() {
         const temp = store.currentHistoryPos - 1
@@ -196,10 +197,12 @@ const store = {
         })
 
         this.$replaceTarget.onclick = (e) => {
+            this.removeEyedropListener()
             this.setEyedropListener(e.target)
         }
 
         this.$replaceReplacement.onclick = (e) => {
+            this.removeEyedropListener()
             this.setEyedropListener(e.target)
         }
 
@@ -358,9 +361,13 @@ const store = {
                 this.$saveBtn.classList.add('border-danger')
                 return
             }
-            const link = store.parent.mineartCanvas.save(store.parent.convertScreen.$selectFacing.value)
+            const link = store.parent.mineartCanvas.save(this.$settingsWeDirection.value)
             this.$saveBtn.href = link
             this.isSaved = true
+        }
+
+        this.$fileInputImage.onclick = (e) => {
+            e.target.value = null
         }
 
         this.$fileInputImage.oninput = (e) => {

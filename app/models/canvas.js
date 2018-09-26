@@ -1056,8 +1056,8 @@ function MineartCanvas() {
                     ctxOverlay.lineWidth = lineWidthBig
                     ctxOverlay.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
                     ctxOverlay.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
-                } else if (lineWidthSmall > 0) {
-                    ctxOverlay.globalAlpha = store.scale.current / 4 * 2
+                } else if (lineWidthSmall > 0 && store.scale.current > 0.125) {
+                    ctxOverlay.globalAlpha = store.scale.current / 6
                     ctxOverlay.lineWidth = lineWidthSmall
                     ctxOverlay.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y + 0.5)
                     ctxOverlay.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y + 0.5)
@@ -1073,8 +1073,8 @@ function MineartCanvas() {
                     ctxOverlay.lineWidth = lineWidthBig
                     ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical)
                     ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical)
-                } else if (lineWidthSmall > 0) {
-                    ctxOverlay.globalAlpha = store.scale.current / 4 * 2
+                } else if (lineWidthSmall > 0 && store.scale.current > 0.125) {
+                    ctxOverlay.globalAlpha = store.scale.current / 6
                     ctxOverlay.lineWidth = lineWidthSmall
                     ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical + 0.5)
                     ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical + 0.5)
@@ -1765,6 +1765,11 @@ function MineartCanvas() {
             output.push(this._convertGroupToCommand(tempGroup, facing).replace(/minecraft\:.*/, 'minecraft:air'))
         }
         return output
+    }
+
+    this.moveOffset = (x, y) => {
+        store.offset.translate(store.offset.x + x * store.scale.current * store.baseCellSize, store.offset.y + y * store.scale.current * store.baseCellSize)
+        this.render()
     }
 
     this.render = () => {

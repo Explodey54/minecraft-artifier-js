@@ -155,7 +155,7 @@ button.button.border-danger:focus, a.button.border-danger:focus {
 	display: flex;
   	align-items: center;
   	justify-content: center;
-  	background-image: url('../static/img/stripes.png');
+  	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA4CAAAAACN7WTCAAAAuklEQVRIx53XSQLCMAxDUd3/hjkNlFJK0niQ5P1b6xujuFdxMN2A6QpYuxw2LoWdy2DrEti7GBIuhIyLIOUCyLkdkm6DrHtC2j0g71YouAUqboaSm6Dm/lB0N1TdD8rugrr7QsOd0HEfaLkDem7AdCUs9wimK2CzfzBdCtu9hekSSOw7TBdCqidgugCS/QLTbZDuJZjuAYU+g+kWKPUgTDdBsT9huhvKvQvTXdDoa5juhFbPw3QHNP+HN8C9S6bXGcQFAAAAAElFTkSuQmCC');
 	background-blend-mode: soft-light;
 }
 
@@ -456,7 +456,7 @@ button.button.border-danger:focus, a.button.border-danger:focus {
 	padding: 10px;
 }
 
-.topbar-menu-save input {
+.topbar-menu-save input[type="text"] {
 	width: 65%;
 	margin: 0px 10px;
 }
@@ -514,7 +514,7 @@ button.button.border-danger:focus, a.button.border-danger:focus {
 
 .topbar-menu-settings {
 	padding: 5px 10px;
-	width: 220px;
+	min-width: 285px;
 }
 
 .topbar-menu-settings .settings-panel {

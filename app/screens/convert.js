@@ -121,7 +121,8 @@ const store = {
             }
         }
 
-        this.$selectFacing.onchange = () => {
+        this.$selectFacing.onchange = (e) => {
+            store.parent.editorScreen.$settingsWeDirection.value = e.target.value
             this.convert()
         }
 

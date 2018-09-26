@@ -148,6 +148,7 @@ const store = {
                         store.parent.mineartCanvas.init(store.parent.editorScreen.$canvas)
                         store.parent.mineartCanvas.setImageSizes(width, height)
                         store.parent.mineartCanvas.open(arr)
+                        store.parent.editorScreen.resetScreen()
                         store.parent.editorScreen.setBrushSize(3)
                         store.parent.hideLoading()
                     } catch (err) {

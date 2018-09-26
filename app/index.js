@@ -176,6 +176,8 @@ const store = {
                 return
             }
             if (store.leftClick) { return }
+            console.log(e.which)
+            store.editorScreen.closeTopbarMenus()
             switch (e.which) {
                 case 17:
                     store.mineartCanvas.setTool('clicker')
@@ -189,9 +191,6 @@ const store = {
                     break
                 case 85:
                     document.querySelector('.editor-tools input[value="bucket"]').click()
-                    break
-                case 83:
-                    document.querySelector('.editor-tools input[value="selection"]').click()
                     break
                 case 69:
                     document.querySelector('.editor-tools input[value="eyedropper"]').click()
@@ -210,6 +209,21 @@ const store = {
                     break
                 case 71:
                     document.querySelector('.editor-tools input[value="grab"]').click()
+                    break
+                case 79:
+                    store.editorScreen.$settingsOriginal.click()
+                    break
+                case 37:
+                    store.mineartCanvas.moveOffset(1, 0)
+                    break
+                case 38:
+                    store.mineartCanvas.moveOffset(0, 1)
+                    break
+                case 39:
+                    store.mineartCanvas.moveOffset(-1, 0)
+                    break
+                case 40:
+                    store.mineartCanvas.moveOffset(0, -1)
                     break
                 case 219:
                     if (store.editorScreen.currentTool === 'pencil' || store.editorScreen.currentTool === 'brush') {
