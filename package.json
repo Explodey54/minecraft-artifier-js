@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "webpack-dev-server --hot --inline --config=./build/webpack.dev.conf.js",
-    "build": "webpack --config=./build/webpack.prod.conf.js",
+    "build": "del /s web && webpack --config=./build/webpack.prod.conf.js",
     "prepare": "node prepare.js"
   },
   "dependencies": {

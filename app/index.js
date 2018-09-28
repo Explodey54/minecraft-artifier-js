@@ -82,6 +82,7 @@ const store = {
                 this.items[key].classList.add('hidden')
             }
             this.items[name].classList.remove('hidden')
+            store.editorScreen.closeTopbarMenus()
         },
         closeModal() {
             this.$root.classList.remove('is-active')

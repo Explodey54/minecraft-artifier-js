@@ -10,10 +10,40 @@
 			</iframe>
         </div>
         <div class="box hidden" id="modal-faq">
-            FAQ
+            <div class="content">
+                <b>Q: Why my image looks different on small scales?</b>
+                <p>A: Some textures with different colors, (e.g. Terracota, TNT) when scaled to small size, can look not similar to their original size.</p><br>
+                <b>Q: After building in-game, part of my image is missing. Why?</b>
+                <p>A: This can caused by reaching height limit, including blocks, that are not in the current game version or spawning blocks out of your max render distance.</p><br>
+                <b>Q: There are too many pages in command block convert output!</b>
+                <p>A: You can reduce number of commands, if you optimize your image to include more simillar blocks.</p><br>
+                <b>Q: Why there are no 1.13 blocks?</b>
+                <p>A: Right now 1.13 version of WorldEdit is not stable and current .schematic file structure is not compatible with 1.13 blocks. You can read more about it <a href="https://minecraft.gamepedia.com/1.13/Flattening">here.</a></p> 
+            </div>
         </div>
         <div class="box hidden" id="modal-controls">
-            Controls
+                <div class="columns">
+                    <div class="column">
+                        <p><b>P</b> - Pencil tool</p>
+                        <p><b>B</b> - Brush tool</p>
+                        <p><b>U</b> - Bucket tool</p>
+                        <p><b>E</b> - Eyedropper tool</p>
+                        <p><b>Z</b> - Zoom tool</p>
+                        <p><b>G</b> - Grab tool</p>
+                        <p><b>O</b> - Toggle original</p>
+                        <p><b>[</b> - Reduce brush size</p>
+                        <p><b>]</b> - Increase brush size</p>
+                    </div>
+                    <div class="column">
+                        <p><b>Arrow keys</b> - Move camera</p>
+                        <p><b>Mouse wheel press</b> - Grab</p>
+                        <p><b>Mouse wheel turn</b> - Change scale</p>
+                        <p><b>Shift + LClick</b> - Draw line from last point</p>
+                        <p><b>Ctrl + LClick</b> - Quick eyedropper</p>
+                        <p><b>Ctrl + Z</b> - Undo</p>
+                        <p><b>Ctrl + Y</b> - Redo</p>
+                    </div>
+                </div>
         </div>
     </div>
     <button class="modal-close is-large" aria-label="close"></button>

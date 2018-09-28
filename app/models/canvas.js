@@ -986,18 +986,23 @@ function MineartCanvas() {
 
         function renderGrid() {
             let lineWidthBig = 2,
-                lineWidthSmall = 1,
+                lineWidthSmallOpacity = 0,
                 strokeStyle = store.settings.gridColor
 
             let mainGridLineEveryN
             switch (store.scale.current) {
                 case 4:
+                    lineWidthBig = 3
+                    lineWidthSmallOpacity = 1
                     mainGridLineEveryN = 10
                     break
                 case 2:
+                    lineWidthBig = 3
+                    lineWidthSmallOpacity = 0.75
                     mainGridLineEveryN = 10
                     break
                 case 1:
+                    lineWidthSmallOpacity = 0.25
                     mainGridLineEveryN = 10
                     break
                 case 0.5:
@@ -1056,9 +1061,9 @@ function MineartCanvas() {
                     ctxOverlay.lineWidth = lineWidthBig
                     ctxOverlay.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
                     ctxOverlay.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y)
-                } else if (lineWidthSmall > 0 && store.scale.current > 0.125) {
-                    ctxOverlay.globalAlpha = store.scale.current / 6
-                    ctxOverlay.lineWidth = lineWidthSmall
+                } else if (lineWidthSmallOpacity > 0) {
+                    ctxOverlay.globalAlpha = lineWidthSmallOpacity
+                    ctxOverlay.lineWidth = 1
                     ctxOverlay.moveTo(topOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y + 0.5)
                     ctxOverlay.lineTo(bottomOfGridHorizontal, (store.imageHeight - i) * store.scale.current * 16 + store.offset.y + 0.5)
                 }
@@ -1069,13 +1074,12 @@ function MineartCanvas() {
                 ctxOverlay.beginPath()
                 ctxOverlay.globalAlpha = 1
                 if (i % mainGridLineEveryN === 0 && i !== store.imageWidth) {
-
                     ctxOverlay.lineWidth = lineWidthBig
                     ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical)
                     ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical)
-                } else if (lineWidthSmall > 0 && store.scale.current > 0.125) {
-                    ctxOverlay.globalAlpha = store.scale.current / 6
-                    ctxOverlay.lineWidth = lineWidthSmall
+                } else if (lineWidthSmallOpacity > 0) {
+                    ctxOverlay.globalAlpha = lineWidthSmallOpacity
+                    ctxOverlay.lineWidth = 1
                     ctxOverlay.moveTo(i * store.scale.current * 16 + store.offset.x, topOfGridVertical + 0.5)
                     ctxOverlay.lineTo(i * store.scale.current * 16 + store.offset.x, bottomOfGridVertical + 0.5)
                 }
