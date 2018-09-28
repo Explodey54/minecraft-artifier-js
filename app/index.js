@@ -1,7 +1,6 @@
 'use strict'
 
-// import './style.css'
-import './style2.css'
+import './style.css'
 import 'bulma/css/bulma.css'
 
 import ConvertWorker from 'worker-loader!./models/convert.js'
@@ -158,7 +157,6 @@ const store = {
 
         window.addEventListener("load", function(event) {
             if (store.waitForLoaded.arr !== null) {
-                console.log('waitedforload')
                 store.settingsScreen.changeToEditorScreen()
                 store.mineartCanvas.init(store.editorScreen.$canvas)
                 store.mineartCanvas.setImageSizes(store.waitForLoaded.width, store.waitForLoaded.height)
@@ -177,7 +175,6 @@ const store = {
                 return
             }
             if (store.leftClick) { return }
-            console.log(e.which)
             store.editorScreen.closeTopbarMenus()
             switch (e.which) {
                 case 17:
@@ -274,69 +271,3 @@ store.errors.init()
 store.modals.init()
 store.setEventListeners()
 store.editorScreen.fillBlockList()
-
-
-// const tempImage = new Image()
-// tempImage.src = require('../static/pic_100.png')
-// store.startScreen.changeToSettingsScreen()
-// store.startScreen.uploadImage(tempImage.src)
-
-// store.mineartCanvas.setSettingsValue('minecraftVersion', 13)
-// tempImage.onload = (e) => {
-//     // return
-//     store.canvasTemp.width = tempImage.width
-//     store.canvasTemp.height = tempImage.height
-//     store.settingsScreen.ctxTemp.drawImage(tempImage, 0, 0, tempImage.width, tempImage.height)
-
-//     const exclude = []
-//     blocks.forEach((item) => {
-//         if (item.luminance === true || item.transparency === true || item.redstone === true) {
-//             exclude.push(item.id)
-//         }
-//     })
-
-//     store.convertWorker.postMessage({
-//         imgData: store.settingsScreen.ctxTemp.getImageData(0, 0, store.canvasTemp.width, store.canvasTemp.height).data,
-//         exclude: exclude
-//     })
-//     store.startScreen.changeToEditorScreen()
-// }
-
-// window.mineartDOM = {
-//     changeTool(tool) {
-//         store.mineartCanvas.setTool(tool)
-//     },
-//     testShowPainted() {
-//         return store.mineartCanvas.debugRenderAllPainted()
-//     },
-//     undo() {
-//         store.mineartCanvas.undoOnce()
-//     },
-//     logStore() {
-//         return store.mineartCanvas._debugReturnStore()
-//     },
-//     debugSaveHistory() {
-//         store.mineartCanvas._debugSaveHistory()
-//     },
-//     debugCompareHistory() {
-//         return store.mineartCanvas._debugCompareHistory()
-//     },
-//     replace(target, replace) {
-//         return store.mineartCanvas.replace(target, replace)
-//     },
-//     setEyedrop(id) {
-//         store.mineartCanvas.setEyedrop(id)
-//     },
-//     save() {
-//         return store.mineartCanvas.save()
-//     },
-//     open() {
-//         store.mineartCanvas.open()
-//     },
-//     convert() {
-//         store.mineartCanvas._convertToGroups()
-//     },
-//     bucket(x, y, id) {
-//         store.mineartCanvas._bucket(x, y, id)
-//     }
-// }

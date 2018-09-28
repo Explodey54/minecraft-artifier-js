@@ -150,30 +150,8 @@ function MineartCanvas() {
         }
     }
 
-    /* DEBUG */
-    /////////////////////
-
-    this._debugSaveHistory = () => {
-        let history = {
-            cachedPainted: store.history.cachedPainted,
-            log: store.history.log
-        }
-        store.debug.savedStartHistory = JSON.parse(JSON.stringify(history))
-    }
-
-    this._debugCompareHistory = () => {
-        var deepEqual = require('deep-equal')
-        let history = {
-            cachedPainted: store.history.cachedPainted,
-            log: store.history.log
-        }
-        history = JSON.parse(JSON.stringify(history))
-        return deepEqual(store.debug.savedStartHistory, history)
-    }
-
-    this._debugReturnStore = () => {
-        return store
-    }
+    /* PRIVATE METHODS */
+    //////////////////////////////////////
 
     this._isEmptyObject = (obj) => {
         for (let key in obj) {
@@ -182,25 +160,12 @@ function MineartCanvas() {
         return true;
     }
 
-    this._intToDoubleHex = (int) => {
-        const output = int.toString(16)
-        if (output.length === 1) {
-            return ('0' + output)
-        } else {
-            return output
-        }
-    }
-
-    /* PRIVATE METHODS */
-    //////////////////////////////////////
-
     this._setCursor = (str) => {
         canvasOverlay.setAttribute('data-cursor', str)
     }
 
     this._checkIfReady = () => {
         if (store.blocksDb.length === 0) { return false }
-        // if (store.imageConvertedHex === null) { return false }
         return true
     }
 
@@ -508,7 +473,6 @@ function MineartCanvas() {
                 } else {
                     break
                 }
-                // if (targetPos - targetHeight * store.imageWidth < 0) { break }
             }
 
             if (targetWidth === 1 && targetHeight === 1) {
@@ -545,29 +509,7 @@ function MineartCanvas() {
         }
 
         store.groups = groups
-
-        console.log(groups.length, Object.keys(catchedBlocks).length)
         return
-
-        // groups.forEach((item) => {
-        //     if (item.length === 1) {
-        //         const pos = this._getPosFromInt(item[0])
-        //         ctxMain.fillStyle = "red"
-        //         ctxMain.fillRect(
-        //                       pos.x * store.baseCellSize * store.scale.current + store.offset.x,
-        //                       pos.y * store.baseCellSize * store.scale.current + store.offset.y,
-        //                       store.scale.current * store.baseCellSize,
-        //                       store.scale.current * store.baseCellSize)
-        //     } else {
-        //         const startPos = this._getPosFromInt(item[0])
-        //         const endPos = this._getPosFromInt(item[1])
-        //         ctxMain.strokeRect(
-        //                       startPos.x * store.baseCellSize * store.scale.current + store.offset.x,
-        //                       endPos.y * store.baseCellSize * store.scale.current + store.offset.y,
-        //                       (endPos.x - startPos.x + 1) * store.scale.current * store.baseCellSize,
-        //                       (startPos.y - endPos.y + 1) * store.scale.current * store.baseCellSize)
-        //     }
-        // })
     }
 
     this._convertPosToRelCoords = (pos, facing, offset) => {
@@ -701,12 +643,6 @@ function MineartCanvas() {
                     if (Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) > radius + 0.5) {
                         continue
                     }
-                    
-                    // const xDiv = startPointX % 2, yDiv = startPointY % 2
-                    // if ((xBlock + yBlock) % 2 === 1) {
-                    //     continue
-                    // }
-
                 }
 
                 thisRoot._fakePaint(xBlock, yBlock, thisRoot.getEyedrop())
@@ -727,13 +663,6 @@ function MineartCanvas() {
                 thisRoot._renderOverlayCanvas()
             }
             if (store.controls.mouse.leftClick && (thisRoot.getTool() === 'pencil' || thisRoot.getTool() === 'brush')) {
-                // if (xBlock < 0 || xBlock >= store.imageWidth ) { return }
-                // if (yBlock < 0 || yBlock >= store.imageHeight ) { return }
-                // if (store.interface.rulerSize > Math.floor(e.pageX - store.boundingRect.x) ||
-                //     store.canvasHeight - store.interface.rulerSize < Math.floor(e.pageY - store.boundingRect.y)) {
-                //         return
-                // }
-
                 //start the bresenham algorithm with the callback
                 const skipEveryN = Math.ceil(store.interface.brushSize / 2)
                 bresenhamLine(store.controls.mouse.lastMouseX, store.controls.mouse.lastMouseY, xBlock, yBlock, skipEveryN, draw)
@@ -1315,14 +1244,12 @@ function MineartCanvas() {
         }
 
         var t0 = performance.now()
-        // ctxMain.clearRect(0, 0, store.canvasWidth, store.canvasHeight)
 
         renderHelper([
             'RENDER_BACKGROUND',
             store.settings.showOriginal ? 'RENDER_ORIGINAL' : 'RENDER_MAIN',
             store.settings.showDebugDrawGroups ? 'RENDER_GROUPS' : false,
         ])
-        // console.log(performance.now() - t0)
     }
 
     /* PUBLIC METHODS */
@@ -1362,7 +1289,6 @@ function MineartCanvas() {
         canvasInit.width = store.imageWidth * 16
         canvasInit.height = store.imageHeight * 16
         ctxInit.clearRect(0, 0, canvasInit.width, canvasInit.height)
-        console.log('cleared')
     }
 
     this.setBoundingRect = () => {

@@ -512,13 +512,6 @@ function SvgCroppy() {
         `
         const $wrapper = document.createElement('div')
         $wrapper.className = 'croppy-wrapper'
-        // $wrapper.style.width = $root.width + 'px'
-        // $wrapper.style.height = $root.height + 'px'
-
-        // store.posData.selectRect.width = $root.width - 40
-        // store.posData.selectRect.height = $root.height - 40
-        // store.posData.selectRect.offsetX = 20
-        // store.posData.selectRect.offsetY = 20
 
         this._storeSetNode('wrapper', $wrapper)
 
@@ -542,15 +535,6 @@ function SvgCroppy() {
         this._storeSetSvgNode('barRight', $svg.querySelector('.croppy-svg-bar-right')),
         this._storeSetSvgNode('barBottom', $svg.querySelector('.croppy-svg-bar-bottom')),
 
-        // setAttr($svgSelectRect, {
-        //     width: store.posData.selectRect.width,
-        //     height: store.posData.selectRect.height,
-        //     x: store.posData.selectRect.offsetX,
-        //     y: store.posData.selectRect.offsetY
-        // })
-
-        // store.posData.boundingRect = $svg.getBoundingClientRect()
-        // this.render()
         this.setSizes()
         this._setEventListeners()
     }

@@ -1,45 +1,16 @@
 const blocks = require('../../static/baked_blocks.json')
 
-// function findSimilarBlocks(image) {
-//     let output = ''
-
-//     for (let x in image) {
-//         for (let y in image[x]) {
-//             let pixel = image[x][y]
-//             let pixelHsl = rgbToHsl(pixel.red, pixel.green, pixel.blue)
-//             let colorName = getColorGroupHSL(pixelHsl[0], pixelHsl[1], pixelHsl[2])
-//             let temp = false
-            
-//             store.colorGroups[colorName].forEach((item) => {
-//                 let dev = Math.abs(pixelHsl[0] - item.hsl[0] + pixelHsl[1] - item.hsl[1] + pixelHsl[2] - item.hsl[2])
-//                 if (!temp || temp.deviation > dev) {
-//                     temp = item
-//                     temp.deviation = dev
-//                 }
-//             })
-//             if (temp.id < 16) {
-//                 output += '0' + temp.id.toString(16)
-//             } else {
-//                 output += temp.id.toString(16)
-//             }
-//         }
-//     }
-//     return output
-// }
-
 onmessage = function(e) {
     const blocksCopy = Object.assign({}, blocks)
 
     e.data.exclude.forEach((item) => {
         delete blocksCopy[item - 1]
     })
-
-    console.log('Started converting in: ' + performance.now())
     
     const imageData = e.data.imgData
 
     if (imageData.constructor.name != 'Uint8ClampedArray') {
-        console.log('not uint8!!!')
+        console.error('not uint8!!!')
         return
     }
 

@@ -5,9 +5,7 @@ function SchematicsHelper() {
 	this.Zlib = Zlib.Zlib
 
 	this.encode = (obj) => {
-
 		const writer = new Nbt.Writer()
-		// console.log()
 		writer.compound(obj)
 		const compound = new Uint8Array(writer.getData())
 		const compoundName = 'Schematic'
@@ -17,21 +15,15 @@ function SchematicsHelper() {
 		compoundName.split('').forEach((i, k) => {
 			output[k + 3] = i.charCodeAt(0)
 		})
-		// console.log(compound)
 		output.set(compound, 3 + compoundName.length)
-		// console.log(output)
 		var gzip = new this.Zlib.Gzip(output)
 		var compressed = gzip.compress()
 		return compressed
 	}
 
 	this.decode = (arr, callback) => {
-
 		const gzip = new this.Zlib.Gunzip(arr)
-		// const reader = new Nbt()
 		Nbt.parse(arr, callback)
-		// console.log(output)
-		// return output
 	}
 }
 

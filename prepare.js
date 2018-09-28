@@ -23,7 +23,6 @@ function rgbToHsl(r, g, b){
         h /= 6;
     }
 
-    // return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
     return {
       h: Math.round(h * 360),
       s: Math.round(s * 100),
@@ -56,25 +55,15 @@ blocksDb.forEach((item, i) => {
         item.h = hsl.h
         item.s = hsl.s
         item.l = hsl.l
-
-        // colors.push({
-        //     id: item.id,
-        //     red: red,
-        //     green: green,
-        //     blue: blue
-        // })
     }))
 })
 
 Promise.all(arr).then(() => {
-  // fs.writeFile(path.join(__dirname, '../static/baked_colors.json'), JSON.stringify(colors), function(err) {
-  //   if(err) {
-  //       return console.log(err);
-  //   }
-  // })
   fs.writeFile(path.join(__dirname, './static/baked_blocks.json'), JSON.stringify(blocksDb), function(err) {
     if(err) {
         return console.log(err);
+    } else {
+        console.log('Completed!')
     }
   })
 }, reject => {

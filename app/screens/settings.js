@@ -23,7 +23,6 @@ const store = {
     	this.ctxTemp = store.parent.canvasTemp.getContext('2d')
     	this.setEventListeners()
         if (store.parent.localStorage.getItem('minecraftVersion')) {
-            console.log(store.parent.localStorage.getItem('minecraftVersion'))
             this.$version.value = store.parent.localStorage.getItem('minecraftVersion')
         }
     },
@@ -82,7 +81,6 @@ const store = {
         }
     },
     setTableCounter() {
-        // const hidden = this.$tableBlocks.querySelectorAll('tr.hidden').length
         const max = this.$tableBlocks.querySelectorAll('tr.visible').length
         const int = this.$tableBlocks.querySelectorAll('tr.visible td input:checked').length
         
@@ -128,7 +126,6 @@ const store = {
         store.parent.canvasTemp.width = inputWidth
         store.parent.canvasTemp.height = inputHeight
         if (this.$checkCrop.checked) {
-            console.log(this.svgCroppy.getCropInfo())
             const cropInfo = this.svgCroppy.getCropInfo()
             if (store.parent.uploadedImage.naturalHeight > 500) {
                 cropInfo.height = store.parent.uploadedImage.naturalHeight / store.$imgPresentation.height * cropInfo.height
@@ -340,7 +337,6 @@ const store = {
                             int++
                         }
                     })
-                    console.log(int, max - 1)
                     if (int >= max - 1) {
                         store.parent.errors.triggerError('settings-screen', 'Please select at least 2 blocks.', 7000)
                         return
