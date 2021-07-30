@@ -1702,6 +1702,14 @@ function MineartCanvas() {
         this.render()
     }
 
+    this.getDataUrl = function() {
+        if (store.imageWidth > 256 || store.imageHeight > 256) {
+            if (!confirm("Images with width/length more than 256 blocks may cause performance issues.\nContinue?"))
+                return null
+        }
+        return canvasTemp.toDataURL()
+    }
+
     this.render = () => {
         this._renderMainCanvas()
         this._renderOverlayCanvas()
