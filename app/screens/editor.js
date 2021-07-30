@@ -498,6 +498,14 @@ const store = {
         this.$helpControls.onclick = () => {
             store.parent.modals.openModal('controls')
         }
+        this.$btnSavePng.onclick = function() {
+            var n = new Image
+                , e = store.parent.mineartCanvas.getDataUrl();
+            if (null !== e) {
+                n.src = e;
+                window.open(e).document.write(n.outerHTML)
+            }
+        }
     }
 }
 
