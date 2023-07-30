@@ -2023,6 +2023,13 @@ function MineartCanvas() {
         killCommand = `kill @e[type=${commandBlockCartId},r=2]`;
         break;
       case 13:
+      case 14:
+      case 15:
+      case 16:
+      case 17:
+      case 18:
+      case 19:
+      case 20:
         fallingBlockId = "falling_block";
         commandBlockCartId = "command_block_minecart";
         killCommand = `kill @e[type=${commandBlockCartId},distance=..2]`;

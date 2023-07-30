@@ -278,9 +278,14 @@ const store = {
 
     this.$canvas.onmousemove = (e) => {
       const data = store.parent.mineartCanvas.getBlockInfoByMouseXY(e.x, e.y);
+      const gameVersion = parseInt(store.parent.settingsScreen.$version.value);
       if (data && data.info) {
         this.$footbarLeft.innerHTML = `
-                    X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>${data.info.name}</b>, Game ID: <b>${data.info.game_id}</b> Pos: ${data.blockPos}
+                    X: <b>${data.x}</b>, Y: <b>${data.y}</b>, Name: <b>${
+          data.info.name
+        }</b>, Game ID: <b>${
+          gameVersion >= 13 ? data.info.game_id_13 : data.info.game_id
+        }</b> Pos: ${data.blockPos}
                 `;
       } else if (data) {
         this.$footbarLeft.innerHTML = `
